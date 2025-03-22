@@ -15,26 +15,6 @@
 <meta content='https://www.yosin-tv.net/' property='og:url'/>
 <link href='https://web.cricfoot.net/style.css' rel='stylesheet'/>
 <link href='https://web.cricfoot.net/stylee.css' rel='stylesheet'/>
-  
-    <script>
-        (function () {
-            // Bypass cache by appending a unique query string to all resources
-            const elements = document.querySelectorAll('link[rel="stylesheet"], script[src], img[src]');
-            const timestamp = Date.now();
-
-            elements.forEach(el => {
-                const srcAttr = el.tagName === 'LINK' ? 'href' : 'src';
-                const originalSrc = el.getAttribute(srcAttr);
-
-                if (originalSrc) {
-                    const newSrc = originalSrc.split('?')[0] + `?cache-buster=${timestamp}`;
-                    el.setAttribute(srcAttr, newSrc);
-                }
-            });
-
-            console.log("Cache cleared on refresh.");
-        })();
-    </script>
 
   
 
