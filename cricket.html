@@ -49,7 +49,131 @@ cookieChoices = {};
 </script>
 
   
-  
+<style>
+        /* Scoped styles for match schedule to avoid conflicts */
+        .match-schedule-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            font-family: Arial, sans-serif;
+            box-sizing: border-box;
+        }
+        .match-schedule-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+        .match-schedule-list {
+            margin: 0 auto;
+        }
+        .match-card {
+            display: block;
+            background: #f2e8e8;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            margin: 0 1rem 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.2s;
+            width: calc(100% - 2rem); /* Full width minus margins */
+            box-sizing: border-box;
+        }
+        .match-card:hover {
+            background: #f8f8f8;
+        }
+        .match-card-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .match-team {
+            flex: 1;
+            text-align: center;
+            min-width: 0; /* Prevent overflow */
+        }
+        .match-team img {
+            width: 40px;
+            height: 40px;
+            display: block;
+            margin: 0 auto;
+        }
+        .match-team-name {
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap; /* Prevent wrapping */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis for very long names */
+        }
+        .match-center {
+            flex: 1;
+            text-align: center;
+        }
+        .match-vs {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #555;
+            margin: 0;
+        }
+        .match-status {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .match-status-countdown {
+            color: #007bff;
+        }
+        .match-status-live {
+            background: #dc3545;
+            color: #fff;
+            padding: 0.02rem 0.5rem;
+            border-radius: 4px;
+            animation: match-blink 1s step-end infinite;
+        }
+        .match-status-over {
+            background: #000;
+            color: #000; /* Black text as requested, but low visibility */
+            padding: 0.02rem 0.5rem;
+            border-radius: 4px;
+        }
+        @keyframes match-blink {
+            50% { opacity: 0; }
+        }
+        .match-error {
+            text-align: center;
+            color: #dc3545;
+            font-size: 1rem;
+        }
+        @media (max-width: 768px) {
+            .match-schedule-container {
+                padding: 1.5rem 0.5rem;
+            }
+            .match-card {
+                margin: 0 0.5rem 1rem;
+                width: calc(100% - 1rem); /* Adjust for smaller margins */
+            }
+            .match-team-name {
+                font-size: 1rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .match-team-name {
+                font-size: 0.9rem; /* Smaller font for very small screens */
+            }
+            .match-vs {
+                font-size: 1rem;
+            }
+            .match-status {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+              
 <style>
 /*Font Library https://fonts.google.com/ */
    @font-face{font-family:'Neo Sans Arabic';font-style:normal;font-weight:normal;font-display:swap;src:local('Neo Sans Arabic'),url('https://fonts.gstatic.com/s/opensans/v36/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4taVIUwaEQbjB_mQ.woff2') format('woff')}
@@ -198,7 +322,13 @@ Highlights</strong></a>
 </script>		
 -->
   
-<div id="yosintv-cleague"></div>
+<div class="match-schedule-container">
+<div id="matches" class="match-schedule-list">
+<!-- Matches will be inserted here dynamically -->
+</div>
+</div>
+
+
   
 </div>
 </div>
@@ -346,6 +476,78 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
   
   
 <script async src="https://web.cricfoot.net/script.js"></script>
+
+<script>
+        async function loadMatches() {
+            try {
+                const response = await fetch('https://blog.cricfoot.net/cleague.json');
+                const data = await response.json();
+                const matchesContainer = document.getElementById('matches');
+
+                data.matches.forEach(match => {
+                    const matchCard = document.createElement('a');
+                    matchCard.href = match.details_url;
+                    matchCard.className = 'match-card';
+                    matchCard.innerHTML = `
+                        <div class="match-card-content">
+                            <div class="match-team">
+                                <img src="${match.team1_logo}" alt="${match.team1} Logo">
+                                <p class="match-team-name">${match.team1}</p>
+                            </div>
+                            <div class="match-center">
+                                <p class="match-vs">VS</p>
+                                <p class="match-status" data-time="${match.match_time}">Loading...</p>
+                            </div>
+                            <div class="match-team">
+                                <img src="${match.team2_logo}" alt="${match.team2} Logo">
+                                <p class="match-team-name">${match.team2}</p>
+                            </div>
+                        </div>
+                    `;
+                    matchesContainer.appendChild(matchCard);
+                });
+
+                updateMatchStatus(); // Initial update
+            } catch (error) {
+                console.error('Error loading matches:', error);
+                document.getElementById('matches').innerHTML = '<p class="match-error">Failed to load matches.</p>';
+            }
+        }
+
+        function updateMatchStatus() {
+            const statusElements = document.querySelectorAll('.match-status');
+            const now = new Date();
+
+            statusElements.forEach(element => {
+                const matchTime = new Date(element.dataset.time);
+                const matchEnd = new Date(matchTime.getTime() + 90 * 60 * 1000); // 90 minutes after start
+
+                if (now >= matchEnd) {
+                    element.textContent = 'Match Over';
+                    element.classList.remove('match-status-countdown', 'match-status-live');
+                    element.classList.add('match-status-over');
+                } else if (now >= matchTime) {
+                    element.textContent = 'Live Now';
+                    element.classList.remove('match-status-countdown', 'match-status-over');
+                    element.classList.add('match-status-live');
+                } else {
+                    const diff = matchTime - now;
+                    const totalHours = Math.floor(diff / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    element.textContent = `${totalHours}h ${minutes}m ${seconds}s`;
+                    element.classList.remove('match-status-live', 'match-status-over');
+                    element.classList.add('match-status-countdown');
+                }
+            });
+        }
+
+        // Load matches and update status
+        loadMatches();
+        setInterval(updateMatchStatus, 1000);
+    </script>
+
+
   
 </body>
 </html>
