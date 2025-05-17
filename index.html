@@ -51,7 +51,7 @@ cookieChoices = {};
 <script async src="https://fundingchoicesmessages.google.com/i/pub-5525538810839147?ers=1"></script><script>(function() {function signalGooglefcPresent() {if (!window.frames['googlefcPresent']) {if (document.body) {const iframe = document.createElement('iframe'); iframe.style = 'width: 0; height: 0; border: none; z-index: -1000; left: -1000px; top: -1000px;'; iframe.style.display = 'none'; iframe.name = 'googlefcPresent'; document.body.appendChild(iframe);} else {setTimeout(signalGooglefcPresent, 0);}}}signalGooglefcPresent();})();</script>
 
   
-<style>
+    <style>
         /* Scoped styles for match schedule to avoid conflicts */
         .match-schedule-container {
             max-width: 1200px;
@@ -94,6 +94,7 @@ cookieChoices = {};
         .match-team {
             flex: 1;
             text-align: center;
+            min-width: 0; /* Prevent overflow */
         }
         .match-team img {
             width: 40px;
@@ -106,6 +107,9 @@ cookieChoices = {};
             font-size: 1.1rem;
             font-weight: 600;
             color: #333;
+            white-space: nowrap; /* Prevent wrapping */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis for very long names */
         }
         .match-center {
             flex: 1;
@@ -121,16 +125,23 @@ cookieChoices = {};
             margin-top: 0.5rem;
             font-size: 0.9rem;
             font-weight: 600;
+            display: inline-block;
         }
         .match-status.countdown {
             color: #007bff;
         }
         .match-status.live {
-            color: #dc3545;
+            background: #dc3545;
+            color: #fff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
             animation: match-blink 1s step-end infinite;
         }
         .match-status.over {
-            color: #6c757d;
+            background: #000;
+            color: #000;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
         }
         @keyframes match-blink {
             50% { opacity: 0; }
@@ -148,10 +159,13 @@ cookieChoices = {};
                 margin: 0 0.5rem 1rem;
                 width: calc(100% - 1rem); /* Adjust for smaller margins */
             }
+            .match-team-name {
+                font-size: 1rem;
+            }
         }
         @media (max-width: 480px) {
             .match-team-name {
-                font-size: 1rem;
+                font-size: 0.9rem; /* Smaller font for very small screens */
             }
             .match-vs {
                 font-size: 1rem;
