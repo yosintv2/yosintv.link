@@ -425,7 +425,7 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
   
 <script async src="script.js"></script>
 
-<script>
+    <script>
         async function loadMatches() {
             try {
                 const response = await fetch('https://blog.cricfoot.net/matches.json');
@@ -435,20 +435,20 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
                 data.matches.forEach(match => {
                     const matchCard = document.createElement('a');
                     matchCard.href = match.details_url;
-                    matchCard.className = 'block bg-white rounded-lg shadow-md p-4 hover:bg-gray-50 transition mx-4';
+                    matchCard.className = 'd-block text-decoration-none bg-white rounded-3 shadow p-4 mb-4 match-card';
                     matchCard.innerHTML = `
-                        <div class="flex items-center">
-                            <div class="w-1/3 text-center">
-                                <img src="${match.team1_logo}" alt="${match.team1} Logo" class="mx-auto" style="width: 40px; height: 40px;">
-                                <p class="text-lg font-semibold mt-2">${match.team1}</p>
+                        <div class="row align-items-center">
+                            <div class="col-4 text-center">
+                                <img src="${match.team1_logo}" alt="${match.team1} Logo" class="logo-img mx-auto d-block">
+                                <p class="mt-2 mb-0 fw-semibold">${match.team1}</p>
                             </div>
-                            <div class="w-1/3 text-center">
-                                <p class="text-xl font-bold text-gray-700">VS</p>
-                                <p class="text-sm font-semibold status" data-time="${match.match_time}">Loading...</p>
+                            <div class="col-4 text-center">
+                                <p class="mb-0 fw-bold text-secondary">VS</p>
+                                <p class="mt-2 mb-0 fw-semibold status" data-time="${match.match_time}">Loading...</p>
                             </div>
-                            <div class="w-1/3 text-center">
-                                <img src="${match.team2_logo}" alt="${match.team2} Logo" class="mx-auto" style="width: 40px; height: 40px;">
-                                <p class="text-lg font-semibold mt-2">${match.team2}</p>
+                            <div class="col-4 text-center">
+                                <img src="${match.team2_logo}" alt="${match.team2} Logo" class="logo-img mx-auto d-block">
+                                <p class="mt-2 mb-0 fw-semibold">${match.team2}</p>
                             </div>
                         </div>
                     `;
@@ -458,7 +458,7 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
                 updateMatchStatus(); // Initial update
             } catch (error) {
                 console.error('Error loading matches:', error);
-                document.getElementById('matches').innerHTML = '<p class="text-center text-red-500">Failed to load matches.</p>';
+                document.getElementById('matches').innerHTML = '<p class="text-center text-danger">Failed to load matches.</p>';
             }
         }
 
@@ -472,20 +472,20 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
 
                 if (now >= matchEnd) {
                     element.textContent = 'MATCH OVER';
-                    element.classList.remove('blink', 'text-red-500', 'text-blue-500');
-                    element.classList.add('text-gray-500');
+                    element.classList.remove('blink', 'text-danger', 'text-primary');
+                    element.classList.add('text-muted');
                 } else if (now >= matchTime) {
-                    element.textContent = 'LIVE';
-                    element.classList.remove('text-blue-500', 'text-gray-500');
-                    element.classList.add('blink', 'text-red-500');
+                    element.textContent = 'LIVE NOW';
+                    element.classList.remove('text-primary', 'text-muted');
+                    element.classList.add('blink', 'text-danger');
                 } else {
                     const diff = matchTime - now;
                     const totalHours = Math.floor(diff / (1000 * 60 * 60));
                     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
                     element.textContent = `${totalHours}h ${minutes}m ${seconds}s`;
-                    element.classList.remove('blink', 'text-red-500', 'text-gray-500');
-                    element.classList.add('text-blue-500');
+                    element.classList.remove('blink', 'text-danger', 'text-muted');
+                    element.classList.add('text-primary');
                 }
             });
         }
@@ -494,6 +494,8 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
         loadMatches();
         setInterval(updateMatchStatus, 1000);
     </script>
+    <!-- Bootstrap JS CDN (optional, not needed here but included for completeness) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
 </body> 
 </html>
