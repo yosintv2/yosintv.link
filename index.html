@@ -51,7 +51,7 @@ cookieChoices = {};
 <script async src="https://fundingchoicesmessages.google.com/i/pub-5525538810839147?ers=1"></script><script>(function() {function signalGooglefcPresent() {if (!window.frames['googlefcPresent']) {if (document.body) {const iframe = document.createElement('iframe'); iframe.style = 'width: 0; height: 0; border: none; z-index: -1000; left: -1000px; top: -1000px;'; iframe.style.display = 'none'; iframe.name = 'googlefcPresent'; document.body.appendChild(iframe);} else {setTimeout(signalGooglefcPresent, 0);}}}signalGooglefcPresent();})();</script>
 
   
-    <style>
+<style>
         /* Scoped styles for match schedule to avoid conflicts */
         .match-schedule-container {
             max-width: 1200px;
@@ -72,7 +72,7 @@ cookieChoices = {};
         }
         .match-card {
             display: block;
-            background: #f2e8e8;
+            background: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             padding: 1rem;
@@ -127,19 +127,19 @@ cookieChoices = {};
             font-weight: 600;
             display: inline-block;
         }
-        .match-status.countdown {
+        .match-status-countdown {
             color: #007bff;
         }
-        .match-status.live {
+        .match-status-live {
             background: #dc3545;
             color: #fff;
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
             animation: match-blink 1s step-end infinite;
         }
-        .match-status.over {
+        .match-status-over {
             background: #000;
-            color: #000;
+            color: #000; /* Black text as requested, but low visibility */
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
         }
@@ -550,10 +550,10 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
   
 <script async src="script.js"></script>
 
-    <script>
+<script>
         async function loadMatches() {
             try {
-                const response = await fetch('https://blog.cricfoot.net/matches.json');
+                const response = await fetch('matches.json');
                 const data = await response.json();
                 const matchesContainer = document.getElementById('matches');
 
@@ -597,20 +597,20 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
 
                 if (now >= matchEnd) {
                     element.textContent = 'MATCH OVER';
-                    element.classList.remove('countdown', 'live');
-                    element.classList.add('over');
+                    element.classList.remove('match-status-countdown', 'match-status-live');
+                    element.classList.add('match-status-over');
                 } else if (now >= matchTime) {
                     element.textContent = 'LIVE';
-                    element.classList.remove('countdown', 'over');
-                    element.classList.add('live');
+                    element.classList.remove('match-status-countdown', 'match-status-over');
+                    element.classList.add('match-status-live');
                 } else {
                     const diff = matchTime - now;
                     const totalHours = Math.floor(diff / (1000 * 60 * 60));
                     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
                     element.textContent = `${totalHours}h ${minutes}m ${seconds}s`;
-                    element.classList.remove('live', 'over');
-                    element.classList.add('countdown');
+                    element.classList.remove('match-status-live', 'match-status-over');
+                    element.classList.add('match-status-countdown');
                 }
             });
         }
