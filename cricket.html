@@ -480,7 +480,7 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
 <script>
         async function loadMatches() {
             try {
-                const response = await fetch('https://blog.cricfoot.net/cleague.json');
+                const response = await fetch('https://web.cricfoot.net/cleague.json');
                 const data = await response.json();
                 const matchesContainer = document.getElementById('matches');
 
