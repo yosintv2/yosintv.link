@@ -596,11 +596,11 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
                 const matchEnd = new Date(matchTime.getTime() + 90 * 60 * 1000); // 90 minutes after start
 
                 if (now >= matchEnd) {
-                    element.textContent = 'MATCH OVER';
+                    element.textContent = 'Match Over';
                     element.classList.remove('match-status-countdown', 'match-status-live');
                     element.classList.add('match-status-over');
                 } else if (now >= matchTime) {
-                    element.textContent = 'LIVE';
+                    element.textContent = 'Live Now';
                     element.classList.remove('match-status-countdown', 'match-status-over');
                     element.classList.add('match-status-live');
                 } else {
