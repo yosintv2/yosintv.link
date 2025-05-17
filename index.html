@@ -425,7 +425,75 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
   
 <script async src="script.js"></script>
 
+<script>
+        async function loadMatches() {
+            try {
+                const response = await fetch('https://blog.cricfoot.net/matches.json');
+                const data = await response.json();
+                const matchesContainer = document.getElementById('matches');
 
+                data.matches.forEach(match => {
+                    const matchCard = document.createElement('a');
+                    matchCard.href = match.details_url;
+                    matchCard.className = 'block bg-white rounded-lg shadow-md p-4 hover:bg-gray-50 transition mx-4';
+                    matchCard.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="w-1/3 text-center">
+                                <img src="${match.team1_logo}" alt="${match.team1} Logo" class="mx-auto" style="width: 40px; height: 40px;">
+                                <p class="text-lg font-semibold mt-2">${match.team1}</p>
+                            </div>
+                            <div class="w-1/3 text-center">
+                                <p class="text-xl font-bold text-gray-700">VS</p>
+                                <p class="text-sm font-semibold status" data-time="${match.match_time}">Loading...</p>
+                            </div>
+                            <div class="w-1/3 text-center">
+                                <img src="${match.team2_logo}" alt="${match.team2} Logo" class="mx-auto" style="width: 40px; height: 40px;">
+                                <p class="text-lg font-semibold mt-2">${match.team2}</p>
+                            </div>
+                        </div>
+                    `;
+                    matchesContainer.appendChild(matchCard);
+                });
+
+                updateMatchStatus(); // Initial update
+            } catch (error) {
+                console.error('Error loading matches:', error);
+                document.getElementById('matches').innerHTML = '<p class="text-center text-red-500">Failed to load matches.</p>';
+            }
+        }
+
+        function updateMatchStatus() {
+            const statusElements = document.querySelectorAll('.status');
+            const now = new Date();
+
+            statusElements.forEach(element => {
+                const matchTime = new Date(element.dataset.time);
+                const matchEnd = new Date(matchTime.getTime() + 90 * 60 * 1000); // 90 minutes after start
+
+                if (now >= matchEnd) {
+                    element.textContent = 'MATCH OVER';
+                    element.classList.remove('blink', 'text-red-500', 'text-blue-500');
+                    element.classList.add('text-gray-500');
+                } else if (now >= matchTime) {
+                    element.textContent = 'LIVE';
+                    element.classList.remove('text-blue-500', 'text-gray-500');
+                    element.classList.add('blink', 'text-red-500');
+                } else {
+                    const diff = matchTime - now;
+                    const totalHours = Math.floor(diff / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    element.textContent = `${totalHours}h ${minutes}m ${seconds}s`;
+                    element.classList.remove('blink', 'text-red-500', 'text-gray-500');
+                    element.classList.add('text-blue-500');
+                }
+            });
+        }
+
+        // Load matches and update status
+        loadMatches();
+        setInterval(updateMatchStatus, 1000);
+    </script>
 
 </body> 
 </html>
