@@ -51,11 +51,35 @@ cookieChoices = {};
   
   
 <style>
-/*Font Library https://fonts.google.com/ */
+.link-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 2px solid #000;
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+    flex-wrap: nowrap; /* Ensure items don't wrap within the box */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effects */
+}
+.link-box img {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+.link-text {
+    flex-grow: 1;
+    margin-left: 20px;
+    text-decoration: none; /* Remove underline */
+    color: black; /* Ensure the text color is black */
+}
+  
+  
+  /*Font Library https://fonts.google.com/ */
    @font-face{font-family:'Neo Sans Arabic';font-style:normal;font-weight:normal;font-display:swap;src:local('Neo Sans Arabic'),url('https://fonts.gstatic.com/s/opensans/v36/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4taVIUwaEQbjB_mQ.woff2') format('woff')}
 
-
-  
      .navtabs li.active a {
     background: #333 !important;
 }
@@ -179,6 +203,12 @@ Highlights</strong></a>
 <div class="league-title">NPL Cricket Matches</div>
 -->
 
+  <!-- contenthere -->
+<div class="link-box">
+<img src="https://www.rajdhani-hotel.com/favicon.ico" />
+<a href="https://www.rajdhani-hotel.com/ " class="link-text">
+Affordable Guest House in Kathmandu
+</a></div>
   
   
 <!-- Cricket Matches -->
