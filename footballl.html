@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YoSinTV - Football Live Streaming</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .match-schedule-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem 2rem;
+            font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
+        }
+        .match-schedule-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            color: #1f2937;
+        }
+        .dark .match-schedule-title {
+            color: #e5e7eb;
+        }
+        .match-sport-section {
+            margin-bottom: 2rem;
+        }
+        .league-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 1rem;
+            background-color: #d10000;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            padding: 0.5rem;
+            width: calc(100% - 2rem);
+            max-width: 1168px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .match-schedule-list {
+            margin: 0 auto;
+        }
+        .match-card {
+            display: block;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #d1d5db;
+            padding: 1rem;
+            margin: 0 1rem 1.5rem;
+            text-decoration: none;
+            transition: background 0.2s;
+            width: calc(100% - 2rem);
+            max-width: 1168px;
+            box-sizing: border-box;
+            background: #ffffff;
+        }
+        .dark .match-card {
+            background: #1f2937;
+            border-color: #4b5563;
+        }
+        .match-card:hover {
+            background: #f8f8f8;
+        }
+        .dark .match-card:hover {
+            background: #374151;
+        }
+        .match-card-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .match-team {
+            flex: 1;
+            text-align: center;
+            min-width: 0;
+        }
+        .match-team img {
+            width: 40px;
+            height: 40px;
+            display: block;
+            margin: 0 auto;
+        }
+        .match-team-name {
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #1f2937;
+        }
+        .dark .match-team-name {
+            color: #e5e7eb;
+        }
+        .match-center {
+            flex: 1;
+            text-align: center;
+        }
+        .match-vs {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin: 0;
+            color: #4b5563;
+        }
+        .dark .match-vs {
+            color: #d1d5db;
+        }
+        .match-status {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .match-status-countdown {
+            background: #008000;
+            color: #fff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        .match-status-live {
+            background: #dc3545;
+            color: #fff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            animation: match-blink 1s step-end infinite;
+        }
+        .match-status-over {
+            background: #000;
+            color: #fff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        @keyframes match-blink {
+            50% { opacity: 0; }
+        }
+        .match-error {
+            text-align: center;
+            color: #dc3545;
+            font-size: 1rem;
+        }
+        .dmca-section {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            text-align: center;
+            color: #4b5563;
+        }
+        .dark .dmca-section {
+            background: #1f2937;
+            color: #d1d5db;
+        }
+        .dmca-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        .dark .dmca-title {
+            color: #e5e7eb;
+        }
+        .dmca-text {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        .ad-container {
+            max-width: 1168px;
+            width: calc(100% - 2rem);
+            margin: 1rem auto;
+            padding: 1rem;
+            background: #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+            color: #4b5563;
+            font-size: 1rem;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dark .ad-container {
+            background: #374151;
+            color: #d1d5db;
+        }
+        .search-filter-container {
+            max-width: 1168px;
+            margin: 0 auto;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .search-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            color: #1f2937;
+            background: #ffffff;
+            font-size: 1rem;
+        }
+        .dark .search-input {
+            border-color: #4b5563;
+            background: #1f2937;
+            color: #e5e7eb;
+        }
+        .search-input::placeholder {
+            color: #6b7280;
+        }
+        .dark .search-input::placeholder {
+            color: #9ca3af;
+        }
+        .footer {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            text-align: center;
+            color: #4b5563;
+        }
+        .dark .footer {
+            background: #1f2937;
+            color: #d1d5db;
+        }
+        .footer a {
+            color: #3b82f6;
+            text-decoration: none;
+            margin: 0 1rem;
+        }
+        .dark .footer a {
+            color: #60a5fa;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 1rem;
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+        .logo-container {
+            margin-left: 0;
+        }
+        .logo-container img {
+            width: 200px;
+            height: auto;
+        }
+        .controls-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .language-select {
+            padding: 0.25rem;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            background: #ffffff;
+            color: #1f2937;
+            font-size: 0.9rem;
+        }
+        .dark .language-select {
+            border-color: #4b5563;
+            background: #1f2937;
+            color: #e5e7eb;
+        }
+        @media (max-width: 768px) {
+            .match-schedule-container {
+                padding: 0 0.5rem 1.5rem;
+            }
+            .match-card, .ad-container {
+                margin: 0 0.5rem 1rem;
+                width: calc(100% - 1rem);
+                max-width: none;
+            }
+            .league-title {
+                width: calc(100% - 1rem);
+                max-width: none;
+                font-size: 18px;
+            }
+            .match-team-name {
+                font-size: 1rem;
+            }
+            .dmca-section, .footer {
+                padding: 0.5rem;
+            }
+            .search-filter-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .search-input {
+                width: 100%;
+            }
+            .logo-container img {
+                width: 150px;
+            }
+            .header-container {
+                padding: 0 0.5rem;
+            }
+            .language-select {
+                font-size: 0.8rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .match-team-name {
+                font-size: 0.9rem;
+            }
+            .match-vs {
+                font-size: 1rem;
+            }
+            .match-status {
+                font-size: 0.8rem;
+            }
+            .league-title {
+                font-size: 16px;
+            }
+            .dmca-title {
+                font-size: 1.25rem;
+            }
+            .dmca-text {
+                font-size: 0.9rem;
+            }
+            .ad-container {
+                height: 80px;
+            }
+            .footer a {
+                display: inline-block;
+                margin: 0.5rem;
+            }
+            .search-input {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+            .logo-container img {
+                width: 120px;
+            }
+            .language-select {
+                font-size: 0.7rem;
+            }
+            .controls-container {
+                gap: 0.5rem;
+            }
+        }
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #3b82f6;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
+    <header class="bg-white dark:bg-gray-800 shadow-md py-4 fixed w-full z-10">
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="https://web.cricfoot.net/logo.png" alt="YoSinTV Logo">
+            </div>
+            <div class="controls-container">
+                <select id="languageSelect" class="language-select">
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="hi">हिन्दी</option>
+                </select>
+                <label class="toggle">
+                    <input type="checkbox" id="darkModeToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </header>
+    <main class="pt-28 pb-10">
+        <section class="text-center mb-4">
+            <h1 class="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100" data-translate="welcome_football">Welcome to YoSinTV Football Streaming</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-300" data-translate="subtitle_football">Watch live football matches anytime, anywhere!</p>
+        </section>
+        <div class="match-schedule-container">
+            <div class="search-filter-container">
+                <input type="text" id="searchInput" class="search-input" data-translate-placeholder="search" placeholder="Search by team name...">
+            </div>
+            <div class="match-sport-section" id="football-top-matches">
+                <h2 class="league-title" data-translate="football_top">Top Matches</h2>
+                <div class="match-schedule-list" id="top-list"></div>
+                <div class="ad-container" data-translate="ad">Advertisement</div>
+            </div>
+            <div class="match-sport-section" id="football-more-matches">
+                <h2 class="league-title" data-translate="football_more">More Matches</h2>
+                <div class="match-schedule-list" id="multi-list"></div>
+                <div class="ad-container" data-translate="ad">Advertisement</div>
+            </div>
+        </div>
+        <div class="ad-container" data-translate="ad">Advertisement</div>
+        <section class="dmca-section">
+            <h2 class="dmca-title" data-translate="dmca_title">YoSinTV - DMCA</h2>
+            <p class="dmca-text" data-translate="dmca_text">YoSinTV Doesn't host any media content on it own Site. Our site visitors might use external or third parties services to show content, (Example: Embedding media from sites like Bet365, Dailymotion, Streamable etc ..) We Notify all copyright owners, to discover that the links and media shared by visitors and contained within this site are hosted somewhere else on the web or embedded from other various sites like above.</p>
+        </section>
+        <footer class="footer">
+            <a href="#about" data-translate="about">About</a>
+            <a href="#contact" data-translate="contact">Contact</a>
+            <a href="#privacy" data-translate="privacy">Privacy Policy</a>
+        </footer>
+    </main>
+    <script>
+        // Translation object
+        const translations = {
+            en: {
+                welcome_football: "Welcome to YoSinTV Football Streaming",
+                subtitle_football: "Watch live football matches anytime, anywhere!",
+                search: "Search by team name...",
+                football_top: "Top Matches",
+                football_more: "More Matches",
+                about: "About",
+                contact: "Contact",
+                privacy: "Privacy Policy",
+                ad: "Advertisement",
+                dmca_title: "YoSinTV - DMCA",
+                dmca_text: "YoSinTV Doesn't host any media content on it own Site. Our site visitors might use external or third parties services to show content, (Example: Embedding media from sites like Bet365, Dailymotion, Streamable etc ..) We Notify all copyright owners, to discover that the links and media shared by visitors and contained within this site are hosted somewhere else on the web or embedded from other various sites like above.",
+                vs: "VS",
+                live: "Live NOW",
+                end: "Match End",
+                error: "Failed to load matches."
+            },
+            es: {
+                welcome_football: "Bienvenido a YoSinTV Football Streaming",
+                subtitle_football: "¡Mira partidos de fútbol en vivo en cualquier momento y lugar!",
+                search: "Buscar por nombre del equipo...",
+                football_top: "Partidos Principales",
+                football_more: "Más Partidos",
+                about: "Acerca de",
+                contact: "Contacto",
+                privacy: "Política de Privacidad",
+                ad: "Anuncio",
+                dmca_title: "YoSinTV - DMCA",
+                dmca_text: "YoSinTV no aloja ningún contenido multimedia en su propio sitio. Los visitantes de nuestro sitio pueden usar servicios externos o de terceros para mostrar contenido (por ejemplo, incrustar medios de sitios como Bet365, Dailymotion, Streamable, etc.). Notificamos a todos los propietarios de derechos de autor que los enlaces y medios compartidos por los visitantes y contenidos en este sitio están alojados en otro lugar en la web o incrustados desde otros sitios como los mencionados.",
+                vs: "Contra",
+                live: "En Vivo Ahora",
+                end: "Partido Terminado",
+                error: "No se pudieron cargar los partidos."
+            },
+            fr: {
+                welcome_football: "Bienvenue sur YoSinTV Football Streaming",
+                subtitle_football: "Regardez les matchs de football en direct n'importe quand, n'importe où !",
+                search: "Rechercher par nom d'équipe...",
+                football_top: "Matchs Principaux",
+                football_more: "Plus de Matchs",
+                about: "À Propos",
+                contact: "Contact",
+                privacy: "Politique de Confidentialité",
+                ad: "Publicité",
+                dmca_title: "YoSinTV - DMCA",
+                dmca_text: "YoSinTV n'héberge aucun contenu multimédia sur son propre site. Les visiteurs de notre site peuvent utiliser des services externes ou de tiers pour afficher du contenu (par exemple, intégrer des médias de sites comme Bet365, Dailymotion, Streamable, etc.). Nous informons tous les détenteurs de droits d'auteur que les liens et médias partagés par les visiteurs et contenus sur ce site sont hébergés ailleurs sur le web ou intégrés à partir d'autres sites comme ceux mentionnés ci-dessus.",
+                vs: "Contre",
+                live: "En Direct Maintenant",
+                end: "Match Terminé",
+                error: "Échec du chargement des matchs."
+            },
+            hi: {
+                welcome_football: "YoSinTV फुटबॉल स्ट्रीमिंग में आपका स्वागत है",
+                subtitle_football: "कभी भी, कहीं भी लाइव फुटबॉल मैच देखें!",
+                search: "टीम के नाम से खोजें...",
+                football_top: "शीर्ष मैच",
+                football_more: "अधिक मैच",
+                about: "हमारे बारे में",
+                contact: "संपर्क",
+                privacy: "गोपनीयता नीति",
+                ad: "विज्ञापन",
+                dmca_title: "YoSinTV - DMCA",
+                dmca_text: "YoSinTV अपनी साइट पर कोई भी मीडिया सामग्री होस्ट नहीं करता है। हमारी साइट के आगंतुक बाहरी या तृतीय-पक्ष सेवाओं का उपयोग करके सामग्री दिखा सकते हैं (उदाहरण के लिए, Bet365, Dailymotion, Streamable आदि जैसे साइटों से मीडिया एम्बेड करना)। हम सभी कॉपीराइट मालिकों को सूचित करते हैं कि आगंतुकों द्वारा साझा किए गए लिंक और मीडिया, जो इस साइट पर शामिल हैं, वेब पर कहीं और होस्ट किए गए हैं या उपरोक्त जैसे अन्य विभिन्न साइटों से एम्बेड किए गए हैं।",
+                vs: "बनाम",
+                live: "अब लाइव",
+                end: "मैच समाप्त",
+                error: "मैच लोड करने में विफल।"
+            }
+        };
+
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        darkModeToggle.addEventListener('change', () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', darkModeToggle.checked);
+        });
+        if (localStorage.getItem('darkMode') === 'true') {
+            darkModeToggle.checked = true;
+            document.body.classList.add('dark');
+        }
+
+        // Language toggle
+        const languageSelect = document.getElementById('languageSelect');
+        let currentLanguage = localStorage.getItem('language') || 'en';
+        languageSelect.value = currentLanguage;
+        updateLanguage(currentLanguage);
+
+        languageSelect.addEventListener('change', () => {
+            currentLanguage = languageSelect.value;
+            localStorage.setItem('language', currentLanguage);
+            updateLanguage(currentLanguage);
+            document.getElementById('top-list').innerHTML = '';
+            document.getElementById('multi-list').innerHTML = '';
+            loadMatches();
+        });
+
+        function updateLanguage(lang) {
+            const elements = document.querySelectorAll('[data-translate]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            const placeholders = document.querySelectorAll('[data-translate-placeholder]');
+            placeholders.forEach(element => {
+                const key = element.getAttribute('data-translate-placeholder');
+                if (translations[lang][key]) {
+                    element.placeholder = translations[lang][key];
+                }
+            });
+        }
+
+        // Match schedule logic
+        async function loadMatches() {
+            try {
+                const [topResponse, moreResponse] = await Promise.all([
+                    fetch('football.json'), // Replace with your actual top.json URL
+                    fetch('more.json') // Replace with your actual more.json URL
+                ]);
+
+                if (!topResponse.ok) {
+                    throw new Error(`HTTP error for top.json! Status: ${topResponse.status} ${topResponse.statusText}`);
+                }
+                if (!moreResponse.ok) {
+                    throw new Error(`HTTP error for more.json! Status: ${moreResponse.status} ${moreResponse.statusText}`);
+                }
+
+                const topContentType = topResponse.headers.get('content-type');
+                const moreContentType = moreResponse.headers.get('content-type');
+                if (!topContentType || !topContentType.includes('application/json')) {
+                    throw new Error('Invalid content type for top.json: Expected application/json');
+                }
+                if (!moreContentType || !moreContentType.includes('application/json')) {
+                    throw new Error('Invalid content type for more.json: Expected application/json');
+                }
+
+                const topData = await topResponse.json();
+                const moreData = await moreResponse.json();
+
+                if (!topData.matches || !Array.isArray(topData.matches)) {
+                    throw new Error('Invalid JSON structure in top.json: Missing or invalid "matches" array');
+                }
+                if (!moreData.matches || !Array.isArray(moreData.matches)) {
+                    throw new Error('Invalid JSON structure in more.json: Missing or invalid "matches" array');
+                }
+
+                const topContainer = document.getElementById('top-list');
+                const moreContainer = document.getElementById('multi-list');
+                topContainer.innerHTML = '';
+                moreContainer.innerHTML = '';
+
+                topData.matches.forEach(match => {
+                    const matchCard = createMatchCard(match);
+                    topContainer.appendChild(matchCard);
+                });
+                moreData.matches.forEach(match => {
+                    const matchCard = createMatchCard(match);
+                    moreContainer.appendChild(matchCard);
+                });
+
+                updateMatchStatus();
+                setupSearch();
+            } catch (error) {
+                console.error('Error loading matches:', error.message);
+                const containers = [
+                    document.getElementById('top-list'),
+                    document.getElementById('multi-list')
+                ];
+                containers.forEach(container => {
+                    container.innerHTML = `<p class="match-error" data-translate="error">${translations[currentLanguage].error}</p>`;
+                });
+            }
+        }
+
+        function createMatchCard(match) {
+            const matchCard = document.createElement('a');
+            matchCard.href = match.details_url;
+            matchCard.className = 'match-card dark:border-gray-600';
+            matchCard.dataset.matchTime = match.match_time;
+            matchCard.dataset.duration = match.duration;
+            matchCard.dataset.team1 = match.team1.toLowerCase();
+            matchCard.dataset.team2 = match.team2.toLowerCase();
+            matchCard.innerHTML = `
+                <div class="match-card-content">
+                    <div class="match-team">
+                        <img src="${match.team1_logo}" alt="${match.team1} Logo">
+                        <p class="match-team-name dark:text-gray-200">${match.team1}</p>
+                    </div>
+                    <div class="match-center">
+                        <p class="match-vs dark:text-gray-300" data-translate="vs">${translations[currentLanguage].vs}</p>
+                        <p class="match-status" data-time="${match.match_time}" data-duration="${match.duration}">Loading...</p>
+                    </div>
+                    <div class="match-team">
+                        <img src="${match.team2_logo}" alt="${match.team2} Logo">
+                        <p class="match-team-name dark:text-gray-200">${match.team2}</p>
+                    </div>
+                </div>
+            `;
+            return matchCard;
+        }
+
+        function updateMatchStatus() {
+            const containers = [
+                { id: 'top-list', element: document.getElementById('top-list') },
+                { id: 'multi-list', element: document.getElementById('multi-list') }
+            ];
+            const now = new Date();
+
+            containers.forEach(container => {
+                const statusElements = container.element.querySelectorAll('.match-status');
+
+                statusElements.forEach(element => {
+                    const matchTime = new Date(element.dataset.time);
+                    const duration = parseInt(element.dataset.duration, 10);
+                    const matchEnd = new Date(matchTime.getTime() + duration * 60 * 1000);
+
+                    if (now >= matchEnd) {
+                        element.textContent = translations[currentLanguage].end;
+                        element.classList.remove('match-status-countdown', 'match-status-live');
+                        element.classList.add('match-status-over');
+                    } else if (now >= matchTime) {
+                        element.textContent = translations[currentLanguage].live;
+                        element.classList.remove('match-status-countdown', 'match-status-over');
+                        element.classList.add('match-status-live');
+                    } else {
+                        const diff = matchTime - now;
+                        const totalHours = Math.floor(diff / (1000 * 60 * 60));
+                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                        element.textContent = `${totalHours}h ${minutes}m ${seconds}s`;
+                        element.classList.remove('match-status-live', 'match-status-over');
+                        element.classList.add('match-status-countdown');
+                    }
+                });
+
+                const matchCards = Array.from(container.element.querySelectorAll('.match-card'));
+                matchCards.sort((a, b) => {
+                    const aStatus = a.querySelector('.match-status').classList.contains('match-status-over');
+                    const bStatus = b.querySelector('.match-status').classList.contains('match-status-over');
+                    if (aStatus && !bStatus) return 1;
+                    if (!aStatus && bStatus) return -1;
+                    return 0;
+                });
+
+                container.element.innerHTML = '';
+                matchCards.forEach(card => {
+                    const vsElement = card.querySelector('.match-vs');
+                    if (vsElement) {
+                        vsElement.textContent = translations[currentLanguage].vs;
+                    }
+                    container.element.appendChild(card);
+                });
+            });
+
+            filterMatches();
+        }
+
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', filterMatches);
+        }
+
+        function filterMatches() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const containers = [
+                { id: 'top-list', element: document.getElementById('top-list') },
+                { id: 'multi-list', element: document.getElementById('multi-list') }
+            ];
+
+            containers.forEach(container => {
+                const matchCards = Array.from(container.element.querySelectorAll('.match-card'));
+
+                matchCards.forEach(card => {
+                    const team1 = card.dataset.team1;
+                    const team2 = card.dataset.team2;
+                    const searchMatch = searchInput === '' || team1.includes(searchInput) || team2.includes(searchInput);
+
+                    if (searchMatch) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                const visibleCards = matchCards.filter(card => card.style.display !== 'none');
+                const section = container.element.closest('.match-sport-section');
+                section.style.display = visibleCards.length > 0 ? 'block' : 'none';
+            });
+        }
+
+        loadMatches();
+        setInterval(updateMatchStatus, 1000);
+    </script>
+</body>
+</html>
