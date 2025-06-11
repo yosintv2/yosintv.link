@@ -561,8 +561,8 @@
         async function loadMatches() {
             try {
                 const [topResponse, moreResponse] = await Promise.all([
-                    fetch('football.json'), // Replace with your actual top.json URL
-                    fetch('more.json') // Replace with your actual more.json URL
+                    fetch('https://yosintv11.pages.dev/more.json'), // Replace with your actual top.json URL
+                    fetch('https://yosintv11.pages.dev/more.json') // Replace with your actual more.json URL
                 ]);
 
                 if (!topResponse.ok) {
