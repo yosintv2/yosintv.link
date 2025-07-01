@@ -4,28 +4,29 @@
       "team1": "India",
       "team1_logo": "https://aimages.willow.tv/teamLogos/india.png",
       "team2": "West Indies",
-      "team2_logo": "https://aimages.willow.tv/teamLogos/westindies.png",
+      "team2_logo": "https://aimages.willow.tv/teamLogos/england.png",
       "start": "2025-07-02T19:00:00+09:00",
-      "details_url": "/game1/match-details/1",
+      "details_url": " https://blog.cricfoot.net/?yosintv=india ",
       "duration": 600
     },
     
     {
-      "team1": "India",
-      "team1_logo": "https://yosintv2.github.io/cdn/india.png",
-      "team2": "Sri lanka",
-      "team2_logo": "https://yosintv2.github.io/cdn/srilanka.png",
+      "team1": "Sri Lanka",
+      "team1_logo": "https://yosintv2.github.io/cdn/srilanka.png",
+      "team2": "Bangladesh",
+      "team2_logo": "https://yosintv2.github.io/cdn/bangladesh.png",
       "match_time": "2025-06-11T01:30:00+09:00",
-      "details_url": "/game1/match-details/1",
+      "details_url": " https://blog.cricfoot.net/?yosintv=bangladesh ",
       "duration": 90
     },
+    
     {
-      "team1": "Pakistan",
-      "team1_logo": "https://yosintv2.github.io/cdn/pakistan.png",
-      "team2": "Nepal",
-      "team2_logo": "https://yosintv2.github.io/cdn/nepal.png",
+      "team1": " West Indies ",
+      "team1_logo": "https://yosintv2.github.io/cdn/westndies.png",
+      "team2": " Australia ",
+      "team2_logo": "https://yosintv2.github.io/cdn/australia.png",
       "match_time": "2025-06-13T14:00:00+09:00",
-      "details_url": "/game1/match-details/2",
+      "details_url": " https://blog.cricfoot.net/?yosintv=australia ",
       "duration": 90
     }
   ]
