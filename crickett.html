@@ -263,19 +263,6 @@
             width: 200px;
             height: auto;
         }
-        .language-select {
-            padding: 0.25rem;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            background: #ffffff;
-            color: #1f2937;
-            font-size: 0.9rem;
-        }
-        .dark .language-select {
-            border-color: #4b5563;
-            background: #1f2937;
-            color: #e5e7eb;
-        }
         @media (max-width: 768px) {
             .match-schedule-container {
                 padding: 0 0.5rem 1.5rem;
@@ -308,9 +295,6 @@
             }
             .header-container {
                 padding: 0 0.5rem;
-            }
-            .language-select {
-                font-size: 0.8rem;
             }
         }
         @media (max-width: 480px) {
@@ -345,9 +329,6 @@
             }
             .logo-container img {
                 width: 120px;
-            }
-            .language-select {
-                font-size: 0.7rem;
             }
         }
         .toggle {
@@ -397,7 +378,6 @@
             <div class="logo-container">
                 <img src="https://web.cricfoot.net/logo.png" alt="YoSinTV Logo">
             </div>
-            
             <label class="toggle">
                 <input type="checkbox" id="darkModeToggle">
                 <span class="slider"></span>
@@ -406,8 +386,8 @@
     </header>
     <main class="pt-28 pb-10">
         <section class="text-center mb-4">
-            <h1 class="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100" data-translate="welcome_cricket">Welcome to YoSinTV !! </h1>
-            <p class="text-lg text-gray-600 dark:text-gray-300" data-translate="subtitle_cricket">Watch live cricket matches anytime, anywhere!</p>
+            <h1 class="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">Welcome to YoSinTV !! </h1>
+            <p class="text-lg text-gray-600 dark:text-gray-300">Watch live cricket matches anytime, anywhere!</p>
         </section>
 
         <center>
@@ -420,10 +400,10 @@
 
         <div class="match-schedule-container">
             <div class="search-filter-container">
-                <input type="text" id="searchInput" class="search-input" data-translate-placeholder="search" placeholder="Search by team name, match name...">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by team name, match name...">
             </div>
             <div class="match-sport-section" id="cricket-matches">
-                <h2 class="league-title" data-translate="cricket">Cricket Matches</h2>
+                <h2 class="league-title">Cricket Matches</h2>
                 <div class="match-schedule-list" id="cricket-list"></div>
 
                 <center>
@@ -437,138 +417,32 @@
         </div>
 
         <section class="dmca-section">
-            <h2 class="dmca-title" data-translate="dmca_title">YoSinTV - DMCA</h2>
-            <p class="dmca-text" data-translate="dmca_text">YoSinTV Doesn't host any media content on it own Site. Our site visitors might use external or third parties services to show content, (Example: Embedding media from sites like Bet365, Dailymotion, Streamable etc ..) We Notify all copyright owners, to discover that the links and media shared by visitors and contained within this site are hosted somewhere else on the web or embedded from other various sites like above.</p>
+            <h2 class="dmca-title">YoSinTV - DMCA</h2>
+            <p class="dmca-text">YoSinTV Doesn't host any media content on it own Site. Our site visitors might use external or third parties services to show content, (Example: Embedding media from sites like Bet365, Dailymotion, Streamable etc ..) We Notify all copyright owners, to discover that the links and media shared by visitors and contained within this site are hosted somewhere else on the web or embedded from other various sites like above.</p>
         </section>
         <footer class="footer">
-            <a href="#about" data-translate="about">About</a>
-            <a href="#contact" data-translate="contact">Contact</a>
-            <a href="#privacy" data-translate="privacy">Privacy Policy</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+            <a href="#privacy">Privacy Policy</a>
         </footer>
     </main>
     <script>
-        // Translation object
-        const translations = {
-            en: {
-                welcome_cricket: "Welcome to YoSinTV Cricket Streaming",
-                subtitle_cricket: "Watch live cricket matches anytime, anywhere!",
-                search: "Search by team name...",
-                cricket: "Cricket Matches",
-                about: "About",
-                contact: "Contact",
-                privacy: "Privacy Policy",
-                ad: "Advertisement",
-                dmca_title: "YoSinTV - DMCA",
-                dmca_text: "YoSinTV Doesn't host any media content on it own Site. Our site visitors might use external or third parties services to show content, (Example: Embedding media from sites like Bet365, Dailymotion, Streamable etc ..) We Notify all copyright owners, to discover that the links and media shared by visitors and contained within this site are hosted somewhere else on the web or embedded from other various sites like above.",
-                vs: "VS",
-                live: "Live NOW",
-                end: "Match End",
-                error: "Failed to load matches."
-            },
-            es: {
-                welcome_cricket: "Bienvenido a YoSinTV Cricket Streaming",
-                subtitle_cricket: "¡Mira partidos de cricket en vivo en cualquier momento y lugar!",
-                search: "Buscar por nombre del equipo...",
-                cricket: "Partidos de Cricket",
-                about: "Acerca de",
-                contact: "Contacto",
-                privacy: "Política de Privacidad",
-                ad: "Anuncio",
-                dmca_title: "YoSinTV - DMCA",
-                dmca_text: "YoSinTV no aloja ningún contenido multimedia en su propio sitio. Los visitantes de nuestro sitio pueden usar servicios externos o de terceros para mostrar contenido (por ejemplo, incrustar medios de sitios como Bet365, Dailymotion, Streamable, etc.). Notificamos a todos los propietarios de derechos de autor que los enlaces y medios compartidos por los visitantes y contenidos en este sitio están alojados en otro lugar en la web o incrustados desde otros sitios como los mencionados.",
-                vs: "Contra",
-                live: "En Vivo Ahora",
-                end: "Partido Terminado",
-                error: "No se pudieron cargar los partidos."
-            },
-            fr: {
-                welcome_cricket: "Bienvenue sur YoSinTV Cricket Streaming",
-                subtitle_cricket: "Regardez les matchs de cricket en direct n'importe quand, n'importe où !",
-                search: "Rechercher par nom d'équipe...",
-                cricket: "Matchs de Cricket",
-                about: "À Propos",
-                contact: "Contact",
-                privacy: "Politique de Confidentialité",
-                ad: "Publicité",
-                dmca_title: "YoSinTV - DMCA",
-                dmca_text: "YoSinTV n'héberge aucun contenu multimédia sur son propre site. Les visiteurs de notre site peuvent utiliser des services externes ou de tiers pour afficher du contenu (par exemple, intégrer des médias de sites comme Bet365, Dailymotion, Streamable, etc.). Nous informons tous les détenteurs de droits d'auteur que les liens et médias partagés par les visiteurs et contenus sur ce site sont hébergés ailleurs sur le web ou intégrés à partir d'autres sites comme ceux mentionnés ci-dessus.",
-                vs: "Contre",
-                live: "En Direct Maintenant",
-                end: "Match Terminé",
-                error: "Échec du chargement des matchs."
-            },
-            hi: {
-                welcome_cricket: "YoSinTV क्रिकेट स्ट्रीमिंग में आपका स्वागत है",
-                subtitle_cricket: "कभी भी, कहीं भी लाइव क्रिकेट मैच देखें!",
-                search: "टीम के नाम से खोजें...",
-                cricket: "क्रिकेट मैच",
-                about: "हमारे बारे में",
-                contact: "संपर्क",
-                privacy: "गोपनीयता नीति",
-                ad: "विज्ञापन",
-                dmca_title: "YoSinTV - DMCA",
-                dmca_text: "YoSinTV अपनी साइट पर कोई भी मीडिया सामग्री होस्ट नहीं करता है। हमारी साइट के आगंतुक बाहरी या तृतीय-पक्ष सेवाओं का उपयोग करके सामग्री दिखा सकते हैं (उदाहरण के लिए, Bet365, Dailymotion, Streamable आदि जैसे साइटों से मीडिया एम्बेड करना)। हम सभी कॉपीराइट मालिकों को सूचित करते हैं कि आगंतुकों द्वारा साझा किए गए लिंक और मीडिया, जो इस साइट पर शामिल हैं, वेब पर कहीं और होस्ट किए गए हैं या उपरोक्त जैसे अन्य विभिन्न साइटों से एम्बेड किए गए हैं।",
-                vs: "बनाम",
-                live: "अब लाइव",
-                end: "मैच समाप्त",
-                error: "मैच लोड करने में विफल।"
-            }
-        };
-
-        // Dark mode toggle
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        darkModeToggle.addEventListener('change', () => {
-            document.body.classList.toggle('dark');
-            localStorage.setItem('darkMode', darkModeToggle.checked);
-        });
-        if (localStorage.getItem('darkMode') === 'true') {
-            darkModeToggle.checked = true;
-            document.body.classList.add('dark');
-        }
-
-        // Language toggle
-        const languageSelect = document.getElementById('languageSelect');
-        let currentLanguage = localStorage.getItem('language') || 'en';
-        languageSelect.value = currentLanguage;
-        updateLanguage(currentLanguage);
-
-        languageSelect.addEventListener('change', () => {
-            currentLanguage = languageSelect.value;
-            localStorage.setItem('language', currentLanguage);
-            updateLanguage(currentLanguage);
-            document.getElementById('cricket-list').innerHTML = '';
-            loadMatches();
-        });
-
-        function updateLanguage(lang) {
-            const elements = document.querySelectorAll('[data-translate]');
-            elements.forEach(element => {
-                const key = element.getAttribute('data-translate');
-                if (translations[lang][key]) {
-                    element.textContent = translations[lang][key];
-                }
-            });
-            const placeholders = document.querySelectorAll('[data-translate-placeholder]');
-            placeholders.forEach(element => {
-                const key = element.getAttribute('data-translate-placeholder');
-                if (translations[lang][key]) {
-                    element.placeholder = translations[lang][key];
-                }
-            });
-        }
-
         // Match schedule logic
         async function loadMatches() {
             try {
-                const response = await fetch('/crickett.json');
+                // Use a fallback JSON URL or local path
+                const response = await fetch('https://www.yosintv.link/crickett.json');
+                console.log('Fetch response status:', response.status, response.statusText);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
                 }
                 const contentType = response.headers.get('content-type');
+                console.log('Content type:', contentType);
                 if (!contentType || !contentType.includes('application/json')) {
                     throw new Error('Invalid content type: Expected application/json');
                 }
                 const cricketData = await response.json();
+                console.log('Fetched data:', cricketData);
                 if (!cricketData.matches || !Array.isArray(cricketData.matches)) {
                     throw new Error('Invalid JSON structure: Missing or invalid "matches" array');
                 }
@@ -585,7 +459,7 @@
             } catch (error) {
                 console.error('Error loading matches:', error.message);
                 const container = document.getElementById('cricket-list');
-                container.innerHTML = `<p class="match-error" data-translate="error">${translations[currentLanguage].error}</p>`;
+                container.innerHTML = `<p class="match-error">Failed to load matches: ${error.message}</p>`;
             }
         }
 
@@ -593,7 +467,7 @@
             const matchCard = document.createElement('a');
             matchCard.href = match.details_url;
             matchCard.className = 'match-card dark:border-gray-600';
-            matchCard.dataset.matchTime = match.match_time;
+            matchCard.dataset.matchTime = match.match_time || match.start;
             matchCard.dataset.duration = match.duration;
             matchCard.dataset.team1 = match.team1.toLowerCase();
             matchCard.dataset.team2 = match.team2.toLowerCase();
@@ -605,8 +479,8 @@
                         <p class="match-team-name dark:text-gray-200">${match.team1}</p>
                     </div>
                     <div class="match-center">
-                        <p class="match-vs dark:text-gray-300" data-translate="vs">${translations[currentLanguage].vs}</p>
-                        <p class="match-status" data-time="${match.match_time}" data-duration="${match.duration}">Loading...</p>
+                        <p class="match-vs dark:text-gray-300">VS</p>
+                        <p class="match-status" data-time="${match.match_time || match.start}" data-duration="${match.duration}">Loading...</p>
                         <p class="match-series dark:text-gray-300">${match.series_name || 'N/A'}</p>
                     </div>
                     <div class="match-team">
@@ -630,11 +504,11 @@
                 const matchEnd = new Date(matchTime.getTime() + duration * 60 * 1000);
 
                 if (now >= matchEnd) {
-                    element.textContent = translations[currentLanguage].end;
+                    element.textContent = 'Match End';
                     element.classList.remove('match-status-countdown', 'match-status-live');
                     element.classList.add('match-status-over');
                 } else if (now >= matchTime) {
-                    element.textContent = translations[currentLanguage].live;
+                    element.textContent = 'Live NOW';
                     element.classList.remove('match-status-countdown', 'match-status-over');
                     element.classList.add('match-status-live');
                 } else {
@@ -661,7 +535,7 @@
             matchCards.forEach(card => {
                 const vsElement = card.querySelector('.match-vs');
                 if (vsElement) {
-                    vsElement.textContent = translations[currentLanguage].vs;
+                    vsElement.textContent = 'VS';
                 }
                 container.element.appendChild(card);
             });
