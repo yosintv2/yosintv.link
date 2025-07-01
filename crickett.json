@@ -7,7 +7,9 @@
       "team2_logo": "https://aimages.willow.tv/teamLogos/england.png",
       "start": "2025-07-02T19:00:00+09:00",
       "details_url": " https://blog.cricfoot.net/?yosintv=india ",
-      "duration": 600
+      "duration": 600,
+      "series_name": "India tour of West Indies 2025"
+
     },
     
     {
@@ -17,7 +19,8 @@
       "team2_logo": "https://yosintv2.github.io/cdn/bangladesh.png",
       "match_time": "2025-06-11T01:30:00+09:00",
       "details_url": " https://blog.cricfoot.net/?yosintv=bangladesh ",
-      "duration": 90
+      "duration": 600,
+      "series_name": "India tour of West Indies 2025"
     },
     
     {
