@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         .match-schedule-container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 0 1rem 2rem;
             font-family: 'Poppins', sans-serif;
@@ -52,7 +52,7 @@
             padding: 0.5rem;
             margin: 0 0.5rem 0.75rem;
             text-decoration: none;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.2s;
             width: calc(100% - 1rem);
             max-width: 1000px;
             box-sizing: border-box;
@@ -64,6 +64,7 @@
         }
         .match-card:hover {
             background: #f8f8f8;
+            transform: translateY(-2px);
         }
         .dark .match-card:hover {
             background: #374151;
@@ -72,11 +73,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 1rem;
         }
         .match-team {
             flex: 1;
             text-align: center;
             min-width: 0;
+            max-width: 40%;
         }
         .match-team img {
             width: 50px;
@@ -99,9 +102,11 @@
         .match-center {
             flex: 1;
             text-align: center;
+            min-width: 0;
+            max-width: 20%;
         }
         .match-vs {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: bold;
             margin: 0;
             color: #4b5563;
@@ -143,7 +148,7 @@
             font-size: 1rem;
         }
         .dmca-section {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0.5rem auto;
             padding: 1rem;
             background: #f9fafb;
@@ -178,14 +183,19 @@
             text-align: center;
             color: #4b5563;
             font-size: 1rem;
-            height: 100px;
+            min-height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
         .dark .ad-container {
             background: #374151;
             color: #d1d5db;
+        }
+        .ad-container ins {
+            width: 100%;
+            max-width: 1000px;
         }
         .search-filter-container {
             max-width: 1000px;
@@ -193,6 +203,7 @@
             display: flex;
             gap: 1rem;
             justify-content: center;
+            padding: 0.5rem;
         }
         .search-input {
             width: 100%;
@@ -215,7 +226,7 @@
             color: #9ca3af;
         }
         .footer {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 2rem auto;
             padding: 1rem;
             background: #f9fafb;
@@ -245,7 +256,7 @@
             width: 100%;
             padding: 0 1rem;
             margin: 0 auto;
-            max-width: 1200px;
+            max-width: 1000px;
         }
         .logo-container {
             margin-left: 0;
@@ -256,7 +267,7 @@
         }
         @media (max-width: 768px) {
             .match-schedule-container {
-                padding: 0 0.5rem 1.5rem;
+                padding: 0 0.75rem 1.5rem;
             }
             .match-card, .ad-container {
                 margin: 0 0.5rem 1rem;
@@ -270,13 +281,24 @@
             }
             .match-team-name {
                 font-size: 1rem;
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+                line-height: 1.2;
+            }
+            .match-team {
+                max-width: 35%;
+            }
+            .match-center {
+                max-width: 30%;
             }
             .dmca-section, .footer {
-                padding: 0.5rem;
+                padding: 0.75rem;
             }
             .search-filter-container {
                 flex-direction: column;
-                align-items: center;
+                align-items: stretch;
+                padding: 0.5rem;
             }
             .search-input {
                 width: 100%;
@@ -285,7 +307,7 @@
                 width: 150px;
             }
             .header-container {
-                padding: 0 0.5rem;
+                padding: 0 0.75rem;
             }
         }
         @media (max-width: 480px) {
@@ -293,10 +315,11 @@
                 font-size: 0.9rem;
             }
             .match-vs {
-                font-size: 1rem;
+                font-size: 0.95rem;
             }
             .match-status {
                 font-size: 0.8rem;
+                padding: 0.2rem 0.4rem;
             }
             .league-title {
                 font-size: 16px;
@@ -308,11 +331,12 @@
                 font-size: 0.9rem;
             }
             .ad-container {
-                height: 80px;
+                min-height: 80px;
             }
             .footer a {
                 display: inline-block;
                 margin: 0.5rem;
+                font-size: 0.9rem;
             }
             .search-input {
                 padding: 0.5rem;
@@ -320,6 +344,12 @@
             }
             .logo-container img {
                 width: 120px;
+            }
+            .match-team {
+                max-width: 33%;
+            }
+            .match-center {
+                max-width: 34%;
             }
         }
         .toggle {
@@ -376,13 +406,13 @@
         </div>
     </header>
     <main class="pt-28 pb-10">
-        <center>
+        <div class="ad-container">
             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
             <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147" data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
             <script>
                 (adsbygoogle = window.adsbygoogle || []).push({});
             </script>
-        </center>
+        </div>
 
         <div class="match-schedule-container">
             <div class="search-filter-container">
@@ -392,13 +422,13 @@
                 <h2 class="league-title">Cricket Matches</h2>
                 <div class="match-schedule-list" id="cricket-list"></div>
 
-                <center>
+                <div class="ad-container">
                     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
                     <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147" data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
                     <script>
                         (adsbygoogle = window.adsbygoogle || []).push({});
                     </script>
-                </center>
+                </div>
             </div>
         </div>
 
@@ -415,7 +445,6 @@
     <script>
         // Dark mode toggle
         const darkModeToggle = document.getElementById('darkModeToggle');
-        // Initialize dark mode based on localStorage
         if (localStorage.getItem('darkMode') === 'true') {
             document.body.classList.add('dark');
             darkModeToggle.checked = true;
