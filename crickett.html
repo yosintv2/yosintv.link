@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>YoSinTV - Cricket | Football | Playing XI | Match Preview</title>
+    <title>YoSinTV - Cricket | Football | Playing XI | Match Preview</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         .match-schedule-container {
@@ -24,7 +24,7 @@
             color: #e5e7eb;
         }
         .match-sport-section {
-            margin-bottom: 2rem;
+            margin-bottom: 0.5rem; /* Reduced from 2rem */
         }
         .league-title {
             font-size: 20px;
@@ -44,16 +44,16 @@
         .match-schedule-list {
             margin: 0 auto;
         }
-          .match-card {
+        .match-card {
             display: block;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border: 1px solid #d1d5db;
-            padding: 0.5rem; /* Reduced from 1rem */
-            margin: 0 0.5rem 0.75rem; /* Reduced from 0 1rem 1.5rem */
+            padding: 0.5rem;
+            margin: 0 0.5rem 0.75rem;
             text-decoration: none;
             transition: background 0.2s;
-            width: calc(100% - 1rem); /* Adjusted for smaller margins */
+            width: calc(100% - 1rem);
             max-width: 1168px;
             box-sizing: border-box;
             background: #ffffff;
@@ -144,7 +144,7 @@
         }
         .dmca-section {
             max-width: 1200px;
-            margin: 2rem auto;
+            margin: 0.5rem auto; /* Reduced margin-top from 2rem */
             padding: 1rem;
             background: #f9fafb;
             border-radius: 8px;
@@ -171,7 +171,7 @@
         .ad-container {
             max-width: 1168px;
             width: calc(100% - 2rem);
-            margin: 1rem auto;
+            margin: 0.5rem auto; /* Reduced from 1rem auto */
             padding: 1rem;
             background: #e5e7eb;
             border-radius: 8px;
@@ -376,7 +376,6 @@
         </div>
     </header>
     <main class="pt-28 pb-10">
-
         <center>
             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
             <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147" data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
@@ -498,7 +497,7 @@
 
             statusElements.forEach(element => {
                 const matchTime = new Date(element.dataset.time);
-                const duration = parseInt(element.dataset.duration, 10);
+                const duration = parseInt(element.dataset.time);
                 const matchEnd = new Date(matchTime.getTime() + duration * 60 * 1000);
 
                 if (now >= matchEnd) {
