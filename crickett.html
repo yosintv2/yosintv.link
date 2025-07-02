@@ -44,16 +44,16 @@
         .match-schedule-list {
             margin: 0 auto;
         }
-        .match-card {
+          .match-card {
             display: block;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border: 1px solid #d1d5db;
-            padding: 1rem;
-            margin: 0 1rem 1.5rem;
+            padding: 0.5rem; /* Reduced from 1rem */
+            margin: 0 0.5rem 0.75rem; /* Reduced from 0 1rem 1.5rem */
             text-decoration: none;
             transition: background 0.2s;
-            width: calc(100% - 2rem);
+            width: calc(100% - 1rem); /* Adjusted for smaller margins */
             max-width: 1168px;
             box-sizing: border-box;
             background: #ffffff;
@@ -79,8 +79,8 @@
             min-width: 0;
         }
         .match-team img {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             display: block;
             margin: 0 auto;
         }
@@ -133,15 +133,6 @@
             color: #fff;
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
-        }
-        .match-series {
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
-            color: #4b5563;
-            display: block;
-        }
-        .dark .match-series {
-            color: #d1d5db;
         }
         @keyframes match-blink {
             50% { opacity: 0; }
@@ -385,10 +376,6 @@
         </div>
     </header>
     <main class="pt-28 pb-10">
-        <section class="text-center mb-4">
-            <h1 class="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">Welcome to YoSinTV !! </h1>
-            <p class="text-lg text-gray-600 dark:text-gray-300">Watch live cricket matches anytime, anywhere!</p>
-        </section>
 
         <center>
             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
@@ -427,10 +414,22 @@
         </footer>
     </main>
     <script>
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        // Initialize dark mode based on localStorage
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark');
+            darkModeToggle.checked = true;
+        }
+        darkModeToggle.addEventListener('change', () => {
+            console.log('Dark mode toggle changed:', darkModeToggle.checked);
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', darkModeToggle.checked);
+        });
+
         // Match schedule logic
         async function loadMatches() {
             try {
-                // Use a fallback JSON URL or local path
                 const response = await fetch('https://www.yosintv.link/crickett.json');
                 console.log('Fetch response status:', response.status, response.statusText);
                 if (!response.ok) {
@@ -481,7 +480,6 @@
                     <div class="match-center">
                         <p class="match-vs dark:text-gray-300">VS</p>
                         <p class="match-status" data-time="${match.match_time || match.start}" data-duration="${match.duration}">Loading...</p>
-                        <p class="match-series dark:text-gray-300">${match.series_name || 'N/A'}</p>
                     </div>
                     <div class="match-team">
                         <img src="${match.team2_logo}" alt="${match.team2} Logo">
