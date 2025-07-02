@@ -197,6 +197,42 @@
             width: 100%;
             max-width: 1000px;
         }
+        .ad-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .ad-overlay-container {
+            width: 300px;
+            height: 250px;
+            background: #fff;
+            position: relative;
+            border: 2px solid #000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .close-btn {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 30px;
+            height: 30px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
         .search-filter-container {
             max-width: 1000px;
             margin: 0 auto;
@@ -309,6 +345,10 @@
             .header-container {
                 padding: 0 0.75rem;
             }
+            .ad-overlay-container {
+                width: 280px;
+                height: auto;
+            }
         }
         @media (max-width: 480px) {
             .match-team-name {
@@ -350,6 +390,10 @@
             }
             .match-center {
                 max-width: 34%;
+            }
+            .ad-overlay-container {
+                width: 90%;
+                height: auto;
             }
         }
         .toggle {
@@ -405,16 +449,24 @@
             </label>
         </div>
     </header>
-
-    
     <main class="pt-28 pb-10">
-        <center>
+        <div class="ad-container">
             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
             <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147" data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
             <script>
                 (adsbygoogle = window.adsbygoogle || []).push({});
             </script>
-        </center>
+        </div>
+
+        <div class="ad-overlay" id="adOverlay">
+            <div class="ad-overlay-container">
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:300px;height:250px"
+                     data-ad-client="ca-pub-5525538810839147"
+                     data-ad-slot="1234567890"></ins>
+                <div class="close-btn" onclick="closeAd()">X</div>
+            </div>
+        </div>
 
         <div class="match-schedule-container">
             <div class="search-filter-container">
@@ -424,13 +476,13 @@
                 <h2 class="league-title">Cricket Matches</h2>
                 <div class="match-schedule-list" id="cricket-list"></div>
 
-                <center>
+                <div class="ad-container">
                     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
                     <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147" data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
                     <script>
                         (adsbygoogle = window.adsbygoogle || []).push({});
                     </script>
-                </center>
+                </div>
             </div>
         </div>
 
@@ -444,32 +496,6 @@
             <a href="#privacy">Privacy Policy</a>
         </footer>
     </main>
-
-
-<!-- Footer Sticky Ads-->
-<script type='text/javascript'>
-$(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').hide(90);});});
-</script>
-<div id='fixedban' style='width:100%;margin:auto;text-align:center;float:none;overflow:hidden;display:scroll;position:fixed;bottom:0;z-index:999;-webkit-transform:translateZ(0);'>
-<div>
-<a id='close-fixedban' onclick='document.getElementById("fixedban").style.display = "none";' style='cursor:pointer;'><img alt='close' src='https://yosintv2.github.io/bkp/close.gif' style='vertical-align:middle;' title='close button'/></a>
-</div>
-<div style='text-align:center;display:block;max-width:300px;height:auto;overflow:hidden;margin:auto'>
-<ins class='adsbygoogle' data-ad-client='ca-pub-5525538810839147' data-ad-slot='5912194004' style='display:inline-block;width:300px;height:250px'></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-</div>
-</div>
-<!-- Footer Sticky Ads-->
-
-    
-    <!-- BEGIN: Powered by Supercounters.com -->
-<div style="position:fixed;top:0;left:0;width:100%;height:1px;overflow:hidden;visibility:hidden;z-index:9999;"><script type="text/javascript" src="//widget.supercounters.com/ssl/online_i.js"></script>
-<script type="text/javascript">sc_online_i(1693827,"ffffff","ffffff");</script><noscript><a href="https://www.supercounters.com/" style="visibility:hidden;">free online counter</a></noscript></div>
-
-
-    
     <script>
         // Dark mode toggle
         const darkModeToggle = document.getElementById('darkModeToggle');
@@ -482,6 +508,16 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
             document.body.classList.toggle('dark');
             localStorage.setItem('darkMode', darkModeToggle.checked);
         });
+
+        // Ad overlay logic
+        setTimeout(function() {
+            document.getElementById('adOverlay').style.display = 'flex';
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        }, 5000);
+
+        function closeAd() {
+            document.getElementById('adOverlay').style.display = 'none';
+        }
 
         // Match schedule logic
         async function loadMatches() {
@@ -628,8 +664,5 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
         loadMatches();
         setInterval(updateMatchStatus, 1000);
     </script>
-
-
-
 </body>
 </html>
