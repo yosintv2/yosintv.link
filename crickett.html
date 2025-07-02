@@ -24,7 +24,7 @@
             color: #e5e7eb;
         }
         .match-sport-section {
-            margin-bottom: 0.5rem; /* Reduced from 2rem */
+            margin-bottom: 0.5rem;
         }
         .league-title {
             font-size: 20px;
@@ -144,7 +144,7 @@
         }
         .dmca-section {
             max-width: 1200px;
-            margin: 0.5rem auto; /* Reduced margin-top from 2rem */
+            margin: 0.5rem auto;
             padding: 1rem;
             background: #f9fafb;
             border-radius: 8px;
@@ -171,7 +171,7 @@
         .ad-container {
             max-width: 1168px;
             width: calc(100% - 2rem);
-            margin: 0.5rem auto; /* Reduced from 1rem auto */
+            margin: 0.5rem auto;
             padding: 1rem;
             background: #e5e7eb;
             border-radius: 8px;
@@ -469,7 +469,7 @@
             matchCard.dataset.duration = match.duration;
             matchCard.dataset.team1 = match.team1.toLowerCase();
             matchCard.dataset.team2 = match.team2.toLowerCase();
-            const durationInHours = (match.duration / 60).toFixed(1);
+            const durationInHours = parseFloat(match.duration).toFixed(1);
             matchCard.innerHTML = `
                 <div class="match-card-content">
                     <div class="match-team">
@@ -497,8 +497,8 @@
 
             statusElements.forEach(element => {
                 const matchTime = new Date(element.dataset.time);
-                const duration = parseInt(element.dataset.time);
-                const matchEnd = new Date(matchTime.getTime() + duration * 60 * 1000);
+                const duration = parseFloat(element.dataset.duration); // Duration in hours
+                const matchEnd = new Date(matchTime.getTime() + duration * 60 * 60 * 1000); // Convert hours to milliseconds
 
                 if (now >= matchEnd) {
                     element.textContent = 'Match End';
