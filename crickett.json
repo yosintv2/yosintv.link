@@ -7,9 +7,7 @@
       "team2_logo": "https://aimages.willow.tv/teamLogos/england.png",
       "start": "2025-07-02T19:00:00+09:00",
       "details_url": " https://blog.cricfoot.net/?yosintv=india ",
-      "duration": 600,
-      "series_name": "2nd Test 2025 "
-
+      "duration": 600
     },
     
     {
@@ -19,19 +17,17 @@
       "team2_logo": "https://yosintv2.github.io/cdn/bangladesh.png",
       "match_time": "2025-06-11T01:30:00+09:00",
       "details_url": " https://blog.cricfoot.net/?yosintv=bangladesh ",
-      "duration": 600,
-      "series_name": "India tour of West Indies 2025"
+      "duration": 600
     },
     
     {
       "team1": " West Indies ",
       "team1_logo": "https://aimages.willow.tv/teamLogos/westindies.png",
       "team2": " Australia ",
-      "team1_logo": "https://aimages.willow.tv/teamLogos/australia.png",
+      "team2_logo": "https://aimages.willow.tv/teamLogos/australia.png",
       "match_time": "2025-06-13T14:00:00+09:00",
       "details_url": " https://blog.cricfoot.net/?yosintv=australia ",
-      "duration": 90,
-      "series_name": "India tour of West Indies 2025"
+      "duration": 90
 
     }
   ]
