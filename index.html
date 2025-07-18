@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html dir='ltr' lang='en' xmlns:fb='http://www.facebook.com/2008/fbml'>
 <head>
@@ -84,9 +85,128 @@ cookieChoices = {};
 
 
 </style>
-</head>
 
+<!--Homepage CSS-->
+<style>
+    .yosintv-container {
+        width: 100%;
+    }
+
+    .yosintv-button {
+        font-size: clamp(18px, 2vw, 24px);
+        font-weight: 700;
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin: 12px 0;
+        background: linear-gradient(90deg, rgb(244, 17, 17), rgb(220, 38, 38));
+        color: #fff;
+        text-align: center;
+        text-decoration: none;
+        border: none;
+        border-radius: 12px; /* Smoother roundness */
+        box-sizing: border-box;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4); /* Stronger black shadow */
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+
+    .yosintv-wrapper {
+        margin: 0 auto;
+        font-family: Arial, sans-serif;
+    }
+
+    .yosintv-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .yosintv-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+        .yosintv-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .yosintv-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    .yosintv-link-box {
+        background-color: white;
+        border-radius: 1rem; /* More prominent rounding */
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25); /* Enhanced shadow */
+        padding: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+        color: #111827;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .yosintv-link-box:hover {
+        transform: translateY(-4px);
+        border: 1px solid #e11d48;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35); /* Hover shadow stronger */
+    }
+    
+    
+
+    .yosintv-link-box img {
+        width: 2.5rem;
+        height: 2.5rem;
+        object-fit: contain;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    .yosintv-link-box:hover img {
+        opacity: 0.85;
+    }
+
+    .yosintv-link-box span {
+        font-size: 1.1rem;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+
+    .yosintv-ad {
+        margin-bottom: 2.5rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .yosintv-ad ins {
+        display: block;
+        width: 100%;
+        max-width: 728px;
+        height: auto;
+        min-height: 90px;
+    }
+
+    @media (max-width: 640px) {
+        .yosintv-button {
+            font-size: 16px;
+        }
+
+        .yosintv-link-box span {
+            font-size: 1rem;
+        }
+
+        .yosintv-link-box img {
+            width: 2rem;
+            height: 2rem;
+        }
+    }
+</style>
   
+  
+</head>
 <body class='index theme2'>
 <div class='parametre section' id='parametre' name='The basic settings of the site'><div class='widget LinkList' data-version='2' id='LinkList3'>
 <style> :root {  --bg-color : #eceef2;   --header-color : #ffffff;   --logo-background : #ffff;   --widget-title-bg : #3749b4;   --theme-color-style : #3749b4;   --btnplayer :  #bf0d00;   --todaybg : #3749b4;   --tomorobg : #3749b4;   --yrsdaybg : #3749b4;   --live-start : #e0190b;   --live-soon : #13b619;   --live-end : #545454;   --bar-background : #eceef2;   --post-header-backgroundr : #eceef2;   --card-background : #eceef2;   --border-radius : 5px;   --font-name : Neo Sans Arabic, Changa, Segoe UI;   --showimage : none;   --copyrightlive : "www.domain.com";   } </style>
@@ -177,104 +297,148 @@ Highlights</strong></a>
 <div class='widget-content'>
 
   
-<!-- contenthere -->
-<div class="league-title">Today Cricket Schedule</div>
+<div class="yosintv-wrapper">
+<!-- Cricket Section -->
+<section class="yosintv-section">
+<div class="yosintv-container">
+<div class="yosintv-button">
+<span> All Cricket Events</span>
+</div>
+</div>
 
-  
-<div class="listcolor" style="font-weight: bold;"><a href="https://www.yosintv.link/cricket.html" rel="dofollow">
-<div><div><img height="50" src="https://raw.githubusercontent.com/yosintv2/cdn/refs/heads/main/ipl.png" width="50" /></div>
-<div> IPL 2025: Live Now </div></div></a></div> 
-  
-  
-  <div class="listcolor" style="font-weight: bold;"><a href="https://www.yosintv.link/cricket.html" rel="dofollow">
-<div><div><img height="50" src="https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-cricket.png" width="50" /></div>
-<div> All Cricket Live Stream </div></div></a></div> 
+<!--Matches Starts-->
+<div class="yosintv-grid">
+<a href="https://www.cricfoot.net/" class="yosintv-link-box">
+<img src="https://www.iconpacks.net/icons/1/free-video-icon-818-thumb.png">
+<span>Match Highlights: Watch Here</span>
+</a>
 
-<!-- Post Responsive Ads -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-5525538810839147"
-     data-ad-slot="3536360020"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
+
+<a href="https://www.yosin-tv.net/cricket-live/" class="yosintv-link-box">
+<img src="https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-cricket.png">
+<span>All Cricket Live Stream</span>
+</a>
+
+
+<a href="https://www.yosin-tv.net/cricket-live/" class="yosintv-link-box">
+<img src="https://images.fancode.com/skillup-uploads/cms-media/ENG-vs-IND.png">
+<span>England vs India, 2025</span>
+</a>
+
+<a href="https://www.yosin-tv.net/cricket-live/" class="yosintv-link-box">
+<img src="https://images.fancode.com/skillup-uploads/cms-media/WI-vs-AUS.png">
+<span>Australia vs West Indies, 2025</span>
+</a>
+
+
+<a href="https://www.yosin-tv.net/cricket-live/" class="yosintv-link-box">
+<img src="https://images.fancode.com/skillup-uploads/cms-media/SL-vs-BAN.png">
+<span>Sri Lanka vs Bangladesh, 2025</span>
+</a>
+
+
+<!-- No Changes Below -->
+</div>
+</section>
+
+
+
+<!-- Ad Section -->
+<ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout-key="-gk-35+fq-4k-106" data-ad-client="ca-pub-5525538810839147" data-ad-slot="4345862479"></ins>
 <script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
+ (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
 
 
-  
-<div class="league-title">Today Football Schedule</div>
-  
- <div class="listcolor" style="font-weight: bold;"><a href="https://www.yosintv.link/football.html" rel="dofollow">
-<div><div><img height="50" src="https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-soccer.png" width="50" /></div>
-<div> All Football Live Stream </div></div></a></div> 
-  
-  
-<div class="listcolor" style="font-weight: bold;"><a href="https://www.yosintv.link/football.html" rel="dofollow">
-<div><div><img height="50" src="https://images.fotmob.com/image_resources/logo/leaguelogo/47.png" width="50" /></div>
-<div> English Premier League </div></div></a></div> 
-  
-  
-<div class="listcolor" style="font-weight: bold;"><a href="https://www.yosintv.link/football.html" rel="dofollow">
-<div><div><img height="50" src="https://images.fotmob.com/image_resources/logo/leaguelogo/87.png" width="50" /></div>
-<div> Spanish La Liga 2024/25 </div></div></a></div> 
+<!-- Football Section -->
+<section class="yosintv-section">
+<div class="yosintv-container">
+<div class="yosintv-button">
+<span>All Football Events</span>
+</div>
+</div>
+
+
+
+<!--Matches Starts-->
+<div class="yosintv-grid">
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-soccer.png" alt="Football Stream">
+<span>All Football Live Stream</span>
+</a>
+
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/78.png">
+<span>FIFA Club WC 2025 Final</span>
+</a>
+
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/74.png">
+<span> UEFA Super Cup Final </span>
+</a>
+
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/42.png">
+<span>UEFA Champions League</span>
+</a>
+
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/47.png">
+<span>English Premier League</span>
+</a>
+
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/87.png">
+<span>Spanish - La Liga </span>
+</a>
+
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/536.png">
+<span>Saudi Premier League</span>
+</a>
+
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/130.png" >
+<span>Major Soccer League</span>
+</a>
+
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/53.png">
+<span>France Ligue 1</span>
+</a>
+
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/55.png">
+<span>Italy - Serie A</span>
+</a>
+
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/54.png">
+<span>Germany - Bundesliga</span>
+</a>
+
+<a href="https://www.yosintv.link/football.html" class="yosintv-link-box">
+<img src="https://images.fotmob.com/image_resources/logo/leaguelogo/73.png">
+<span> UEFA Europa League </span>
+</a>
+
+</div>
+</section>
+</div>
+
 
   
-  
-<!-- Mid Ads-->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-5525538810839147"
-     data-ad-slot="3542194806"
-     data-ad-format="horizontal"
-     data-full-width-responsive="true"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>		
-  
-  
-  
-  
-<div class="listcolor" style="font-weight: bold;"><a href="https://www.yosintv.link/football.html" rel="dofollow">
-<div><div><img height="50" src="https://images.fotmob.com/image_resources/logo/leaguelogo/54.png" width="50" /></div>
-<div> Germany - Bundesliga 2024/25 </div></div></a></div> 
-  
-  
-  
-<div class="listcolor" style="font-weight: bold;"><a href="https://www.yosintv.link/football.html" rel="dofollow">
-<div><div><img height="50" src="https://images.fotmob.com/image_resources/logo/leaguelogo/53.png" width="50" /></div>
-<div> France Ligue 1 2024/25 </div></div></a></div> 
-  
-  
-<div class="listcolor" style="font-weight: bold;"><a href="https://www.yosintv.link/football.html" rel="dofollow">
-<div><div><img height="50" src="https://images.fotmob.com/image_resources/logo/leaguelogo/55.png" width="50" /></div>
-<div> Italy - Serie A 2024/25 </div></div></a></div> 
-  
-  
-<!-- Mid Ads-->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-5525538810839147"
-     data-ad-slot="3542194806"
-     data-ad-format="horizontal"
-     data-full-width-responsive="true"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>		
-  
-  
-
-<div class="listcolor" style="font-weight: bold;"><a href="https://www.yosintv.link/football.html" rel="dofollow">
-<div><div><img height="50" src="https://images.fotmob.com/image_resources/logo/leaguelogo/130.png" width="50" /></div>
-<div> Major Soccer League 2024/25 </div></div></a></div> 
-  
-  
-<div class="listcolor" style="font-weight: bold;"><a href="https://www.yosintv.link/football.html" rel="dofollow">
-<div><div><img height="50" src="https://images.fotmob.com/image_resources/logo/leaguelogo/536.png" width="50" /></div>
-<div> Saudi Premier League 2024/25 </div></div></a></div> 
 
   
 
@@ -414,10 +578,6 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
 <div class='footers4 section' id='footers4'><div class='widget HTML' data-version='2' id='HTML44'>
 </div></div>
 -->
-
-  
-<script async src="script.js"></script>
-
 
 
 </body> 
