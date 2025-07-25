@@ -5,44 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Match JSON Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind to include dark mode
+        tailwind.config = {
+            darkMode: 'class',
+        };
+    </script>
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
-    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">Match JSON Generator</h1>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen p-6 transition-colors duration-300">
+    <div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Match JSON Generator</h1>
+            <button id="themeToggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600">
+                <svg id="sunIcon" class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <svg id="moonIcon" class="w-6 h-6 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path></svg>
+            </button>
+        </div>
         <form id="matchForm" class="space-y-4">
             <div>
-                <label for="sport" class="block text-sm font-medium text-gray-700">Sport</label>
-                <select id="sport" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                <label for="sport" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sport</label>
+                <select id="sport" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
                     <option value="Football">Football</option>
                     <option value="Cricket">Cricket</option>
                 </select>
             </div>
 
             <div>
-                <label for="matches" class="block text-sm font-medium text-gray-700">Matches (format: Date\nTime\nTeam1 vs Team2\nappended_teamname\n\n...)</label>
-                <textarea id="matches" rows="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="July 29\n23:00\nCórdoba vs Real Betis\n\nJuly 30\n20:30\nLiverpool vs AC Milan\nacmilan\n\n23:00\nStoke City vs Wolves\nwolves" required></textarea>
+                <label for="matches" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matches (format: Date\n  Time\n  Team1 vs Team2\n  appended_teamname\n\n...)</label>
+                <textarea id="matches" rows="12" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono" placeholder="  July 29\n    23:00\n    Córdoba vs Real Betis\n\n  July 30\n    20:30\n    Liverpool vs AC Milan\n    acmilan\n\n    23:00\n    Stoke City vs Wolves\n    wolves" required></textarea>
             </div>
 
-            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Generate JSON</button>
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">Generate JSON</button>
         </form>
 
-        <h2 class="text-xl font-semibold text-gray-800 mt-8 mb-4">Generated JSON</h2>
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-8 mb-4">Generated JSON</h2>
         <div class="space-y-6">
             <div>
-                <h3 class="text-lg font-medium text-gray-700">Main Matches</h3>
-                <pre id="mainMatchesOutput" class="bg-gray-50 p-4 rounded-md border border-gray-200 text-sm overflow-x-auto"></pre>
-                <button onclick="copyJSON('mainMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Copy JSON</button>
+                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Main Matches</h3>
+                <pre id="mainMatchesOutput" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600 text-sm overflow-x-auto text-gray-800 dark:text-gray-200 font-mono"></pre>
+                <button onclick="copyJSON('mainMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">Copy JSON</button>
             </div>
 
             <div>
-                <h3 class="text-lg font-medium text-gray-700">Normal Matches</h3>
-                <pre id="normalMatchesOutput" class="bg-gray-50 p-4 rounded-md border border-gray-200 text-sm overflow-x-auto"></pre>
-                <button onclick="copyJSON('normalMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Copy JSON</button>
+                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Normal Matches</h3>
+                <pre id="normalMatchesOutput" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600 text-sm overflow-x-auto text-gray-800 dark:text-gray-200 font-mono"></pre>
+                <button onclick="copyJSON('normalMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">Copy JSON</button>
             </div>
         </div>
     </div>
 
     <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            sunIcon.classList.toggle('hidden');
+            moonIcon.classList.toggle('hidden');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        });
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark');
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+        }
+
+        // Load last inputs and outputs
+        const matchesInput = document.getElementById('matches');
+        const mainMatchesOutput = document.getElementById('mainMatchesOutput');
+        const normalMatchesOutput = document.getElementById('normalMatchesOutput');
+        const savedInput = localStorage.getItem('matchesInput');
+        const savedMainMatches = localStorage.getItem('mainMatchesJson');
+        const savedNormalMatches = localStorage.getItem('normalMatchesJson');
+        if (savedInput) matchesInput.value = savedInput;
+        if (savedMainMatches) mainMatchesOutput.textContent = savedMainMatches;
+        if (savedNormalMatches) normalMatchesOutput.textContent = savedNormalMatches;
+
         // Top-tier teams and countries
         const topTierClubs = ['Al Nassr', 'Atalanta', 'Roma', 'Newcastle United', 'Chelsea', 'Nottingham Forest', 'Tottenham', 'Man United', 'Barcelona', 'Real Madrid', 'Bayer Leverkusen', 'Dortmund', 'Liverpool', 'Arsenal', 'Real Betis', 'Inter Milan', 'Napoli', 'Man City', 'Aston Villa', 'Atlético Madrid', 'Juventus', 'Bayern München', 'PSG', 'AC Milan', 'Benfica', 'Porto', 'Inter Miami', 'Lazio', 'Sporting CP'];
         const topTierCountries = ['Brazil', 'Argentina', 'France', 'Spain', 'Uruguay', 'Germany', 'Portugal', 'England', 'Italy', 'Netherlands'];
@@ -52,17 +91,17 @@
         document.getElementById('matchForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const sport = document.getElementById('sport').value;
-            const matchesInput = document.getElementById('matches').value.trim();
+            const matchesInputValue = matchesInput.value.trim();
 
             // Current date
-            const today = new Date('2025-07-25T13:29:00+09:00');
+            const today = new Date('2025-07-25T13:42:00+09:00');
             const tomorrow = new Date(today);
             tomorrow.setDate(today.getDate() + 1);
             const todayStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
             const tomorrowStr = tomorrow.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
             // Parse matches
-            const lines = matchesInput.split('\n').map(line => line.trim());
+            const lines = matchesInputValue.split('\n').map(line => line.trim());
             const matches = [];
             let currentDate = todayStr;
             let block = [];
@@ -105,8 +144,14 @@
                                 if (period === 'PM' && hours !== 12) hours += 12;
                                 if (period === 'AM' && hours === 12) hours = 0;
 
-                                // ISO date
-                                const isoDate = new Date(`${date} ${hours}:${minutes}:00 +09:00`).toISOString();
+                                // Format JST date
+                                const dateObj = new Date(`${date} ${hours}:${minutes}:00 +09:00`);
+                                const year = dateObj.getFullYear();
+                                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                                const day = String(dateObj.getDate()).padStart(2, '0');
+                                const hoursStr = String(dateObj.getHours()).padStart(2, '0');
+                                const minutesStr = String(dateObj.getMinutes()).padStart(2, '0');
+                                const isoDate = `${year}-${month}-${day}T${hoursStr}:${minutesStr}:00+09:00`;
 
                                 // Duration
                                 const duration = sport === 'Football' ? '2.6' : (cricketFormat === 'ODI' ? '7.5' : cricketFormat === 'Test' ? '10' : '3.5');
@@ -120,7 +165,7 @@
                                     name: ` ${team1} vs ${team2} `,
                                     start: isoDate,
                                     duration,
-                                    link: appendedName ? ` https://blog.cricfoot.net/?yosint=${appendedName} ` : ` https://yosintv2.github.io/ads/midd.html?url=_____ `
+                                    link: appendedName ? ` https://blog.cricfoot.net/?yosintv=${appendedName} ` : ` https://yosintv2.github.io/ads/midd.html?url=_____ `
                                 });
                             }
                         }
@@ -177,9 +222,12 @@
             const mainMatchesJson = JSON.stringify({ matches: mainMatches }, null, 2).replace(/},/g, '},\n\n');
             const normalMatchesJson = JSON.stringify({ matches: normalMatches }, null, 2).replace(/},/g, '},\n\n');
 
-            // Display JSON
-            document.getElementById('mainMatchesOutput').textContent = mainMatchesJson;
-            document.getElementById('normalMatchesOutput').textContent = normalMatchesJson;
+            // Display and save JSON
+            mainMatchesOutput.textContent = mainMatchesJson;
+            normalMatchesOutput.textContent = normalMatchesJson;
+            localStorage.setItem('matchesInput', matchesInputValue);
+            localStorage.setItem('mainMatchesJson', mainMatchesJson);
+            localStorage.setItem('normalMatchesJson', normalMatchesJson);
         });
 
         // Copy JSON to clipboard
