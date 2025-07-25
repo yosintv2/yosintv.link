@@ -31,8 +31,7 @@
             </div>
 
             <div>
-                <label for="matches" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Matches (format: Date\n  Time\n  Team1 vs Team2\n  appended_teamname\n\n...)</label>
-                <textarea id="matches" rows="12" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono" placeholder="  July 29\n    23:00\n    Córdoba vs Real Betis\n\n  July 30\n    20:30\n    Liverpool vs AC Milan\n    acmilan\n\n    23:00\n    Stoke City vs Wolves\n    wolves" required></textarea>
+                <textarea id="matches" rows="12" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono" placeholder="  July 29\n    23:00\n    Team A vs Team B\n\n  July 30\n    20:30\n    Team C vs Team D\n    teamc" required></textarea>
             </div>
 
             <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">Generate JSON</button>
@@ -50,6 +49,21 @@
                 <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Normal Matches</h3>
                 <pre id="normalMatchesOutput" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600 text-sm overflow-x-auto text-gray-800 dark:text-gray-200 font-mono"></pre>
                 <button onclick="copyJSON('normalMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">Copy JSON</button>
+            </div>
+        </div>
+
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-8 mb-4">Last Generated JSON</h2>
+        <div class="space-y-6">
+            <div>
+                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Last Main Matches</h3>
+                <pre id="lastMainMatchesOutput" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600 text-sm overflow-x-auto text-gray-800 dark:text-gray-200 font-mono"></pre>
+                <button onclick="copyJSON('lastMainMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">Copy JSON</button>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Last Normal Matches</h3>
+                <pre id="lastNormalMatchesOutput" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600 text-sm overflow-x-auto text-gray-800 dark:text-gray-200 font-mono"></pre>
+                <button onclick="copyJSON('lastNormalMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">Copy JSON</button>
             </div>
         </div>
     </div>
@@ -75,12 +89,14 @@
         const matchesInput = document.getElementById('matches');
         const mainMatchesOutput = document.getElementById('mainMatchesOutput');
         const normalMatchesOutput = document.getElementById('normalMatchesOutput');
+        const lastMainMatchesOutput = document.getElementById('lastMainMatchesOutput');
+        const lastNormalMatchesOutput = document.getElementById('lastNormalMatchesOutput');
         const savedInput = localStorage.getItem('matchesInput');
         const savedMainMatches = localStorage.getItem('mainMatchesJson');
         const savedNormalMatches = localStorage.getItem('normalMatchesJson');
         if (savedInput) matchesInput.value = savedInput;
-        if (savedMainMatches) mainMatchesOutput.textContent = savedMainMatches;
-        if (savedNormalMatches) normalMatchesOutput.textContent = savedNormalMatches;
+        if (savedMainMatches) lastMainMatchesOutput.textContent = savedMainMatches;
+        if (savedNormalMatches) lastNormalMatchesOutput.textContent = savedNormalMatches;
 
         // Top-tier teams and countries
         const topTierClubs = ['Al Nassr', 'Atalanta', 'Roma', 'Newcastle United', 'Chelsea', 'Nottingham Forest', 'Tottenham', 'Man United', 'Barcelona', 'Real Madrid', 'Bayer Leverkusen', 'Dortmund', 'Liverpool', 'Arsenal', 'Real Betis', 'Inter Milan', 'Napoli', 'Man City', 'Aston Villa', 'Atlético Madrid', 'Juventus', 'Bayern München', 'PSG', 'AC Milan', 'Benfica', 'Porto', 'Inter Miami', 'Lazio', 'Sporting CP'];
@@ -94,7 +110,7 @@
             const matchesInputValue = matchesInput.value.trim();
 
             // Current date
-            const today = new Date('2025-07-25T13:42:00+09:00');
+            const today = new Date('2025-07-25T13:50:00+09:00');
             const tomorrow = new Date(today);
             tomorrow.setDate(today.getDate() + 1);
             const todayStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -222,9 +238,15 @@
             const mainMatchesJson = JSON.stringify({ matches: mainMatches }, null, 2).replace(/},/g, '},\n\n');
             const normalMatchesJson = JSON.stringify({ matches: normalMatches }, null, 2).replace(/},/g, '},\n\n');
 
-            // Display and save JSON
+            // Update current outputs
             mainMatchesOutput.textContent = mainMatchesJson;
             normalMatchesOutput.textContent = normalMatchesJson;
+
+            // Update last generated outputs
+            lastMainMatchesOutput.textContent = localStorage.getItem('mainMatchesJson') || '';
+            lastNormalMatchesOutput.textContent = localStorage.getItem('normalMatchesJson') || '';
+
+            // Save to localStorage
             localStorage.setItem('matchesInput', matchesInputValue);
             localStorage.setItem('mainMatchesJson', mainMatchesJson);
             localStorage.setItem('normalMatchesJson', normalMatchesJson);
