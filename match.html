@@ -85,18 +85,19 @@
             moonIcon.classList.add('hidden');
         }
 
-        // Load last inputs and outputs
+        // Load last JSON outputs
         const matchesInput = document.getElementById('matches');
         const mainMatchesOutput = document.getElementById('mainMatchesOutput');
         const normalMatchesOutput = document.getElementById('normalMatchesOutput');
         const lastMainMatchesOutput = document.getElementById('lastMainMatchesOutput');
         const lastNormalMatchesOutput = document.getElementById('lastNormalMatchesOutput');
-        const savedInput = localStorage.getItem('matchesInput');
         const savedMainMatches = localStorage.getItem('mainMatchesJson');
         const savedNormalMatches = localStorage.getItem('normalMatchesJson');
-        if (savedInput) matchesInput.value = savedInput;
         if (savedMainMatches) lastMainMatchesOutput.textContent = savedMainMatches;
         if (savedNormalMatches) lastNormalMatchesOutput.textContent = savedNormalMatches;
+
+        // Clear textarea on load
+        matchesInput.value = '';
 
         // Top-tier teams and countries
         const topTierClubs = ['Al Nassr', 'Atalanta', 'Roma', 'Newcastle United', 'Chelsea', 'Nottingham Forest', 'Tottenham', 'Man United', 'Barcelona', 'Real Madrid', 'Bayer Leverkusen', 'Dortmund', 'Liverpool', 'Arsenal', 'Real Betis', 'Inter Milan', 'Napoli', 'Man City', 'Aston Villa', 'Atlético Madrid', 'Juventus', 'Bayern München', 'PSG', 'AC Milan', 'Benfica', 'Porto', 'Inter Miami', 'Lazio', 'Sporting CP'];
@@ -110,7 +111,7 @@
             const matchesInputValue = matchesInput.value.trim();
 
             // Current date
-            const today = new Date('2025-07-25T13:50:00+09:00');
+            const today = new Date('2025-07-25T13:55:00+09:00');
             const tomorrow = new Date(today);
             tomorrow.setDate(today.getDate() + 1);
             const todayStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -242,14 +243,16 @@
             mainMatchesOutput.textContent = mainMatchesJson;
             normalMatchesOutput.textContent = normalMatchesJson;
 
-            // Update last generated outputs
+            // Update last genearated outputs
             lastMainMatchesOutput.textContent = localStorage.getItem('mainMatchesJson') || '';
             lastNormalMatchesOutput.textContent = localStorage.getItem('normalMatchesJson') || '';
 
             // Save to localStorage
-            localStorage.setItem('matchesInput', matchesInputValue);
             localStorage.setItem('mainMatchesJson', mainMatchesJson);
             localStorage.setItem('normalMatchesJson', normalMatchesJson);
+
+            // Clear textarea
+            matchesInput.value = '';
         });
 
         // Copy JSON to clipboard
