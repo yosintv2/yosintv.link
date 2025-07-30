@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -164,6 +162,12 @@
       ctx.fillStyle = 'white';
       ctx.textAlign = 'center';
       ctx.fillText('vs', canvas.width / 2, canvas.height / 2 + 8);
+      
+      // Add watermark
+      ctx.font = '12px Arial';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.textAlign = 'center';
+      ctx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 10);
     }
 
     function drawVsAndImg2() {
