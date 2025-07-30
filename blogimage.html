@@ -3,6 +3,8 @@
 <head>
   <title>Dynamic Image Editor</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- https://chatgpt.com/c/688a39b1-1804-8008-b51c-1f9b857b7944 | https://grok.com/chat/d1b8124b-514a-4956-9f1a-4f1961a4178a -->
   <style>
     #canvasContainer {
       position: relative;
@@ -28,22 +30,44 @@
       font-size: 0.875rem;
       margin-top: 0.25rem;
     }
+    .autocomplete-list {
+      position: absolute;
+      border: 1px solid #d1d5db;
+      border-top: none;
+      background-color: white;
+      width: 100%;
+      max-height: 150px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+    .autocomplete-list div {
+      padding: 0.5rem;
+      cursor: pointer;
+    }
+    .autocomplete-list div:hover {
+      background-color: #f3f4f6;
+    }
   </style>
 </head>
 <body class="p-4">
   <div class="input-group">
-    <label for="img1Url" class="block text-sm font-medium text-gray-700">Team 1 Logo URL:</label>
-    <input type="text" id="img1Url" value="" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter Team 1 Logo URL">
+    <label for="team1Input" class="block text-sm font-medium text-gray-700">Enter Team 1 or URL:</label>
+    <input type="text" id="team1Input" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Type team name">
+    <div id="team1Autocomplete" class="autocomplete-list"></div>
+    <input type="text" id="team1ManualUrl" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Custom Team URL ">
     <div id="error1" class="error hidden"></div>
   </div>
   <div class="input-group mt-2">
-    <label for="img2Url" class="block text-sm font-medium text-gray-700">Team 2 Logo URL:</label>
-    <input type="text" id="img2Url" value="" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter Team 2 Logo URL">
+    <label for="team2Input" class="block text-sm font-medium text-gray-700">Enter Team 2 or URL:</label>
+    <input type="text" id="team2Input" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Type team name">
+    <div id="team2Autocomplete" class="autocomplete-list"></div>
+    <input type="text" id="team1ManualUrl" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Custom Team URL ">
     <div id="error2" class="error hidden"></div>
   </div>
   <div class="input-group mt-2">
     <label for="customName" class="block text-sm font-medium text-gray-700">Custom Image Name:</label>
-    <input type="text" id="customName" value="team_vs" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter custom name (e.g., match_image)">
+    <input type="text" id="customName" value="match-name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter custom name (e.g., match_image)">
   </div>
   <div id="canvasContainer">
     <canvas id="myCanvas" width="600" height="400"></canvas>
@@ -53,8 +77,12 @@
   <script>
     const canvas = document.getElementById('myCanvas');
     const ctx = canvas.getContext('2d');
-    const img1UrlInput = document.getElementById('img1Url');
-    const img2UrlInput = document.getElementById('img2Url');
+    const team1Input = document.getElementById('team1Input');
+    const team2Input = document.getElementById('team2Input');
+    const team1ManualUrl = document.getElementById('team1ManualUrl');
+    const team2ManualUrl = document.getElementById('team2ManualUrl');
+    const team1Autocomplete = document.getElementById('team1Autocomplete');
+    const team2Autocomplete = document.getElementById('team2Autocomplete');
     const error1 = document.getElementById('error1');
     const error2 = document.getElementById('error2');
     const downloadBtn = document.querySelector('button');
@@ -67,6 +95,266 @@
     let color2 = { r: 0, g: 0, b: 0 }; // Second selected color
     let isFirstColorSelected = false;
 
+    // Team data
+    const teams = [
+      { "name": "India", "logo": "https://cdn.yosintv.link/srilanka.png" },
+      { "name": "Pakistan", "logo": "https://cdn.yosintv.link/srilanka.png" },
+      
+      
+      { "name": "afc-bournemouth", "logo": "https://cdn.yosintv.link/football/8678.png" },
+      { "name": "arsenal", "logo": "https://cdn.yosintv.link/football/9825.png" },
+      { "name": "aston-villa", "logo": "https://cdn.yosintv.link/football/10252.png" },
+      { "name": "brentford", "logo": "https://cdn.yosintv.link/football/9937.png" },
+      { "name": "brighton-hove-albion", "logo": "https://cdn.yosintv.link/football/10204.png" },
+      { "name": "burnley", "logo": "https://cdn.yosintv.link/football/8191.png" },
+      { "name": "chelsea", "logo": "https://cdn.yosintv.link/football/8455.png" },
+      { "name": "crystal-palace", "logo": "https://cdn.yosintv.link/football/9826.png" },
+      { "name": "everton", "logo": "https://cdn.yosintv.link/football/8668.png" },
+      { "name": "fulham", "logo": "https://cdn.yosintv.link/football/9879.png" },
+      { "name": "leeds-united", "logo": "https://cdn.yosintv.link/football/8463.png" },
+      { "name": "liverpool", "logo": "https://cdn.yosintv.link/football/8650.png" },
+      { "name": "manchester-city", "logo": "https://cdn.yosintv.link/football/8456.png" },
+      { "name": "manchester-united", "logo": "https://cdn.yosintv.link/football/10260.png" },
+      { "name": "newcastle-united", "logo": "https://cdn.yosintv.link/football/10261.png" },
+      { "name": "nottingham-forest", "logo": "https://cdn.yosintv.link/football/10203.png" },
+      { "name": "sunderland", "logo": "https://cdn.yosintv.link/football/8472.png" },
+      { "name": "tottenham-hotspur", "logo": "https://cdn.yosintv.link/football/8586.png" },
+      { "name": "west-ham-united", "logo": "https://cdn.yosintv.link/football/8654.png" },
+      { "name": "wolverhampton-wanderers", "logo": "https://cdn.yosintv.link/football/8602.png" },
+      
+      
+      { "name": "athletic-club", "logo": "https://cdn.yosintv.link/football/8315.png" },
+      { "name": "atletico-madrid", "logo": "https://cdn.yosintv.link/football/9906.png" },
+      { "name": "barcelona", "logo": "https://cdn.yosintv.link/football/8634.png" },
+      { "name": "celta-vigo", "logo": "https://cdn.yosintv.link/football/9910.png" },
+      { "name": "deportivo-alaves", "logo": "https://cdn.yosintv.link/football/9866.png" },
+      { "name": "elche", "logo": "https://cdn.yosintv.link/football/10268.png" },
+      { "name": "espanyol", "logo": "https://cdn.yosintv.link/football/8558.png" },
+      { "name": "getafe", "logo": "https://cdn.yosintv.link/football/8305.png" },
+      { "name": "girona", "logo": "https://cdn.yosintv.link/football/7732.png" },
+      { "name": "levante", "logo": "https://cdn.yosintv.link/football/8581.png" },
+      { "name": "mallorca", "logo": "https://cdn.yosintv.link/football/8661.png" },
+      { "name": "osasuna", "logo": "https://cdn.yosintv.link/football/8371.png" },
+      { "name": "rayo-vallecano", "logo": "https://cdn.yosintv.link/football/8370.png" },
+      { "name": "real-betis", "logo": "https://cdn.yosintv.link/football/8603.png" },
+      { "name": "real-madrid", "logo": "https://cdn.yosintv.link/football/8633.png" },
+      { "name": "real-oviedo", "logo": "https://cdn.yosintv.link/football/8670.png" },
+      { "name": "real-sociedad", "logo": "https://cdn.yosintv.link/football/8560.png" },
+      { "name": "sevilla", "logo": "https://cdn.yosintv.link/football/8302.png" },
+      { "name": "valencia", "logo": "https://cdn.yosintv.link/football/10267.png" },
+      { "name": "villarreal", "logo": "https://cdn.yosintv.link/football/10205.png" },
+      
+      
+      
+      { "name": "milan", "logo": "https://cdn.yosintv.link/8564.png" },
+      { "name": "atalanta", "logo": "https://cdn.yosintv.link/8524.png" },
+      { "name": "bologna", "logo": "https://cdn.yosintv.link/9857.png" },
+      { "name": "cagliari", "logo": "https://cdn.yosintv.link/8529.png" },
+      { "name": "como", "logo": "https://cdn.yosintv.link/10171.png" },
+      { "name": "cremonese", "logo": "https://cdn.yosintv.link/7801.png" },
+      { "name": "fiorentina", "logo": "https://cdn.yosintv.link/8535.png" },
+      { "name": "genoa", "logo": "https://cdn.yosintv.link/10233.png" },
+      { "name": "hellas-verona", "logo": "https://cdn.yosintv.link/9876.png" },
+      { "name": "inter", "logo": "https://cdn.yosintv.link/8636.png" },
+      { "name": "juventus", "logo": "https://cdn.yosintv.link/9885.png" },
+      { "name": "lazio", "logo": "https://cdn.yosintv.link/8543.png" },
+      { "name": "lecce", "logo": "https://cdn.yosintv.link/9888.png" },
+      { "name": "parma", "logo": "https://cdn.yosintv.link/10167.png" },
+      { "name": "pisa", "logo": "https://cdn.yosintv.link/6479.png" },
+      { "name": "roma", "logo": "https://cdn.yosintv.link/8686.png" },
+      { "name": "napoli", "logo": "https://cdn.yosintv.link/9875.png" },
+      { "name": "sassuolo", "logo": "https://cdn.yosintv.link/7943.png" },
+      
+      
+      { "name": "torino", "logo": "https://cdn.yosintv.link/9804.png" },
+      { "name": "udinese", "logo": "https://cdn.yosintv.link/8600.png" },
+      { "name": "angers", "logo": "https://cdn.yosintv.link/8121.png" },
+      { "name": "auxerre", "logo": "https://cdn.yosintv.link/8583.png" },
+      { "name": "brest", "logo": "https://cdn.yosintv.link/8521.png" },
+      { "name": "le-havre", "logo": "https://cdn.yosintv.link/9746.png" },
+      { "name": "lens", "logo": "https://cdn.yosintv.link/8588.png" },
+      { "name": "lille", "logo": "https://cdn.yosintv.link/8639.png" },
+      { "name": "lorient", "logo": "https://cdn.yosintv.link/8689.png" },
+      { "name": "lyon", "logo": "https://cdn.yosintv.link/9748.png" },
+      { "name": "marseille", "logo": "https://cdn.yosintv.link/8592.png" },
+      { "name": "metz", "logo": "https://cdn.yosintv.link/8550.png" },
+      { "name": "monaco", "logo": "https://cdn.yosintv.link/9829.png" },
+      { "name": "nantes", "logo": "https://cdn.yosintv.link/9830.png" },
+      { "name": "nice", "logo": "https://cdn.yosintv.link/9831.png" },
+      { "name": "paris-fc", "logo": "https://cdn.yosintv.link/6379.png" },
+      { "name": "paris-saint-germain", "logo": "https://cdn.yosintv.link/9847.png" },
+      { "name": "rennes", "logo": "https://cdn.yosintv.link/9851.png" },
+      
+      
+      { "name": "strasbourg", "logo": "https://cdn.yosintv.link/football/9848.png" },
+      { "name": "toulouse", "logo": "https://cdn.yosintv.link/football/9941.png" },
+      { "name": "augsburg", "logo": "https://cdn.yosintv.link/football/8406.png" },
+      { "name": "bayer-leverkusen", "logo": "https://cdn.yosintv.link/football/8178.png" },
+      { "name": "bayern-munchen", "logo": "https://cdn.yosintv.link/football/9823.png" },
+      { "name": "borussia-dortmund", "logo": "https://cdn.yosintv.link/football/9789.png" },
+      { "name": "borussia-monchengladbach", "logo": "https://cdn.yosintv.link/football/9788.png" },
+      { "name": "eintracht-frankfurt", "logo": "https://cdn.yosintv.link/football/9810.png" },
+      { "name": "fc-heidenheim", "logo": "https://cdn.yosintv.link/football/94937.png" },
+      { "name": "1-fc-koln", "logo": "https://cdn.yosintv.link/football/8722.png" },
+      { "name": "freiburg", "logo": "https://cdn.yosintv.link/football/8358.png" },
+      { "name": "hamburger-sv", "logo": "https://cdn.yosintv.link/football/9790.png" },
+      { "name": "hoffenheim", "logo": "https://cdn.yosintv.link/football/8226.png" },
+      { "name": "mainz 05", "logo": "https://cdn.yosintv.link/football/9905.png" },
+      { "name": "rb-leipzig", "logo": "https://cdn.yosintv.link/football/178475.png" },
+      { "name": "st-pauli", "logo": "https://cdn.yosintv.link/football/8152.png" },
+      { "name": "union-berlin", "logo": "https://cdn.yosintv.link/football/8149.png" },
+      { "name": "vfb-stuttgart", "logo": "https://cdn.yosintv.link/football/10269.png" },
+      { "name": "werder-bremen", "logo": "https://cdn.yosintv.link/football/8697.png" },
+      { "name": "wolfsburg", "logo": "https://cdn.yosintv.link/football/8721.png" }, 
+      
+      
+  { "name": "philadelphia-union", "logo": "https://cdn.yosintv.link/football/191716.png" },
+  { "name": "fc-cincinnati", "logo": "https://cdn.yosintv.link/football/722265.png" },
+  { "name": "nashville-sc", "logo": "https://cdn.yosintv.link/football/915807.png" },
+  { "name": "columbus-crew", "logo": "https://cdn.yosintv.link/football/6001.png" },
+  { "name": "inter-miami-cf", "logo": "https://cdn.yosintv.link/football/960720.png" },
+  { "name": "orlando-city", "logo": "https://cdn.yosintv.link/football/267810.png" },
+  { "name": "charlotte-fc", "logo": "https://cdn.yosintv.link/football/1323940.png" },
+  { "name": "new-york-city-fc", "logo": "https://cdn.yosintv.link/football/546238.png" },
+  { "name": "chicago-fire-fc", "logo": "https://cdn.yosintv.link/football/6397.png" },
+  { "name": "new-york-red-bulls", "logo": "https://cdn.yosintv.link/football/6514.png" },
+  { "name": "new-england-revolution", "logo": "https://cdn.yosintv.link/football/6580.png" },
+  { "name": "toronto-fc", "logo": "https://cdn.yosintv.link/football/56453.png" },
+  { "name": "atlanta-united", "logo": "https://cdn.yosintv.link/football/773958.png" },
+  { "name": "dc-united", "logo": "https://cdn.yosintv.link/football/6602.png" },
+  { "name": "cf-montreal", "logo": "https://cdn.yosintv.link/football/161195.png" },
+  { "name": "san-diego-fc", "logo": "https://cdn.yosintv.link/football/1701119.png" },
+  { "name": "vancouver-whitecaps", "logo": "https://cdn.yosintv.link/football/307691.png" },
+  { "name": "minnesota-united", "logo": "https://cdn.yosintv.link/football/207242.png" },
+  { "name": "seattle-sounders-fc", "logo": "https://cdn.yosintv.link/football/130394.png" },
+  { "name": "portland-timbers", "logo": "https://cdn.yosintv.link/football/307690.png" },
+  { "name": "los-angeles-fc", "logo": "https://cdn.yosintv.link/football/867280.png" },
+  { "name": "austin-fc", "logo": "https://cdn.yosintv.link/football/1218886.png" },
+  { "name": "real-salt-lake", "logo": "https://cdn.yosintv.link/football/6606.png" },
+  { "name": "colorado-rapids", "logo": "https://cdn.yosintv.link/football/8314.png" },
+  { "name": "san-jose-earthquakes", "logo": "https://cdn.yosintv.link/football/6603.png" },
+  { "name": "houston-dynamo-fc", "logo": "https://cdn.yosintv.link/football/8259.png" },
+  { "name": "fc-dallas", "logo": "https://cdn.yosintv.link/football/6399.png" },
+  { "name": "sporting-kansas-city", "logo": "https://cdn.yosintv.link/football/6604.png" },
+  { "name": "st-louis-city", "logo": "https://cdn.yosintv.link/football/1427963.png" },
+  { "name": "la-galaxy", "logo": "https://cdn.yosintv.link/football/6637.png" },
+      
+      
+  { "name": "al-ittihad", "logo": "https://cdn.yosintv.link/football/8577.png" },
+  { "name": "al-hilal", "logo": "https://cdn.yosintv.link/football/2529.png" },
+  { "name": "al-nassr-fc", "logo": "https://cdn.yosintv.link/football/101918.png" },
+  { "name": "al-qadasiya", "logo": "https://cdn.yosintv.link/football/101919.png" },
+  { "name": "al-ahli", "logo": "https://cdn.yosintv.link/football/2530.png" },
+  { "name": "al-shabab", "logo": "https://cdn.yosintv.link/football/101916.png" },
+  { "name": "al-ettifaq", "logo": "https://cdn.yosintv.link/football/101915.png" },
+  { "name": "al-taawoun", "logo": "https://cdn.yosintv.link/football/205686.png" },
+  { "name": "al-kholood", "logo": "https://cdn.yosintv.link/football/1523706.png" },
+  { "name": "al-fateh-fc", "logo": "https://cdn.yosintv.link/football/177356.png" },
+  { "name": "al-riyadh", "logo": "https://cdn.yosintv.link/football/582739.png" },
+  { "name": "al-khaleej", "logo": "https://cdn.yosintv.link/football/550433.png" },
+  { "name": "al-fayha", "logo": "https://cdn.yosintv.link/football/582749.png" },
+  { "name": "damac-fc", "logo": "https://cdn.yosintv.link/football/582823.png" },
+  { "name": "al-akhdoud", "logo": "https://cdn.yosintv.link/football/582759.png" },
+  { "name": "al-wehda", "logo": "https://cdn.yosintv.link/football/6354.png" },
+  { "name": "al-orobah-fc", "logo": "https://cdn.yosintv.link/football/463259.png" },
+  { "name": "al-raed", "logo": "https://cdn.yosintv.link/football/150413.png" },
+      
+  { "name": "netherlands", "logo": "https://cdn.yosintv.link/football/6708.png" },
+  { "name": "senegal", "logo": "https://cdn.yosintv.link/football/6395.png" },
+  { "name": "ecuador", "logo": "https://cdn.yosintv.link/football/6707.png" },
+  { "name": "qatar", "logo": "https://cdn.yosintv.link/football/5902.png" },
+  { "name": "england", "logo": "https://cdn.yosintv.link/football/8491.png" },
+  { "name": "usa", "logo": "https://cdn.yosintv.link/football/6713.png" },
+  { "name": "iran", "logo": "https://cdn.yosintv.link/football/6711.png" },
+  { "name": "wales", "logo": "https://cdn.yosintv.link/football/5790.png" },
+  { "name": "argentina", "logo": "https://cdn.yosintv.link/football/6706.png" },
+  { "name": "poland", "logo": "https://cdn.yosintv.link/football/8568.png" },
+  { "name": "mexico", "logo": "https://cdn.yosintv.link/football/6710.png" },
+  { "name": "saudi-arabia", "logo": "https://cdn.yosintv.link/football/7795.png" },
+  { "name": "france", "logo": "https://cdn.yosintv.link/football/6723.png" },
+  { "name": "australia", "logo": "https://cdn.yosintv.link/football/6716.png" },
+  { "name": "tunisia", "logo": "https://cdn.yosintv.link/football/6719.png" },
+  { "name": "denmark", "logo": "https://cdn.yosintv.link/football/8238.png" },
+  { "name": "japan", "logo": "https://cdn.yosintv.link/football/6715.png" },
+  { "name": "spain", "logo": "https://cdn.yosintv.link/football/6720.png" },
+  { "name": "germany", "logo": "https://cdn.yosintv.link/football/8570.png" },
+  { "name": "costa-rica", "logo": "https://cdn.yosintv.link/football/6705.png" },
+  { "name": "morocco", "logo": "https://cdn.yosintv.link/football/6262.png" },
+  { "name": "croatia", "logo": "https://cdn.yosintv.link/football/10155.png" },
+  { "name": "belgium", "logo": "https://cdn.yosintv.link/football/8263.png" },
+  { "name": "canada", "logo": "https://cdn.yosintv.link/football/5810.png" },
+  { "name": "brazil", "logo": "https://cdn.yosintv.link/football/8256.png" },
+  { "name": "switzerland", "logo": "https://cdn.yosintv.link/football/6717.png" },
+  { "name": "cameroon", "logo": "https://cdn.yosintv.link/football/6629.png" },
+  { "name": "serbia", "logo": "https://cdn.yosintv.link/football/8205.png" },
+  { "name": "portugal", "logo": "https://cdn.yosintv.link/football/8361.png" },
+  { "name": "south-korea", "logo": "https://cdn.yosintv.link/football/7804.png" },
+  { "name": "uruguay", "logo": "https://cdn.yosintv.link/football/5796.png" },
+  { "name": "ghana", "logo": "https://cdn.yosintv.link/football/6714.png" }
+
+    ];
+
+    // Store or update hidden inputs
+    let img1UrlInput = document.createElement('input');
+    img1UrlInput.type = 'hidden';
+    img1UrlInput.id = 'img1Url';
+    document.body.appendChild(img1UrlInput);
+
+    let img2UrlInput = document.createElement('input');
+    img2UrlInput.type = 'hidden';
+    img2UrlInput.id = 'img2Url';
+    document.body.appendChild(img2UrlInput);
+
+    // Autocomplete function
+    function autocomplete(input, autocompleteList, teams, urlInput) {
+      input.addEventListener('input', function() {
+        const value = this.value.toLowerCase();
+        autocompleteList.innerHTML = '';
+        autocompleteList.style.display = value ? 'block' : 'none';
+
+        if (value) {
+          const filteredTeams = teams.filter(team => team.name.toLowerCase().includes(value));
+          filteredTeams.forEach(team => {
+            const div = document.createElement('div');
+            div.textContent = team.name; // Show only team name
+            div.dataset.logo = team.logo; // Store logo in dataset
+            div.addEventListener('click', function() {
+              input.value = team.name; // Set only the team name in input
+              urlInput.value = team.logo; // Set the logo URL in hidden input
+              console.log('Selected team:', team.name, 'URL:', team.logo); // Debug log
+              autocompleteList.style.display = 'none';
+              loadImages();
+            });
+            autocompleteList.appendChild(div);
+          });
+        }
+      });
+
+      // Hide autocomplete when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !autocompleteList.contains(e.target)) {
+          autocompleteList.style.display = 'none';
+        }
+      });
+    }
+
+    // Initialize autocomplete for both teams
+    autocomplete(team1Input, team1Autocomplete, teams, img1UrlInput);
+    autocomplete(team2Input, team2Autocomplete, teams, img2UrlInput);
+
+    // Update image URL on manual input
+    team1ManualUrl.addEventListener('input', function() {
+      team1Input.value = ''; // Clear autocomplete input when manual URL is used
+      img1UrlInput.value = this.value;
+      loadImages();
+    });
+
+    team2ManualUrl.addEventListener('input', function() {
+      team2Input.value = ''; // Clear autocomplete input when manual URL is used
+      img2UrlInput.value = this.value;
+      loadImages();
+    });
+
     // Set initial background
     window.onload = function() {
       canvas.addEventListener('click', handleClick);
@@ -78,42 +366,52 @@
       const url1 = img1UrlInput.value.trim();
       const url2 = img2UrlInput.value.trim();
 
-      if (!url1 && !url2) return;
+      if (!url1 && !url2) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       if (url1) {
         img1 = new Image();
-        img1.crossOrigin = "Anonymous";
+        img1.crossOrigin = "Anonymous"; // Ensure CORS handling
         img1.onload = function() {
+          console.log('Image 1 loaded:', url1); // Debug log
           ctx.drawImage(img1, 20, 80, 200, 200); // Left side
+          hideError(error1);
           if (img2.complete) drawVsAndImg2();
           checkImagesLoaded();
         };
         img1.onerror = function() {
-          showError(error1, 'Failed to load Team 1 image. Check the URL.');
+          console.error('Image 1 error for URL:', url1); // Debug error
+          showError(error1, 'Failed to load Team 1 image. Check URL, CORS policy, or use https://via.placeholder.com/200.');
           checkImagesLoaded();
         };
         img1.src = url1;
+      } else {
+        hideError(error1);
       }
 
       if (url2) {
         img2 = new Image();
-        img2.crossOrigin = "Anonymous";
+        img2.crossOrigin = "Anonymous"; // Ensure CORS handling
         img2.onload = function() {
+          console.log('Image 2 loaded:', url2); // Debug log
           ctx.drawImage(img2, 380, 80, 200, 200); // Right side
+          hideError(error2);
           if (img1.complete) drawVs();
           checkImagesLoaded();
         };
         img2.onerror = function() {
-          showError(error2, 'Failed to load Team 2 image. Check the URL.');
+          console.error('Image 2 error for URL:', url2); // Debug error
+          showError(error2, 'Failed to load Team 2 image. Check URL, CORS policy, or use https://via.placeholder.com/200.');
           checkImagesLoaded();
         };
         img2.src = url2;
+      } else {
+        hideError(error2);
       }
-
-      if (!url1) hideError(error1);
-      if (!url2) hideError(error2);
     }
 
     function showError(element, message) {
@@ -219,16 +517,13 @@
         // Draw the current canvas content on top
         tempCtx.drawImage(canvas, 0, 0);
 
-        const customName = customNameInput.value.trim() || 'team_vs';
+        const customName = customNameInput.value.trim() || 'match-name';
         const link = document.createElement('a');
         link.download = `${customName}.png`;
         link.href = tempCanvas.toDataURL('image/png', 1.0);
         link.click();
       }, 100);
     }
-
-    img1UrlInput.addEventListener('input', loadImages);
-    img2UrlInput.addEventListener('input', loadImages);
 
     loadImages();
   </script>
