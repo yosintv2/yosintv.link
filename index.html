@@ -82,121 +82,106 @@ cookieChoices = {};
 
 <!--Homepage CSS-->
 <style>
-    .yosintv-container {
-        width: 100%;
-    }
+  .yosintv-container {
+    width: 100%;
+  }
 
-    .yosintv-button {
-        font-size: clamp(18px, 2vw, 24px);
-        font-weight: 700;
-        display: block;
-        width: 100%;
-        padding: 10px;
-        margin: 12px 0;
-        background: linear-gradient(90deg, rgb(244, 17, 17), rgb(220, 38, 38));
-        color: #fff;
-        text-align: center;
-        text-decoration: none;
-        border: none;
-        border-radius: 12px; /* Smoother roundness */
-        box-sizing: border-box;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4); /* Stronger black shadow */
-        transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-    }
+  .yosintv-button {
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 700;
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 12px 0;
+    background: linear-gradient(90deg, rgb(244, 17, 17), rgb(220, 38, 38));
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 12px;
+    box-sizing: border-box;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  }
 
-    .yosintv-wrapper {
-        margin: 0 auto;
-        font-family: Arial, sans-serif;
-    }
+  .yosintv-wrapper {
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+  }
 
-    .yosintv-section {
-        margin-bottom: 2.5rem;
-    }
+  .yosintv-section {
+    margin-bottom: 2.5rem;
+  }
 
+  .yosintv-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  @media (min-width: 640px) {
     .yosintv-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1rem;
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .yosintv-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* New styles for the dynamically created cards */
+  .yosintv-card {
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+    padding: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    color: #111827;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  }
+
+  .yosintv-card:hover {
+    transform: translateY(-4px);
+    border: 1px solid #e11d48;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  .yosintv-card img {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: contain;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .yosintv-card:hover img {
+    opacity: 0.85;
+  }
+
+  .yosintv-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 640px) {
+    .yosintv-button {
+      font-size: 16px;
     }
 
-    @media (min-width: 640px) {
-        .yosintv-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
+    .yosintv-card .yosintv-title {
+      font-size: 1rem;
     }
 
-    @media (min-width: 1024px) {
-        .yosintv-grid {
-            grid-template-columns: repeat(3, 1fr);
-        }
+    .yosintv-card img {
+      width: 2rem;
+      height: 2rem;
     }
-
-    .yosintv-link-box {
-        background-color: white;
-        border-radius: 1rem; /* More prominent rounding */
-        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25); /* Enhanced shadow */
-        padding: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        text-decoration: none;
-        color: #111827;
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-
-    .yosintv-link-box:hover {
-        transform: translateY(-4px);
-        border: 1px solid #e11d48;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35); /* Hover shadow stronger */
-    }
-    
-    
-
-    .yosintv-link-box img {
-        width: 2.5rem;
-        height: 2.5rem;
-        object-fit: contain;
-        transition: opacity 0.2s ease-in-out;
-    }
-
-    .yosintv-link-box:hover img {
-        opacity: 0.85;
-    }
-
-    .yosintv-link-box span {
-        font-size: 1.1rem;
-        font-weight: 500;
-        line-height: 1.4;
-    }
-
-    .yosintv-ad {
-        margin-bottom: 2.5rem;
-        display: flex;
-        justify-content: center;
-    }
-
-    .yosintv-ad ins {
-        display: block;
-        width: 100%;
-        max-width: 728px;
-        height: auto;
-        min-height: 90px;
-    }
-
-    @media (max-width: 640px) {
-        .yosintv-button {
-            font-size: 16px;
-        }
-
-        .yosintv-link-box span {
-            font-size: 1rem;
-        }
-
-        .yosintv-link-box img {
-            width: 2rem;
-            height: 2rem;
-        }
-    }
+  }
 </style>
   
   
@@ -293,37 +278,43 @@ Highlights</strong></a>
 
 
   
-<div class="yosintv-wrapper" id="event-wrapper"></div>
-  <script>
-    async function loadEvents() {
-      const response = await fetch("https://www.yosintv.link/events.json");
-      const data = await response.json();
-      const wrapper = document.getElementById("event-wrapper");
+<div class="yosintv-wrapper">
+  <div class="yosintv-button">All Cricket Events</div>
+  <div class="yosintv-grid" id="cricket-events"></div>
+</div>
 
-      for (const section of data) {
-        const sectionEl = document.createElement("section");
-        sectionEl.className = "yosintv-section";
+<div class="yosintv-wrapper">
+  <div class="yosintv-button">All Football Events</div>
+  <div class="yosintv-grid" id="football-events"></div>
+</div>
 
-        sectionEl.innerHTML = `
-          <div class="yosintv-container">
-            <div class="yosintv-button"><span>${section.title}</span></div>
-          </div>
-          <div class="yosintv-grid">
-            ${section.matches.map(match => `
-              <a href="${match.link}" class="yosintv-link-box">
-                <img src="${match.image}" alt="">
-                <span>${match.name}</span>
-              </a>
-            `).join("")}
-          </div>
-        `;
+<script>
+  function displayEvents(events, containerId) {
+    const container = document.getElementById(containerId);
+    events.forEach(event => {
+      const card = document.createElement("a");
+      card.href = event.link;
+      card.target = "_blank";
+      card.className = "yosintv-card";
+      card.innerHTML = `
+        <img src="${event.image.trim()}" alt="${event.name}">
+        <div class="yosintv-title">${event.name}</div>
+      `;
+      container.appendChild(card);
+    });
+  }
 
-        wrapper.appendChild(sectionEl);
-      }
-    }
+  fetch('https://www.yosintv.link/events-cricket.json')
+    .then(response => response.json())
+    .then(data => displayEvents(data.matches, 'cricket-events'))
+    .catch(error => console.error('Error loading cricket events:', error));
 
-    loadEvents();
-  </script>
+  fetch('https://www.yosintv.link/events-football.json')
+    .then(response => response.json())
+    .then(data => displayEvents(data.matches, 'football-events'))
+    .catch(error => console.error('Error loading football events:', error));
+</script>
+
 
 
 </div>
