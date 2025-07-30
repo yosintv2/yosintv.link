@@ -3,11 +3,6 @@
     "title": "All Cricket Events",
     "matches": [
       
-      {
-        "name": "Whittaker vs. de Ridder",
-        "image": "https://yosintv2.github.io/cdn/ufc.png",
-        "link": "https://blog.cricfoot.net/?yosintv=ufc"
-      },
       
       {
         "name": "All Cricket Live Stream",
@@ -40,6 +35,13 @@
   {
     "title": "All Football Events",
     "matches": [
+      
+      {
+        "name": " Club Friendly Matches ",
+        "image": " https://img.sofascore.com/api/v1/unique-tournament/853/image/dark ",
+        "link": "https://www.yosintv.link/football.html"
+      },
+      
       
       {
         "name": "All Football Live Stream",
