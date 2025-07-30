@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Blog Image Editor</title>
+  <title>Dynamic Image Editor</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     #canvasContainer {
@@ -22,27 +22,6 @@
       height: 100%;
       z-index: 0;
       opacity: 0.5;
-    }
-    .bg-abstract-1 {
-      background: linear-gradient(135deg, #ff9a9e, #fad0c4, #a1c4fd);
-    }
-    .bg-abstract-2 {
-      background: linear-gradient(45deg, #ffdde1, #ee9ca7, #bdc3c7);
-    }
-    .bg-abstract-3 {
-      background: radial-gradient(circle, #feca57, #ff6b6b, #4ecdc4);
-    }
-    .bg-abstract-4 {
-      background: repeating-linear-gradient(45deg, #d4a4eb, #d4a4eb 20px, #a3bffa 20px, #a3bffa 40px);
-    }
-    .bg-abstract-5 {
-      background: linear-gradient(90deg, #ff7e5f, #feb47b, #a3d8f4);
-    }
-    .bg-abstract-6 {
-      background: radial-gradient(circle at center, #6d8299, #ffccd5, #f7e4bc);
-    }
-    .bg-abstract-7 {
-      background: linear-gradient(135deg, #e0c3fc, #8ec5fc, #ffaaaa);
     }
     .error {
       color: red;
@@ -84,22 +63,15 @@
 
     let img1 = new Image();
     let img2 = new Image();
+    let color1 = { r: 0, g: 0, b: 0 }; // First selected color
+    let color2 = { r: 0, g: 0, b: 0 }; // Second selected color
+    let isFirstColorSelected = false;
 
-    // Array of background class names
-    const backgroundClasses = [
-      'bg-abstract-1',
-      'bg-abstract-2',
-      'bg-abstract-3',
-      'bg-abstract-4',
-      'bg-abstract-5',
-      'bg-abstract-6',
-      'bg-abstract-7'
-    ];
-
-    // Set random background on page load
+    // Set initial background
     window.onload = function() {
-      const randomBg = backgroundClasses[Math.floor(Math.random() * backgroundClasses.length)];
-      background.className = 'background ' + randomBg;
+      canvas.addEventListener('click', handleClick);
+      canvas.addEventListener('mousemove', drawCursor);
+      canvas.addEventListener('mouseleave', clearCursor);
     };
 
     function loadImages() {
@@ -164,10 +136,10 @@
       ctx.fillText('vs', canvas.width / 2, canvas.height / 2 + 8);
       
       // Add watermark
-      ctx.font = '12px Arial';
+      ctx.font = '16px Arial';
       ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
       ctx.textAlign = 'center';
-      ctx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 10);
+      ctx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 30);
     }
 
     function drawVsAndImg2() {
@@ -180,20 +152,85 @@
       downloadBtn.disabled = !hasContent;
     }
 
+    function handleClick(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const imageData = ctx.getImageData(x, y, 1, 1).data;
+      const color = { r: imageData[0], g: imageData[1], b: imageData[2] };
+
+      if (!isFirstColorSelected) {
+        color1 = color;
+        isFirstColorSelected = true;
+      } else {
+        color2 = color;
+        isFirstColorSelected = false;
+        setDynamicBackground();
+      }
+      redrawCanvas();
+    }
+
+    function setDynamicBackground() {
+      background.style.background = `linear-gradient(45deg, rgba(${color1.r}, ${color1.g}, ${color1.b}, 0.7), rgba(${color2.r}, ${color2.g}, ${color2.b}, 0.7))`;
+    }
+
+    function drawCursor(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      redrawCanvas(); // Clear previous cursor
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function redrawCanvas() {
+      loadImages(); // Redraw images and vs
+    }
+
+    function clearCursor() {
+      redrawCanvas(); // Redraw without cursor
+    }
+
+    function downloadImage() {
+      setTimeout(() => {
+        // Create a temporary canvas to composite the background
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+
+        // Check if colors are manually selected (not default black)
+        if (color1.r === 0 && color1.g === 0 && color1.b === 0 && color2.r === 0 && color2.g === 0 && color2.b === 0) {
+          // Default to white background if no colors selected
+          tempCtx.fillStyle = 'white';
+          tempCtx.fillRect(0, 0, canvas.width, canvas.height);
+        } else {
+          // Use selected colors for gradient
+          const gradient = tempCtx.createLinearGradient(0, 0, canvas.width, canvas.height);
+          gradient.addColorStop(0, `rgb(${color1.r}, ${color1.g}, ${color1.b})`);
+          gradient.addColorStop(1, `rgb(${color2.r}, ${color2.g}, ${color2.b})`);
+          tempCtx.fillStyle = gradient;
+          tempCtx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Draw the current canvas content on top
+        tempCtx.drawImage(canvas, 0, 0);
+
+        const customName = customNameInput.value.trim() || 'team_vs';
+        const link = document.createElement('a');
+        link.download = `${customName}.png`;
+        link.href = tempCanvas.toDataURL('image/png', 1.0);
+        link.click();
+      }, 100);
+    }
+
     img1UrlInput.addEventListener('input', loadImages);
     img2UrlInput.addEventListener('input', loadImages);
 
     loadImages();
-
-    function downloadImage() {
-      setTimeout(() => {
-        const customName = customNameInput.value.trim() || 'team_vs';
-        const link = document.createElement('a');
-        link.download = `${customName}.png`;
-        link.href = canvas.toDataURL('image/png', 1.0);
-        link.click();
-      }, 100);
-    }
   </script>
 </body>
 </html>
