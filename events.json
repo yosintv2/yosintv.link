@@ -6,7 +6,7 @@
       
       {
         "name": "All Cricket Live Stream",
-        "image": " https://yosintv2.github.io/cdn/cricket.png ",
+        "image": " https://cdn.yosintv.link/cricket.png ",
         "link": "https://www.yosintv.link/cricket.html"
       },
 
@@ -46,14 +46,14 @@
       
       {
         "name": " Club Friendly Matches ",
-        "image": " https://yosintv2.github.io/cdn/friendly.png ",
+        "image": " https://cdn.yosintv.link/friendly.png ",
         "link": "https://www.yosintv.link/football.html"
       },
       
       
       {
         "name": "All Football Live Stream",
-        "image": " https://yosintv2.github.io/cdn/soccer.png ",
+        "image": " https://cdn.yosintv.link/football.png ",
         "link": "https://www.yosintv.link/football.html"
       },
       
