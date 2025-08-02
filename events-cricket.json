@@ -10,8 +10,14 @@
       },
       
       {
-        "name": " UFC/MMA All Matches ",
+        "name": " UFC Fight All Matches ",
         "image": "https://cdn.yosintv.link/ufc.png",
+        "link": "https://www.yosintv.link/fight.html"
+      },
+
+      {
+        "name": " MMA Fight All Matches ",
+        "image": "https://cdn.vox-cdn.com/uploads/chorus_asset/file/9178425/mma-192.0.0.png",
         "link": "https://www.yosintv.link/fight.html"
       }
     ]
