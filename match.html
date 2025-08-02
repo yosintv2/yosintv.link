@@ -1,270 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Match JSON Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Configure Tailwind to include dark mode
-        tailwind.config = {
-            darkMode: 'class',
-        };
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Match JSON Generator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body.dark-mode { background-color: #121212; color: white; }
+    .json-box { white-space: pre-wrap; font-family: monospace; background: #f8f9fa; padding: 1rem; border-radius: 0.5rem; }
+    body.dark-mode .json-box { background: #1e1e1e; color: #eee; }
+  </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen p-6 transition-colors duration-300">
-    <div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Match JSON Generator</h1>
-            <button id="themeToggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600">
-                <svg id="sunIcon" class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                <svg id="moonIcon" class="w-6 h-6 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path></svg>
-            </button>
-        </div>
-        <form id="matchForm" class="space-y-4">
-            <div>
-                <label for="sport" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sport</label>
-                <select id="sport" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
-                    <option value="Football">Football</option>
-                    <option value="Cricket">Cricket</option>
-                </select>
-            </div>
-
-            <div>
-                <textarea id="matches" rows="12" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono" placeholder=" " required></textarea>
-            </div>
-
-            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">Generate JSON</button>
-        </form>
-
-        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-8 mb-4">Generated JSON</h2>
-        <div class="space-y-6">
-            <div>
-                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Main Matches</h3>
-                <pre id="mainMatchesOutput" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600 text-sm overflow-x-auto text-gray-800 dark:text-gray-200 font-mono"></pre>
-                <button onclick="copyJSON('mainMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">Copy JSON</button>
-            </div>
-
-            <div>
-                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Normal Matches</h3>
-                <pre id="normalMatchesOutput" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600 text-sm overflow-x-auto text-gray-800 dark:text-gray-200 font-mono"></pre>
-                <button onclick="copyJSON('normalMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">Copy JSON</button>
-            </div>
-        </div>
-
-        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mt-8 mb-4">Last Generated JSON</h2>
-        <div class="space-y-6">
-            <div>
-                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Last Main Matches</h3>
-                <pre id="lastMainMatchesOutput" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600 text-sm overflow-x-auto text-gray-800 dark:text-gray-200 font-mono"></pre>
-                <button onclick="copyJSON('lastMainMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">Copy JSON</button>
-            </div>
-
-            <div>
-                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Last Normal Matches</h3>
-                <pre id="lastNormalMatchesOutput" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600 text-sm overflow-x-auto text-gray-800 dark:text-gray-200 font-mono"></pre>
-                <button onclick="copyJSON('lastNormalMatchesOutput')" class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">Copy JSON</button>
-            </div>
-        </div>
+<body>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>YoSinTV Match Generator</h2>
+      <button id="themeToggle" class="btn btn-secondary">Dark Theme</button>
     </div>
 
-    <script>
-        // Theme toggle
-        const themeToggle = document.getElementById('themeToggle');
-        const sunIcon = document.getElementById('sunIcon');
-        const moonIcon = document.getElementById('moonIcon');
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark');
-            sunIcon.classList.toggle('hidden');
-            moonIcon.classList.toggle('hidden');
-            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-        });
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark');
-            sunIcon.classList.remove('hidden');
-            moonIcon.classList.add('hidden');
+    <div class="mb-3">
+      <label for="matchType" class="form-label">Select Match Type:</label>
+      <select id="matchType" class="form-select">
+        <option value="2.6" selected >All Football Matches</option>
+        <option value="10">Cricket - Test Matches  </option>
+        <option value="8">Cricket - ODI Matches </option>
+        <option value="5" >Cricket - T20 Matches</option>
+      </select>
+    </div>
+    
+    
+    <div class="mb-3">
+      <label for="matchInput" class="form-label">Enter Match Data:</label>
+      <textarea id="matchInput" class="form-control" rows="10" placeholder=" "></textarea>
+    </div>
+
+
+    <button id="generateBtn" class="btn btn-primary w-100 mb-4">Generate JSON</button>
+
+    <div class="mb-4">
+      <h5>Main Matches JSON</h5>
+      <button class="btn btn-outline-secondary btn-sm mb-2" onclick="copyJSON('mainMatchesOutput')">Copy Main JSON</button>
+      <div id="mainMatchesOutput" class="json-box"></div>
+    </div>
+
+    <div>
+      <h5>Normal Matches JSON</h5>
+      <button class="btn btn-outline-secondary btn-sm mb-2" onclick="copyJSON('normalMatchesOutput')">Copy Normal JSON</button>
+      <div id="normalMatchesOutput" class="json-box"></div>
+    </div>
+  </div>
+
+  <script>
+    const inputEl = document.getElementById("matchInput");
+    const matchTypeEl = document.getElementById("matchType");
+    const mainOutput = document.getElementById("mainMatchesOutput");
+    const normalOutput = document.getElementById("normalMatchesOutput");
+
+    function isTimeLine(line) {
+      return /^\d{1,2}:\d{2}$/.test(line.trim());
+    }
+
+    function parseInput(text, duration) {
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      const now = new Date();
+      const main = [], normal = [];
+
+      let block = [];
+
+      for (let i = 0; i <= lines.length; i++) {
+        const line = lines[i] || "";
+
+        if (isTimeLine(line) || i === lines.length) {
+          if (block.length >= 2) {
+            const [timeRaw, teamLine, slug = "", format = "T20"] = block;
+            const [h, m] = timeRaw.split(":").map(Number);
+            const startDate = new Date(now);
+            if (h < now.getHours()) startDate.setDate(startDate.getDate() + 1);
+            startDate.setHours(h, m, 0, 0);
+            const start = startDate.toISOString();
+
+            const [team1, team2] = teamLine.split(" vs ").map(t => t.trim());
+            const name = `${team1} vs ${team2}`;
+            const link = slug ? `https://blog.cricfoot.net/?yosintv=${slug}` : "https://yosintv2.github.io/ads/midd.html?url=_____";
+
+            const match = { name, start, duration: parseFloat(duration), link };
+            slug ? main.push(match) : normal.push(match);
+          }
+          block = [line]; // new block
+        } else {
+          block.push(line);
         }
+      }
 
-        // Load last JSON outputs
-        const matchesInput = document.getElementById('matches');
-        const mainMatchesOutput = document.getElementById('mainMatchesOutput');
-        const normalMatchesOutput = document.getElementById('normalMatchesOutput');
-        const lastMainMatchesOutput = document.getElementById('lastMainMatchesOutput');
-        const lastNormalMatchesOutput = document.getElementById('lastNormalMatchesOutput');
-        const savedMainMatches = localStorage.getItem('mainMatchesJson');
-        const savedNormalMatches = localStorage.getItem('normalMatchesJson');
-        if (savedMainMatches) lastMainMatchesOutput.textContent = savedMainMatches;
-        if (savedNormalMatches) lastNormalMatchesOutput.textContent = savedNormalMatches;
+      return { main, normal };
+    }
 
-        // Clear textarea on load
-        matchesInput.value = '';
+    function showJSON(id, data) {
+      id.textContent = JSON.stringify(data, null, 2);
+    }
 
-        // Top-tier teams and countries
-        const topTierClubs = ['Al Nassr', 'Atalanta', 'Roma', 'Newcastle United', 'Chelsea', 'Nottingham Forest', 'Tottenham', 'Man United', 'Barcelona', 'Real Madrid', 'Bayer Leverkusen', 'Dortmund', 'Liverpool', 'Arsenal', 'Real Betis', 'Inter Milan', 'Napoli', 'Man City', 'Aston Villa', 'Atlético Madrid', 'Juventus', 'Bayern München', 'PSG', 'AC Milan', 'Benfica', 'Porto', 'Inter Miami', 'Lazio', 'Sporting CP'];
-        const topTierCountries = ['Brazil', 'Argentina', 'France', 'Spain', 'Uruguay', 'Germany', 'Portugal', 'England', 'Italy', 'Netherlands'];
-        const topTierTestNations = ['Australia', 'India', 'England', 'South Africa', 'Pakistan', 'New Zealand', 'West Indies', 'Sri Lanka', 'Bangladesh', 'Afghanistan'];
+    function saveToLocalStorage(main, normal) {
+      localStorage.setItem("mainJSON", JSON.stringify(main));
+      localStorage.setItem("normalJSON", JSON.stringify(normal));
+    }
 
-        // Form submission handler
-        document.getElementById('matchForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const sport = document.getElementById('sport').value;
-            const matchesInputValue = matchesInput.value.trim();
+    function loadLastSaved() {
+      const main = JSON.parse(localStorage.getItem("mainJSON") || "[]");
+      const normal = JSON.parse(localStorage.getItem("normalJSON") || "[]");
+      showJSON(mainOutput, main);
+      showJSON(normalOutput, normal);
+    }
 
-            // Current date
-            const today = new Date('2025-07-25T13:55:00+09:00');
-            const tomorrow = new Date(today);
-            tomorrow.setDate(today.getDate() + 1);
-            const todayStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-            const tomorrowStr = tomorrow.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    function copyJSON(id) {
+      const jsonText = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(jsonText).then(() => {
+        alert("Copied to clipboard!");
+      });
+    }
 
-            // Parse matches
-            const lines = matchesInputValue.split('\n').map(line => line.trim());
-            const matches = [];
-            let currentDate = todayStr;
-            let block = [];
+    document.getElementById("generateBtn").addEventListener("click", () => {
+      const input = inputEl.value;
+      const duration = matchTypeEl.value;
+      const { main, normal } = parseInput(input, duration);
+      showJSON(mainOutput, main);
+      showJSON(normalOutput, normal);
+      saveToLocalStorage(main, normal);
+    });
 
-            for (let i = 0; i < lines.length; i++) {
-                block.push(lines[i]);
+    // Theme Toggle
+    const themeToggle = document.getElementById("themeToggle");
+    themeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+    });
 
-                // Check if current line is a date or empty (end of block)
-                const isDateLine = lines[i].match(/(\w+)\s+(\d{1,2})(?:,\s*(\d{4}))?/) || lines[i].toLowerCase() === 'tonight' || lines[i].toLowerCase() === 'tomorrow night';
-                if (lines[i] === '' || isDateLine || i === lines.length - 1) {
-                    // Process the block if it has enough lines
-                    if (block.length >= 3 && block[0] && block[1] && block[2]) {
-                        let dateStr = currentDate;
-                        let startIndex = 0;
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
+    }
 
-                        // If the block starts with a date
-                        if (block[0].match(/(\w+)\s+(\d{1,2})(?:,\s*(\d{4}))?/) || block[0].toLowerCase() === 'tonight' || block[0].toLowerCase() === 'tomorrow night') {
-                            dateStr = block[0];
-                            startIndex = 1;
-                        }
-
-                        const time = block[startIndex];
-                        const teamsMatch = block[startIndex + 1].match(/^(.+)\s+vs\s+(.+)$/);
-                        const appendedName = block[startIndex + 2] || '';
-                        const cricketFormat = block[startIndex + 3] || 'T20';
-
-                        if (time && teamsMatch) {
-                            // Handle date
-                            if (dateStr.toLowerCase() === 'tonight') dateStr = todayStr;
-                            else if (dateStr.toLowerCase() === 'tomorrow night') dateStr = tomorrowStr;
-                            const dateMatch = dateStr.match(/(\w+)\s+(\d{1,2})(?:,\s*(\d{4}))?/);
-                            const date = dateMatch ? `${dateMatch[1]} ${dateMatch[2]}, ${dateMatch[3] || '2025'}` : dateStr;
-
-                            // Parse time
-                            const timeMatch = time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-                            if (timeMatch) {
-                                let hours = parseInt(timeMatch[1]);
-                                const minutes = timeMatch[2];
-                                const period = timeMatch[3] ? timeMatch[3].toUpperCase() : 'AM';
-                                if (period === 'PM' && hours !== 12) hours += 12;
-                                if (period === 'AM' && hours === 12) hours = 0;
-
-                                // Format JST date
-                                const dateObj = new Date(`${date} ${hours}:${minutes}:00 +09:00`);
-                                const year = dateObj.getFullYear();
-                                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-                                const day = String(dateObj.getDate()).padStart(2, '0');
-                                const hoursStr = String(dateObj.getHours()).padStart(2, '0');
-                                const minutesStr = String(dateObj.getMinutes()).padStart(2, '0');
-                                const isoDate = `${year}-${month}-${day}T${hoursStr}:${minutesStr}:00+09:00`;
-
-                                // Duration
-                                const duration = sport === 'Football' ? '2.6' : (cricketFormat === 'ODI' ? '7.5' : cricketFormat === 'Test' ? '10' : '3.5');
-
-                                // Team name substitutions
-                                const teams = [teamsMatch[1], teamsMatch[2]];
-                                const team1 = teams[0] === 'Internazionale' ? 'Inter Milan' : teams[0] === 'Milan' ? 'AC Milan' : teams[0] === 'ES Tunis' ? 'Espérance' : teams[0];
-                                const team2 = teams[1] === 'Internazionale' ? 'Inter Milan' : teams[1] === 'Milan' ? 'AC Milan' : teams[1] === 'ES Tunis' ? 'Espérance' : teams[1];
-
-                                matches.push({
-                                    name: ` ${team1} vs ${team2} `,
-                                    start: isoDate,
-                                    duration,
-                                    link: appendedName ? ` https://blog.cricfoot.net/?yosintv=${appendedName} ` : ` https://yosintv2.github.io/ads/midd.html?url=_____ `
-                                });
-                            }
-                        }
-                    }
-
-                    // Update current date if new date found
-                    if (isDateLine) {
-                        currentDate = lines[i];
-                    }
-
-                    // Reset block
-                    block = isDateLine ? [lines[i]] : [];
-                }
-            }
-
-            // Classify matches
-            const mainMatches = [];
-            const normalMatches = [];
-            matches.forEach(match => {
-                const hasAppendedName = match.link.includes('blog.cricfoot.net');
-                if (hasAppendedName) {
-                    mainMatches.push(match);
-                } else {
-                    normalMatches.push(match);
-                }
-            });
-
-            // Sort by prominence and time
-            const prominenceOrder = match => {
-                const teams = match.name.split(' vs ').map(t => t.trim());
-                const score = teams.reduce((acc, team) => {
-                    if (sport === 'Football') {
-                        if (topTierClubs.includes(team)) return acc + 2;
-                        if (topTierCountries.includes(team)) return acc + 1;
-                    } else {
-                        if (topTierTestNations.includes(team)) return acc + 2;
-                    }
-                    return acc;
-                }, 0);
-                return score;
-            };
-            mainMatches.sort((a, b) => {
-                const prominenceDiff = prominenceOrder(b) - prominenceOrder(a);
-                if (prominenceDiff !== 0) return prominenceDiff;
-                return a.start.localeCompare(b.start);
-            });
-            normalMatches.sort((a, b) => {
-                const prominenceDiff = prominenceOrder(b) - prominenceOrder(a);
-                if (prominenceDiff !== 0) return prominenceDiff;
-                return a.start.localeCompare(b.start);
-            });
-
-            // Generate JSON
-            const mainMatchesJson = JSON.stringify({ matches: mainMatches }, null, 2).replace(/},/g, '},\n\n');
-            const normalMatchesJson = JSON.stringify({ matches: normalMatches }, null, 2).replace(/},/g, '},\n\n');
-
-            // Update current outputs
-            mainMatchesOutput.textContent = mainMatchesJson;
-            normalMatchesOutput.textContent = normalMatchesJson;
-
-            // Update last genearated outputs
-            lastMainMatchesOutput.textContent = localStorage.getItem('mainMatchesJson') || '';
-            lastNormalMatchesOutput.textContent = localStorage.getItem('normalMatchesJson') || '';
-
-            // Save to localStorage
-            localStorage.setItem('mainMatchesJson', mainMatchesJson);
-            localStorage.setItem('normalMatchesJson', normalMatchesJson);
-
-            // Clear textarea
-            matchesInput.value = '';
-        });
-
-        // Copy JSON to clipboard
-        function copyJSON(elementId) {
-            const text = document.getElementById(elementId).textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                alert('JSON copied to clipboard!');
-            }).catch(err => {
-                console.error('Failed to copy JSON:', err);
-                alert('Failed to copy JSON. Please try again.');
-            });
-        }
-    </script>
+    // On Load
+    window.onload = loadLastSaved;
+  </script>
 </body>
 </html>
