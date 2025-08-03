@@ -1,42 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF 8">
-  <meta name="viewport" content="width=device width, initial scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Team Logo Match</title>
   <style>
-    body { font family: Arial, sans serif; display: flex; flex direction: column; align items: center; margin: 20px; background: #f0f0f0; } 
+    body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; margin: 20px; background: #f0f0f0; } 
     #canvasContainer { position: relative; }
     canvas { border: 1px solid #ccc; }
-    .background { position: absolute; top: 0; left: 0; width: 830px; height: 460px; z index:  1; }
-    .input group { margin: 10px 0; }
+    .background { position: absolute; top: 0; left: 0; width: 830px; height: 460px; z-index: -1; }
+    .input-group { margin: 10px 0; }
     input, button { padding: 5px; margin: 5px; }
-    .autocomplete { position: absolute; border: 1px solid #ccc; background: white; max height: 150px; overflow y: auto; display: none; z index: 10; }
+    .autocomplete { position: absolute; border: 1px solid #ccc; background: white; max-height: 150px; overflow-y: auto; display: none; z-index: 10; }
     .autocomplete div { padding: 5px; cursor: pointer; }
     .autocomplete div:hover { background: #f0f0f0; }
     .hidden { display: none; }
-    button { padding: 10px 20px; background: #007bff; color: white; border: none; border radius: 5px; cursor: pointer; }
-    button:disabled { background: #cccccc; cursor: not allowed; }
+    button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:disabled { background: #cccccc; cursor: not-allowed; }
     button:hover:not(:disabled) { background: #0056b3; }
-    .error { color: red; font size: 12px; }
+    .error { color: red; font-size: 12px; }
   </style>
 </head>
 <body>
-  <div class="input group">
+  <div class="input-group">
     <label>Team 1:</label>
     <input type="text" id="team1Input" placeholder="Enter team name">
     <input type="text" id="team1ManualUrl" placeholder="Or enter image URL">
     <div id="team1Autocomplete" class="autocomplete"></div>
     <div id="error1" class="error hidden"></div>
   </div>
-  <div class="input group">
+  <div class="input-group">
     <label>Team 2:</label>
     <input type="text" id="team2Input" placeholder="Enter team name">
     <input type="text" id="team2ManualUrl" placeholder="Or enter image URL">
     <div id="team2Autocomplete" class="autocomplete"></div>
     <div id="error2" class="error hidden"></div>
   </div>
-  <div class="input group">
+  <div class="input-group">
     <label><input type="checkbox" id="showHowToWatch"> Add "How to Watch" text</label>
     <input type="text" id="howToWatchText" placeholder="Enter How to Watch text (e.g., How to Watch Team1 vs. Team2)" disabled>
   </div>
@@ -44,7 +44,7 @@
     <canvas id="myCanvas" width="830" height="460"></canvas>
     <div id="background" class="background"></div>
   </div>
-  <div class="input group">
+  <div class="input-group">
     <label>Custom Name:</label>
     <input type="text" id="customName" placeholder="Enter custom name for download">
   </div>
@@ -282,7 +282,7 @@
       { "name": "Ecuador", "logo": "https://cdn.yosintv.link/football/6707.png" },
       { "name": "Qatar", "logo": "https://cdn.yosintv.link/football/5902.png" },
       { "name": "England", "logo": "https://cdn.yosintv.link/football/8491.png" },
-      { "name": "Usa", "logo": "https://cdn.yosintv.link/football/6713.png" },
+      { "name": "USA", "logo": "https://cdn.yosintv.link/football/6713.png" },
       { "name": "Iran", "logo": "https://cdn.yosintv.link/football/6711.png" },
       { "name": "Wales", "logo": "https://cdn.yosintv.link/football/5790.png" },
       { "name": "Argentina", "logo": "https://cdn.yosintv.link/football/6706.png" },
@@ -309,7 +309,7 @@
       { "name": "South Korea", "logo": "https://cdn.yosintv.link/football/7804.png" },
       { "name": "Uruguay", "logo": "https://cdn.yosintv.link/football/5796.png" },
       { "name": "Ghana", "logo": "https://cdn.yosintv.link/football/6714.png" },
-      { "name": "Avs Futebol Sad", "logo": "https://cdn.yosintv.link/football/1889.png" },
+      { "name": "AVS Futebol Sad", "logo": "https://cdn.yosintv.link/football/1889.png" },
       { "name": "Alverca", "logo": "https://cdn.yosintv.link/football/9780.png" },
       { "name": "Arouca", "logo": "https://cdn.yosintv.link/football/158085.png" },
       { "name": "Braga", "logo": "https://cdn.yosintv.link/football/10264.png" },
@@ -559,11 +559,11 @@
         ctx.fillText(howToWatchText.value.trim(), canvas.width / 2, 370);
         ctx.font = '16px Arial';
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillText('www.yosin tv.net', canvas.width / 2, canvas.height   30);
+        ctx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 30);
       } else {
         ctx.font = '16px Arial';
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillText('www.yosin tv.net', canvas.width / 2, canvas.height   30);
+        ctx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 30);
       }
     }
 
@@ -583,8 +583,8 @@
 
     function handleClick(event) {
       const rect = canvas.getBoundingClientRect();
-      const x = event.clientX   rect.left;
-      const y = event.clientY   rect.top;
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
       const imageData = ctx.getImageData(x, y, 1, 1).data;
       const color = { r: imageData[0], g: imageData[1], b: imageData[2] };
 
@@ -610,8 +610,8 @@
 
     function drawCursor(event) {
       const rect = canvas.getBoundingClientRect();
-      const x = event.clientX   rect.left;
-      const y = event.clientY   rect.top;
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
       redrawCanvas();
       ctx.beginPath();
       ctx.arc(x, y, 5, 0, Math.PI * 2);
@@ -662,25 +662,35 @@
       tempCtx.textAlign = 'center';
       tempCtx.fillText('vs', canvas.width / 2, canvas.height / 2 + 8);
       
-      tempCtx.font = 'bold 20px Arial';
+      tempCtx.font = 'bold 24px Arial';
       tempCtx.fillStyle = 'black';
       tempCtx.textAlign = 'center';
       if (showHowToWatch.checked && howToWatchText.value.trim()) {
         tempCtx.fillText(howToWatchText.value.trim(), canvas.width / 2, 370);
         tempCtx.font = '16px Arial';
         tempCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        tempCtx.fillText('www.yosin tv.net', canvas.width / 2, canvas.height   30);
+        tempCtx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 30);
       } else {
         tempCtx.font = '16px Arial';
         tempCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        tempCtx.fillText('www.yosin tv.net', canvas.width / 2, canvas.height   30);
+        tempCtx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 30);
       }
 
       ctx.restore();
 
-      const customName = customNameInput.value.trim() || 'match name';
+      // Generate file name from team names or use custom name
+      const team1Name = team1Input.value.trim();
+      const team2Name = team2Input.value.trim();
+      let fileName = customNameInput.value.trim() || 'match-name';
+      if (team1Name && team2Name) {
+        // Sanitize team names for file name
+        const sanitizedTeam1 = team1Name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-');
+        const sanitizedTeam2 = team2Name.replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-');
+        fileName = `${sanitizedTeam1}-vs-${sanitizedTeam2}`;
+      }
+
       const link = document.createElement('a');
-      link.download = `${customName}.png`;
+      link.download = `${fileName}.png`;
       link.href = tempCanvas.toDataURL('image/png', 1.0);
       document.body.appendChild(link);
       link.click();
