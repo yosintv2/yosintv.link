@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+  <!-- https://chatgpt.com/c/688a39b1-1804-8008-b51c-1f9b857b7944 | https://grok.com/chat/d1b8124b-514a-4956-9f1a-4f1961a4178a -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- https://chatgpt.com/c/688a39b1-1804-8008-b51c-1f9b857b7944 | https://grok.com/chat/d1b8124b-514a-4956-9f1a-4f1961a4178a -->
   <title>Team Logo Match</title>
   <style>
     body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; margin: 20px; background: #f0f0f0; } 
@@ -38,6 +38,10 @@
     <div id="team2Autocomplete" class="autocomplete"></div>
     <div id="error2" class="error hidden"></div>
   </div>
+  <div class="input-group">
+    <label><input type="checkbox" id="showHowToWatch"> Add "How to Watch" text</label>
+    <input type="text" id="howToWatchText" placeholder="Enter How to Watch text (e.g., How to Watch Team1 vs. Team2)" disabled>
+  </div>
   <div id="canvasContainer">
     <canvas id="myCanvas" width="830" height="460"></canvas>
     <div id="background" class="background"></div>
@@ -61,6 +65,8 @@
     const downloadBtn = document.querySelector('button');
     const customNameInput = document.getElementById('customName');
     const background = document.getElementById('background');
+    const showHowToWatch = document.getElementById('showHowToWatch');
+    const howToWatchText = document.getElementById('howToWatchText');
 
     let img1 = new Image();
     let img2 = new Image();
@@ -78,7 +84,7 @@
       { "name": "Sri Lanka", "logo": "https://cdn.yosintv.link/srilanka.png" },
       { "name": "Bangladesh", "logo": "https://cdn.yosintv.link/bangladesh.png" },
       { "name": "Afghanistan", "logo": "https://cdn.yosintv.link/afghanistan.png" },
-      { "name": "West Indies", "logo": "https://cdn.yosintv.link/westindies.png" },
+      { "name": "West Indies", "logo": "https://cdn.yosintv.link/windies.png" },
       { "name": "Zimbabwe", "logo": "https://cdn.yosintv.link/zimbabwe.png" },
       { "name": "Ireland", "logo": "https://cdn.yosintv.link/ireland.png" },
       { "name": "Scotland", "logo": "https://cdn.yosintv.link/scotland.png" },
@@ -214,7 +220,7 @@
       { "name": "Dc United", "logo": "https://cdn.yosintv.link/football/6602.png" },
       { "name": "Cf Montreal", "logo": "https://cdn.yosintv.link/football/161195.png" },
       { "name": "San Diego Fc", "logo": "https://cdn.yosintv.link/football/1701119.png" },
-      { "name": "Vancouver Whitecaps", "logo": "https://cdn.yosintv.link/football/307691.png" },
+      { "name": "Vancouver Whitecaps", "logo": "https://cdn.yosintv.link/football/307690.png" },
       { "name": "Minnesota United", "logo": "https://cdn.yosintv.link/football/207242.png" },
       { "name": "Seattle Sounders Fc", "logo": "https://cdn.yosintv.link/football/130394.png" },
       { "name": "Portland Timbers", "logo": "https://cdn.yosintv.link/football/307690.png" },
@@ -356,6 +362,38 @@
     img2UrlInput.id = 'img2Url';
     document.body.appendChild(img2UrlInput);
 
+    // Function to update How to Watch text
+    function updateHowToWatchText() {
+      const team1Name = team1Input.value.trim();
+      const team2Name = team2Input.value.trim();
+      if (team1Name && team2Name) {
+        howToWatchText.value = `How to Watch ${team1Name} vs. ${team2Name} ?`;
+      } else {
+        howToWatchText.value = '';
+      }
+      loadImages();
+    }
+
+    // Enable/disable How to Watch text input based on checkbox
+    showHowToWatch.addEventListener('change', function() {
+      howToWatchText.disabled = !this.checked;
+      if (!this.checked) {
+        howToWatchText.value = '';
+      } else {
+        updateHowToWatchText();
+      }
+      loadImages();
+    });
+
+    // Update How to Watch text when team inputs change
+    team1Input.addEventListener('input', updateHowToWatchText);
+    team2Input.addEventListener('input', updateHowToWatchText);
+
+    // Update canvas when How to Watch text changes
+    howToWatchText.addEventListener('input', function() {
+      loadImages();
+    });
+
     // Function to get URL parameters
     function getUrlParameter(name) {
       const urlParams = new URLSearchParams(window.location.search);
@@ -384,6 +422,7 @@
         img2UrlInput.value = team2Url || (selectedTeam2 ? selectedTeam2.logo : '');
       }
 
+      updateHowToWatchText(); // Set initial How to Watch text
       canvas.addEventListener('click', handleClick);
       canvas.addEventListener('mousemove', drawCursor);
       canvas.addEventListener('mouseleave', clearCursor);
@@ -407,6 +446,7 @@
               urlInput.value = team.logo;
               console.log('Selected team:', team.name, 'URL:', team.logo);
               autocompleteList.style.display = 'none';
+              updateHowToWatchText();
               loadImages();
             });
             autocompleteList.appendChild(div);
@@ -427,12 +467,14 @@
     team1ManualUrl.addEventListener('input', function() {
       team1Input.value = '';
       img1UrlInput.value = this.value;
+      updateHowToWatchText();
       loadImages();
     });
 
     team2ManualUrl.addEventListener('input', function() {
       team2Input.value = '';
       img2UrlInput.value = this.value;
+      updateHowToWatchText();
       loadImages();
     });
 
@@ -512,10 +554,19 @@
       ctx.textAlign = 'center';
       ctx.fillText('vs', canvas.width / 2, canvas.height / 2 + 8);
       
-      ctx.font = '16px Arial';
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.font = '24px Arial';
+      ctx.fillStyle = 'black';
       ctx.textAlign = 'center';
-      ctx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 30);
+      if (showHowToWatch.checked && howToWatchText.value.trim()) {
+        ctx.fillText(howToWatchText.value.trim(), canvas.width / 2, 370);
+        ctx.font = '16px Arial';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 30);
+      } else {
+        ctx.font = '16px Arial';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 30);
+      }
     }
 
     function drawVsAndImg2(team2Name) {
@@ -595,7 +646,38 @@
       tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
       tempCtx.scale(2, 2);
-      tempCtx.drawImage(canvas, 0, 0);
+      tempCtx.drawImage(img1, 50, 100, 150, 150);
+      tempCtx.drawImage(img2, 630, 100, 150, 150);
+      
+      tempCtx.font = '20px Arial';
+      tempCtx.fillStyle = 'black';
+      tempCtx.textAlign = 'center';
+      tempCtx.fillText(team1Input.value.trim() || '', 125, 280);
+      tempCtx.fillText(team2Input.value.trim() || '', 705, 280);
+      
+      tempCtx.beginPath();
+      tempCtx.arc(canvas.width / 2, canvas.height / 2, 30, 0, Math.PI * 2);
+      tempCtx.fillStyle = 'black';
+      tempCtx.fill();
+      tempCtx.font = '25px Arial';
+      tempCtx.fillStyle = 'white';
+      tempCtx.textAlign = 'center';
+      tempCtx.fillText('vs', canvas.width / 2, canvas.height / 2 + 8);
+      
+      tempCtx.font = 'bold 20px Arial';
+      tempCtx.fillStyle = 'black';
+      tempCtx.textAlign = 'center';
+      if (showHowToWatch.checked && howToWatchText.value.trim()) {
+        tempCtx.fillText(howToWatchText.value.trim(), canvas.width / 2, 370);
+        tempCtx.font = '16px Arial';
+        tempCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        tempCtx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 30);
+      } else {
+        tempCtx.font = '16px Arial';
+        tempCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        tempCtx.fillText('www.yosin-tv.net', canvas.width / 2, canvas.height - 30);
+      }
+
       ctx.restore();
 
       const customName = customNameInput.value.trim() || 'match-name';
