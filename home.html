@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Sports Events</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      color: #333;
+      overflow-x: hidden;
+      position: relative;
+    }
+    .card {
+      background-color: #ffffff;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .countdown {
+      font-weight: bold;
+      color: #555;
+    }
+    .live-now {
+      background-color: #dc3545;
+      color: white;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .side-menu {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 300px;
+      height: 100%;
+      background-color: #ffffff;
+      z-index: 1050;
+      transition: right 0.3s ease-in-out;
+      box-shadow: -3px 0 10px rgba(0,0,0,0.2);
+      overflow-y: auto;
+      touch-action: none;
+    }
+    @media (max-width: 576px) {
+      .side-menu {
+        width: 250px;
+      }
+    }
+    .side-menu.show {
+      right: 0;
+    }
+    .side-menu-header {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #f1f1f1;
+      font-size: 1.25rem;
+    }
+    .side-menu-close {
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 5px 10px;
+      border: none;
+      background: none;
+      color: #333;
+    }
+    .side-menu-close:hover {
+      color: #dc3545;
+    }
+    .category-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 15px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 1.1rem;
+    }
+    .category-item:hover {
+      background-color: #e9ecef;
+    }
+    .category-icon {
+      width: 28px;
+      height: 28px;
+      display: inline-block;
+      background-size: cover;
+      border-radius: 4px;
+    }
+    .drag-handle {
+      position: absolute;
+      left: -5px;
+      top: 0;
+      width: 5px;
+      height: 100%;
+      background-color: #007bff;
+      cursor: ew-resize;
+    }
+    .backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+      z-index: 1040;
+      display: none;
+    }
+    .backdrop.show {
+      display: block;
+    }
+    .search-container {
+      position: relative;
+      max-width: 300px;
+      width: 100%;
+    }
+    .search-bar {
+      width: 100%;
+    }
+    .search-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+    .search-suggestions.show {
+      display: block;
+    }
+    .search-suggestion {
+      padding: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .search-suggestion:hover {
+      background-color: #e9ecef;
+    }
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    .loading-spinner.active {
+      display: block;
+    }
+    .error-message {
+      text-align: center;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+      <h2>YoSinTV All Sports Events</h2>
+      <div class="d-flex gap-2 align-items-center">
+        <div class="search-container">
+          <input type="text" id="searchInput" class="form-control search-bar" placeholder="Search events..." aria-label="Search events">
+          <div id="searchSuggestions" class="search-suggestions"></div>
+        </div>
+        <button class="btn btn-primary" onclick="toggleSideMenu()" aria-label="Open sports menu">All Sports</button>
+      </div>
+    </div>
+    <div class="loading-spinner active">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div id="events-container" class="row g-4"></div>
+    <div id="error-message" class="error-message d-none">
+      <p class="text-danger">Failed to load events.</p>
+      <button class="btn btn-primary" onclick="fetchEvents()">Retry</button>
+    </div>
+  </div>
+
+  <!-- Swipeable Side Menu -->
+  <div id="backdrop" class="backdrop"></div>
+  <div id="sideMenu" class="side-menu" role="navigation" aria-label="Sports categories">
+    <div class="drag-handle"></div>
+    <div class="side-menu-header">
+      <span>All Sports</span>
+      <button class="side-menu-close" onclick="toggleSideMenu()" aria-label="Close sports menu">&times;</button>
+    </div>
+    <div id="category-list" class="p-3"></div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const container = document.getElementById('events-container');
+  const categoryList = document.getElementById('category-list');
+  const searchInput = document.getElementById('searchInput');
+  const searchSuggestions = document.getElementById('searchSuggestions');
+  const errorMessage = document.getElementById('error-message');
+  const loadingSpinner = document.querySelector('.loading-spinner');
+  const sideMenu = document.getElementById('sideMenu');
+  const backdrop = document.getElementById('backdrop');
+  let allEvents = [];
+  let lastRenderedEvents = [];
+
+  // Mock icons for sports (replace with actual URLs or SVGs)
+  const sportIcons = {
+    Football: 'https://via.placeholder.com/28?text=F',
+    Basketball: 'https://via.placeholder.com/28?text=B',
+    Tennis: 'https://via.placeholder.com/28?text=T',
+    default: 'https://via.placeholder.com/28?text=S'
+  };
+
+  // Swipe functionality
+  let startX, currentX, isDragging = false;
+  const threshold = 100; // Minimum swipe distance to close
+
+  function toggleSideMenu() {
+    const isShown = sideMenu.classList.toggle('show');
+    backdrop.classList.toggle('show', isShown);
+    if (isShown) {
+      categoryList.querySelector('.category-item').focus();
+    }
+  }
+
+  function startSwipe(e) {
+    isDragging = true;
+    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+  }
+
+  function moveSwipe(e) {
+    if (!isDragging) return;
+    currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+    const diff = startX - currentX;
+    if (diff > 0) {
+      sideMenu.style.right = `-${diff}px`;
+    }
+  }
+
+  function endSwipe() {
+    if (!isDragging) return;
+    isDragging = false;
+    const diff = startX - currentX;
+    if (diff > threshold) {
+      sideMenu.classList.remove('show');
+      backdrop.classList.remove('show');
+      sideMenu.style.right = '-300px';
+    } else {
+      sideMenu.style.right = '0';
+    }
+  }
+
+  sideMenu.querySelector('.drag-handle').addEventListener('mousedown', startSwipe);
+  sideMenu.querySelector('.drag-handle').addEventListener('touchstart', startSwipe);
+  document.addEventListener('mousemove', moveSwipe);
+  document.addEventListener('touchmove', moveSwipe);
+  document.addEventListener('mouseup', endSwipe);
+  document.addEventListener('touchend', endSwipe);
+  backdrop.addEventListener('click', toggleSideMenu);
+
+  function formatDate(timestamp) {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleString('en-GB', { timeZone: 'Asia/Tokyo' });
+  }
+
+  function isLive(timestamp) {
+    const now = Math.floor(Date.now() / 1000);
+    return now >= timestamp && now <= timestamp + 9000; // 2.5 hrs
+  }
+
+  function getCountdown(timestamp) {
+    const now = Math.floor(Date.now() / 1000);
+    let seconds = timestamp - now;
+    if (seconds <= 0) return '';
+
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `Starts in ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  }
+
+  function renderCategories(events) {
+    const sports = [...new Set(events.map(e => e.sport))];
+    categoryList.innerHTML = '';
+
+    const allItem = document.createElement('div');
+    allItem.className = 'category-item';
+    allItem.setAttribute('role', 'button');
+    allItem.setAttribute('tabindex', '0');
+    allItem.setAttribute('aria-label', 'Show all sports');
+    allItem.innerHTML = `
+      <span class="category-icon" style="background-image: url('${sportIcons.default}')"></span>
+      All
+    `;
+    allItem.onclick = () => {
+      renderEvents(allEvents);
+      toggleSideMenu();
+    };
+    allItem.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        renderEvents(allEvents);
+        toggleSideMenu();
+      }
+    };
+    categoryList.appendChild(allItem);
+
+    sports.forEach(sport => {
+      const item = document.createElement('div');
+      item.className = 'category-item';
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('aria-label', `Filter by ${sport}`);
+      item.innerHTML = `
+        <span class="category-icon" style="background-image: url('${sportIcons[sport] || sportIcons.default}')"></span>
+        ${sport}
+      `;
+      item.onclick = () => {
+        renderEvents(allEvents.filter(e => e.sport === sport));
+        toggleSideMenu();
+      };
+      item.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          renderEvents(allEvents.filter(e => e.sport === sport));
+          toggleSideMenu();
+        }
+      };
+      categoryList.appendChild(item);
+    });
+  }
+
+  function renderEvents(events) {
+    if (JSON.stringify(events) === JSON.stringify(lastRenderedEvents)) return;
+    lastRenderedEvents = events;
+
+    container.innerHTML = '';
+    const sortedEvents = [...events].sort((a, b) => a.sport.localeCompare(b.sport));
+
+    const fragment = document.createDocumentFragment();
+    sortedEvents.forEach(event => {
+      const col = document.createElement('div');
+      col.className = 'col-12'; // Full-width row
+      const card = document.createElement('div');
+      card.className = 'card shadow-sm h-100';
+
+      const cardBody = document.createElement('div');
+      cardBody.className = 'card-body d-flex flex-column';
+
+      const title = document.createElement('h5');
+      title.className = 'card-title';
+      title.textContent = event.match;
+
+      const tour = document.createElement('p');
+      tour.className = 'card-text mb-1';
+      tour.innerHTML = `<strong>${event.sport}</strong> - ${event.tournament}`;
+
+      const time = document.createElement('p');
+      time.className = 'card-text';
+      time.textContent = formatDate(event.unix_timestamp);
+
+      const links = document.createElement('div');
+      links.className = 'mt-auto';
+      event.channels.forEach((link, index) => {
+        const a = document.createElement('a');
+        a.href = `	https://www.yosintvlive.com/ft?src=${encodeURIComponent(link)}`;
+        a.target = '_blank';
+        a.className = 'btn btn-sm btn-outline-success me-2 mb-2';
+        a.textContent = `Link ${index + 1}`;
+        a.setAttribute('aria-label', `Watch ${event.match} on channel ${index + 1}`);
+        links.appendChild(a);
+      });
+
+      const countdown = document.createElement('div');
+      countdown.className = 'countdown-container';
+      if (isLive(event.unix_timestamp)) {
+        const liveBtn = document.createElement('span');
+        liveBtn.className = 'btn live-now btn-sm mb-2';
+        liveBtn.textContent = 'Live Now';
+        countdown.appendChild(liveBtn);
+      } else {
+        const span = document.createElement('span');
+        span.className = 'countdown';
+        span.setAttribute('data-timestamp', event.unix_timestamp);
+        countdown.appendChild(span);
+      }
+
+      cardBody.append(title, tour, time, links, countdown);
+      card.appendChild(cardBody);
+      col.appendChild(card);
+      fragment.appendChild(col);
+    });
+
+    container.appendChild(fragment);
+  }
+
+  function filterEvents(query) {
+    query = query.toLowerCase().trim();
+    const filtered = allEvents.filter(event =>
+      event.match.toLowerCase().includes(query) ||
+      event.sport.toLowerCase().includes(query) ||
+      event.tournament.toLowerCase().includes(query)
+    );
+    renderEvents(filtered);
+    renderSearchSuggestions(filtered);
+  }
+
+  function renderSearchSuggestions(events) {
+    searchSuggestions.innerHTML = '';
+    if (!searchInput.value.trim()) {
+      searchSuggestions.classList.remove('show');
+      return;
+    }
+
+    const maxSuggestions = 5;
+    const suggestions = events.slice(0, maxSuggestions);
+    if (suggestions.length === 0) {
+      searchSuggestions.classList.remove('show');
+      return;
+    }
+
+    suggestions.forEach(event => {
+      const div = document.createElement('div');
+      div.className = 'search-suggestion';
+      div.textContent = `${event.match} (${event.sport})`;
+      div.setAttribute('role', 'option');
+      div.setAttribute('aria-label', `Select ${event.match}`);
+      div.onclick = () => {
+        searchInput.value = event.match;
+        renderEvents([event]);
+        searchSuggestions.classList.remove('show');
+      };
+      div.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          searchInput.value = event.match;
+          renderEvents([event]);
+          searchSuggestions.classList.remove('show');
+        }
+      };
+      searchSuggestions.appendChild(div);
+    });
+
+    searchSuggestions.classList.add('show');
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  function updateCountdowns() {
+    const spans = document.querySelectorAll('.countdown');
+    let needsRefresh = false;
+    spans.forEach(span => {
+      const timestamp = span.getAttribute('data-timestamp');
+      const countdown = getCountdown(Number(timestamp));
+      span.textContent = countdown;
+      if (!countdown) needsRefresh = true;
+    });
+    if (needsRefresh) renderEvents(allEvents);
+    requestAnimationFrame(updateCountdowns);
+  }
+
+  async function fetchEvents() {
+    try {
+      loadingSpinner.classList.add('active');
+      errorMessage.classList.add('d-none');
+      const res = await fetch('https://topembed.pw/api.php?format=json');
+      const data = await res.json();
+
+      let flat = [];
+      for (let date in data.events) {
+        flat.push(...data.events[date]);
+      }
+      allEvents = flat;
+      renderEvents(flat);
+      renderCategories(flat);
+      loadingSpinner.classList.remove('active');
+    } catch (err) {
+      loadingSpinner.classList.remove('active');
+      errorMessage.classList.remove('d-none');
+    }
+  }
+
+  // Event Listeners
+  searchInput.addEventListener('input', debounce(e => filterEvents(e.target.value), 300));
+  searchInput.addEventListener('focus', () => {
+    if (searchInput.value.trim()) renderSearchSuggestions(allEvents.filter(event =>
+      event.match.toLowerCase().includes(searchInput.value.toLowerCase().trim()) ||
+      event.sport.toLowerCase().includes(searchInput.value.toLowerCase().trim()) ||
+      event.tournament.toLowerCase().includes(searchInput.value.toLowerCase().trim())
+    ));
+  });
+  searchInput.addEventListener('blur', () => {
+    setTimeout(() => searchSuggestions.classList.remove('show'), 200);
+  });
+  sideMenu.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') toggleSideMenu();
+  });
+
+  // Start countdown updates
+  fetchEvents();
+  requestAnimationFrame(updateCountdowns);
+</script>
+</body>
+</html>
