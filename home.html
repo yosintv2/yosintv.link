@@ -351,9 +351,7 @@
     allItem.setAttribute('tabindex', '0');
     allItem.setAttribute('aria-label', 'Show all sports');
     allItem.innerHTML = `
-      <span class="category-icon" style="background-image: url('${sportIcons.default}')"></span>
-      All
-    `;
+      <span class="category-icon" style="background-image: url('${sportIcons.default}')"></span>All Match Events`;
     allItem.onclick = () => {
       renderEvents(allEvents);
       toggleSideMenu();
