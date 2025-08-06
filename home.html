@@ -28,6 +28,10 @@
       color: white;
       animation: blink 1s infinite;
     }
+    .match-ended {
+      background-color: #6c757d;
+      color: white;
+    }
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.6; }
@@ -169,6 +173,18 @@
       text-align: center;
       padding: 20px;
     }
+    .ad-container {
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-align: center;
+      padding: 10px;
+      margin-bottom: 16px;
+    }
+    .ad-container img {
+      max-width: 100%;
+      height: auto;
+    }
   </style>
 </head>
 <body>
@@ -286,6 +302,11 @@
     return now >= timestamp && now <= timestamp + 9000; // 2.5 hrs
   }
 
+  function isEnded(timestamp) {
+    const now = Math.floor(Date.now() / 1000);
+    return now > timestamp + 9000; // After 2.5 hrs
+  }
+
   function getCountdown(timestamp) {
     const now = Math.floor(Date.now() / 1000);
     let seconds = timestamp - now;
@@ -388,7 +409,8 @@
     });
 
     const fragment = document.createDocumentFragment();
-    sortedEvents.forEach(event => {
+    sortedEvents.forEach((event, index) => {
+      // Add event card
       const col = document.createElement('div');
       col.className = 'col-12'; // Full-width row
       const card = document.createElement('div');
@@ -423,7 +445,12 @@
 
       const countdown = document.createElement('div');
       countdown.className = 'countdown-container';
-      if (isLive(event.unix_timestamp)) {
+      if (isEnded(event.unix_timestamp)) {
+        const endedBtn = document.createElement('span');
+        endedBtn.className = 'btn match-ended btn-sm mb-2';
+        endedBtn.textContent = 'Match Ended';
+        countdown.appendChild(endedBtn);
+      } else if (isLive(event.unix_timestamp)) {
         const liveBtn = document.createElement('span');
         liveBtn.className = 'btn live-now btn-sm mb-2';
         liveBtn.textContent = 'Live Now';
@@ -439,6 +466,19 @@
       card.appendChild(cardBody);
       col.appendChild(card);
       fragment.appendChild(col);
+
+      // Add ad after every 3 events
+      if ((index + 1) % 3 === 0) {
+        const adCol = document.createElement('div');
+        adCol.className = 'col-12';
+        const adContainer = document.createElement('div');
+        adContainer.className = 'ad-container';
+        adContainer.innerHTML = `
+          <img src="https://via.placeholder.com/728x90?text=Ad" alt="Advertisement" />
+        `;
+        adCol.appendChild(adContainer);
+        fragment.appendChild(adCol);
+      }
     });
 
     container.appendChild(fragment);
