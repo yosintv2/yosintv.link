@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Live Sports Events</title>
+  <title>YoSinTV All Sports Event</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -88,6 +88,13 @@
     }
     .category-item:hover {
       background-color: #e9ecef;
+    }
+    .category-item.live-now {
+      background-color: #dc3545;
+      color: white;
+    }
+    .category-item.live-now:hover {
+      background-color: #c82333;
     }
     .category-icon {
       width: 28px;
@@ -215,8 +222,10 @@
   // Mock icons for sports (replace with actual URLs or SVGs)
   const sportIcons = {
     Football: 'https://via.placeholder.com/28?text=F',
+    Cricket: 'https://via.placeholder.com/28?text=C',
     Basketball: 'https://via.placeholder.com/28?text=B',
     Tennis: 'https://via.placeholder.com/28?text=T',
+    Live: 'https://via.placeholder.com/28?text=L',
     default: 'https://via.placeholder.com/28?text=S'
   };
 
@@ -292,6 +301,29 @@
     const sports = [...new Set(events.map(e => e.sport))];
     categoryList.innerHTML = '';
 
+    // Add Live Now item
+    const liveItem = document.createElement('div');
+    liveItem.className = 'category-item live-now';
+    liveItem.setAttribute('role', 'button');
+    liveItem.setAttribute('tabindex', '0');
+    liveItem.setAttribute('aria-label', 'Show live events');
+    liveItem.innerHTML = `
+      <span class="category-icon" style="background-image: url('${sportIcons.Live}')"></span>
+      Live Now
+    `;
+    liveItem.onclick = () => {
+      renderEvents(allEvents.filter(e => isLive(e.unix_timestamp)));
+      toggleSideMenu();
+    };
+    liveItem.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        renderEvents(allEvents.filter(e => isLive(e.unix_timestamp)));
+        toggleSideMenu();
+      }
+    };
+    categoryList.appendChild(liveItem);
+
+    // Add All item
     const allItem = document.createElement('div');
     allItem.className = 'category-item';
     allItem.setAttribute('role', 'button');
@@ -313,6 +345,7 @@
     };
     categoryList.appendChild(allItem);
 
+    // Add sport-specific items
     sports.forEach(sport => {
       const item = document.createElement('div');
       item.className = 'category-item';
@@ -342,7 +375,17 @@
     lastRenderedEvents = events;
 
     container.innerHTML = '';
-    const sortedEvents = [...events].sort((a, b) => a.sport.localeCompare(b.sport));
+    const sortedEvents = [...events].sort((a, b) => {
+      // Prioritize Cricket and Football
+      const prioritySports = ['Cricket', 'Football'];
+      const aPriority = prioritySports.includes(a.sport) ? (a.sport === 'Cricket' ? 0 : 1) : 2;
+      const bPriority = prioritySports.includes(b.sport) ? (b.sport === 'Cricket' ? 0 : 1) : 2;
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      // Within same sport, sort by timestamp
+      if (a.sport === b.sport) return a.unix_timestamp - b.unix_timestamp;
+      // For other sports, sort alphabetically
+      return a.sport.localeCompare(b.sport);
+    });
 
     const fragment = document.createDocumentFragment();
     sortedEvents.forEach(event => {
