@@ -2,6 +2,23 @@
   
 
 {
+  "id": "bayvtot",
+  "team1": "BAYERN MUNICH",
+  "team2": "TOTTENHAM",
+  "category": "Friendly",
+  "link": "video?src=https://highlight.api-football.xyz/2025/08/07/1754600497881/index.m3u8"
+},
+  
+  {
+  "id": "rioavaln1",
+  "team1": "RIO AVE",
+  "team2": "AL NASSR",
+  "category": "Friendly",
+  "link": "video?src=https://highlight.api-football.xyz/2025/08/07/1754605894096/index.m3u8"
+},
+  
+  
+  {
   "id": "chevpso",
   "team1": "CHELSEA",
   "team2": "PSG",
