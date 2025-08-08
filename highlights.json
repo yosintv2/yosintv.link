@@ -1,148 +1,123 @@
 [
 
 {
-  "id": "bayvtot",
+  "id": "bayern-munich-vs-tottenham-2025-08-07-match-highlights",
   "team1": "BAYERN MUNICH",
   "team2": "TOTTENHAM",
   "category": "Friendly",
   "link": "video?src=https://highlight.api-football.xyz/2025/08/07/1754600497881/index.m3u8"
 },
-  
-  {
-  "id": "rioavaln1",
+{
+  "id": "rio-ave-vs-al-nassr-2025-08-07-match-highlights",
   "team1": "RIO AVE",
   "team2": "AL NASSR",
   "category": "Friendly",
   "link": "video?src=https://highlight.api-football.xyz/2025/08/07/1754605894096/index.m3u8"
 },
-  
-  
-  {
-  "id": "chevpso",
+{
+  "id": "chelsea-vs-psg-2025-07-13-match-highlights",
   "team1": "CHELSEA",
   "team2": "PSG",
-  "category": "Club World Cup Final ",
+  "category": "Club World Cup Final",
   "link": "video?src=https://highlight.api-football.xyz/2025/07/13/1752444687642/index.m3u8"
 },
-  
-  {
-  "id": "psgvrma",
+{
+  "id": "psg-vs-real-madrid-2025-07-09-match-highlights",
   "team1": "PSG",
   "team2": "REAL MADRID",
   "category": "Club World Cup",
   "link": "video?src=https://highlight.api-football.xyz/2025/07/09/1752099734322/index.m3u8"
 },
-  
-  
 {
-  "id": "fluvche",
+  "id": "fluminense-vs-chelsea-2025-07-08-match-highlights",
   "team1": "FLUMINENSE",
   "team2": "CHELSEA",
   "category": "Club World Cup",
   "link": "video?src=https://highlight.api-football.xyz/2025/07/08/1752012806422/index.m3u8"
 },
-  
-  {
-  "id": "monvint",
+{
+  "id": "montreal-vs-inter-miami-2025-06-27-match-highlights",
   "team1": "MONTREAL",
   "team2": "INTER MIAMI",
   "category": "MLS",
-  "link": " https://www.youtube.com/embed/yIY_lsZdJLY?si=JvosmRtO9b_n7t9p "
+  "link": "video?src=https://www.youtube.com/embed/yIY_lsZdJLY?si=JvosmRtO9b_n7t9p"
 },
+{
+  "id": "psg-vs-bayern-munich-2025-07-05-match-highlights",
+  "team1": "PSG",
+  "team2": "BAYERN MUNICH",
+  "category": "Club World Cup",
+  "link": "video?src=https://highlight.api-football.xyz/2025/07/05/1751755023501/index.m3u8"
+},
+{
+  "id": "real-madrid-vs-borussia-dortmund-2025-07-05-match-highlights",
+  "team1": "REAL MADRID",
+  "team2": "BORUSSIA DORTMUND",
+  "category": "Club World Cup",
+  "link": "video?src=https://highlight.api-football.xyz/2025/07/05/1751757052062/index.m3u8"
+},
+{
+  "id": "real-madrid-vs-juventus-2025-07-01-match-highlights",
+  "team1": "REAL MADRID",
+  "team2": "JUVENTUS",
+  "category": "Club World Cup",
+  "link": "video?src=https://highlight.api-football.xyz/2025/07/01/1751405254317/index.m3u8"
+},
+{
+  "id": "man-city-vs-al-hilal-2025-07-01-match-highlights",
+  "team1": "MAN CITY",
+  "team2": "AL HILAL",
+  "category": "Club World Cup",
+  "link": "video?src=https://highlight.api-football.xyz/2025/07/01/1751342895783/index.m3u8"
+},
+{
+  "id": "inter-milan-vs-fluminense-2025-06-30-match-highlights",
+  "team1": "INTER MILAN",
+  "team2": "FLUMINENSE",
+  "category": "Club World Cup",
+  "link": "video?src=https://highlight.api-football.xyz/2025/06/30/1751318219686/index.m3u8"
+},
+{
+  "id": "psg-vs-inter-miami-2025-06-29-match-highlights",
+  "team1": "PSG",
+  "team2": "INTER MIAMI",
+  "category": "Club World Cup",
+  "link": "video?src=https://www.youtube.com/watch?v=2eY74BW4SbE"
+},
+{
+  "id": "benfica-vs-chelsea-2025-06-29-match-highlights",
+  "team1": "BENFICA",
+  "team2": "CHELSEA",
+  "category": "Club World Cup",
+  "link": "video?src=https://highlight.api-football.xyz/2025/06/29/1751158726949/index.m3u8"
+},
+{
+  "id": "salzburg-vs-real-madrid-2025-06-27-match-highlights",
+  "team1": "SALZBURG",
+  "team2": "REAL MADRID",
+  "category": "Club World Cup",
+  "link": "video?src=https://hoofootay4.spotlightmoment.com/embed/jmz1kEPk0KfqV"
+},
+{
+  "id": "juventus-vs-man-city-2025-06-26-match-highlights",
+  "team1": "JUVENTUS",
+  "team2": "MAN CITY",
+  "category": "Club World Cup",
+  "link": "video?src=https://highlight.api-football.xyz/2025/06/26/1750975222976/index.m3u8"
+},
+{
+  "id": "wydad-ac-vs-al-ain-fc-2025-06-26-match-highlights",
+  "team1": "WYDAD AC",
+  "team2": "AL AIN FC",
+  "category": "Club World Cup",
+  "link": "video?src=https://highlight.api-football.xyz/2025/06/26/1750974481507/index.m3u8"
+},
+{
+  "id": "inter-milan-vs-river-plate-2025-06-26-match-highlights",
+  "team1": "INTER MILAN",
+  "team2": "RIVER PLATE",
+  "category": "Club World Cup",
+  "link": "video?src=https://highlight.api-football.xyz/2025/06/26/1750918035573/index.m3u8"
+}
   
-  {
-    "id": "psgvbay",
-    "team1": "PSG",
-    "team2": "BAYERN MUNICH",
-    "category": "Club World Cup",
-    "link": "video?src=https://highlight.api-football.xyz/2025/07/05/1751755023501/index.m3u8"
-  },
-  {
-    "id": "rmavdor",
-    "team1": "REAL MADRID",
-    "team2": "BORUSSIA DORTMUND",
-    "category": "Club World Cup",
-    "link": "video?src=https://highlight.api-football.xyz/2025/07/05/1751757052062/index.m3u8"
-  },
-  
-  
-  {
-    "id": " 9 ",
-    "team1": " Real Madrid ",
-    "team2": " Juventus ",
-    "category": "Club World Cup",
-    "link": " video?src=https://highlight.api-football.xyz/2025/07/01/1751405254317/index.m3u8 "
-  },
-  
-  
-  {
-    "id": "8",
-    "team1": " Man City ",
-    "team2": " Al Hilal ",
-    "category": "Club World Cup",
-    "link": " video?src=https://highlight.api-football.xyz/2025/07/01/1751342895783/index.m3u8  "
-  },
-  
-  
-  {
-    "id": "7",
-    "team1": " Inter Milan ",
-    "team2": " Fluminense ",
-    "category": "Club World Cup",
-    "link": " https://yosintv.github.io/player/player3.html?url=https://highlight.api-football.xyz/2025/06/30/1751318219686/index.m3u8  "
-  },
-  
-  
-  {
-    "id": "6",
-    "team1": " PSG ",
-    "team2": " Inter Miami ",
-    "category": "Club World Cup",
-    "link": "https://nirutv.online/Player/yt?id=2eY74BW4SbE "
-  },
-  
-  
-  {
-    "id": "5",
-    "team1": " Benfica ",
-    "team2": " Chelsea ",
-    "category": "Club World Cup",
-    "link": " https://yosintv.github.io/player/dmca.html?url=https://highlight.api-football.xyz/2025/06/29/1751158726949/index.m3u8 "
-  },
-  
-  
-  {
-    "id": "4",
-    "team1": "SALZBURG",
-    "team2": "REAL MADRID",
-    "category": "Club World Cup",
-    "link": " https://yosintv.github.io/yosintv/jwplayers.html?src=https://hoofootay4.spotlightmoment.com/embed/jmz1kEPk0KfqV "
-  },
-
-    
-    {
-    "id": "3",
-    "team1": "JUVENTUS",
-    "team2": "MAN CITY",
-    "category": "Club World Cup",
-    "link": "https://yosintv2.github.io/bkp/plyrr.html?url=https://highlight.api-football.xyz/2025/06/26/1750975222976/index.m3u8 "
-  },
-  
-  
-  {
-    "id": "2",
-    "team1": "Wydad AC",
-    "team2": "AL AIN FC",
-    "category": "Club World Cup",
-    "link": "https://yosintv2.github.io/bkp/plyrr.html?url=https://highlight.api-football.xyz/2025/06/26/1750974481507/index.m3u8"
-  },
-
-  
-   {
-    "id": "1",
-    "team1": "INTER MILAN",
-    "team2": "RIVER PLATE",
-    "category": "Club World Cup",
-    "link": "https://yosintv2.github.io/bkp/plyrr.html?url=https://highlight.api-football.xyz/2025/06/26/1750918035573/index.m3u8 "
-  }
 ]
