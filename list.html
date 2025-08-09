@@ -1,125 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sports Events Viewer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sports Events Viewer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen">
-    <div class="container mx-auto p-6">
-        <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">Sports Events Schedule</h1>
-        <div id="loading" class="text-center text-gray-500">Loading events...</div>
-        <div id="error" class="text-center text-red-500 hidden"></div>
-        <div id="events" class="space-y-6 hidden"></div>
-    </div>
+  <div class="container mx-auto p-6">
+    <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">
+      Sports Events Schedule
+    </h1>
+    <div id="loading" class="text-center text-gray-500">Loading events...</div>
+    <div id="error" class="text-center text-red-500 hidden"></div>
+    <div id="events" class="space-y-6 hidden"></div>
+  </div>
 
-    <!-- Copied Notification -->
-    <div id="copiedNotice" class="fixed top-5 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none">
-        Copied!
-    </div>
+  <!-- Copied Notification -->
+  <div
+    id="copiedNotice"
+    class="fixed top-5 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none"
+  >
+    Copied!
+  </div>
 
-    <script>
-        async function fetchEvents() {
-            const loadingDiv = document.getElementById('loading');
-            const errorDiv = document.getElementById('error');
-            const eventsContainer = document.getElementById('events');
-            try {
-                const response = await fetch('https://topembed.pw/api.php?format=json', {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const data = await response.json();
-                console.log('API Response:', data);
-                if (!data.events || Object.keys(data.events).length === 0) {
-                    throw new Error('No events found in the API response');
-                }
-                displayEvents(data);
-                loadingDiv.classList.add('hidden');
-                eventsContainer.classList.remove('hidden');
-            } catch (error) {
-                console.error('Fetch error:', error);
-                loadingDiv.classList.add('hidden');
-                errorDiv.textContent = `Failed to load events: ${error.message}. Please try again later.`;
-                errorDiv.classList.remove('hidden');
+  <script>
+    async function fetchEvents() {
+      const loadingDiv = document.getElementById("loading");
+      const errorDiv = document.getElementById("error");
+      const eventsContainer = document.getElementById("events");
+      try {
+        const response = await fetch(
+          "https://topembed.pw/api.php?format=json",
+          {
+            method: "GET",
+            headers: { Accept: "application/json" },
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("API Response:", data);
+        if (!data.events || Object.keys(data.events).length === 0) {
+          throw new Error("No events found in the API response");
+        }
+        displayEvents(data);
+        loadingDiv.classList.add("hidden");
+        eventsContainer.classList.remove("hidden");
+      } catch (error) {
+        console.error("Fetch error:", error);
+        loadingDiv.classList.add("hidden");
+        errorDiv.textContent = `Failed to load events: ${error.message}. Please try again later.`;
+        errorDiv.classList.remove("hidden");
+      }
+    }
+
+    // Format UNIX timestamp to ISO string with JST offset
+    function formatDateTime(unixTimestamp) {
+      const date = new Date(unixTimestamp * 1000);
+      const jstOffset = 9 * 60;
+      const jstDate = new Date(date.getTime() + jstOffset * 60 * 1000);
+      return jstDate.toISOString().replace("Z", "+09:00");
+    }
+
+    // Calculate time difference in ms between now and event start
+    function getTimeRemaining(eventStartUnix, durationHours) {
+      const now = new Date();
+      const jstOffset = 9 * 60 * 60 * 1000; // 9 hours in ms
+      const eventStart = new Date(eventStartUnix * 1000 + jstOffset);
+      const eventEnd = new Date(eventStart.getTime() + durationHours * 60 * 60 * 1000);
+
+      if (now > eventEnd) return -1; // event ended
+      return eventStart - now; // ms remaining to start (can be negative if started)
+    }
+
+    function displayEvents(data) {
+      const eventsContainer = document.getElementById("events");
+      eventsContainer.innerHTML = "";
+
+      for (const date in data.events) {
+        const dateEvents = data.events[date];
+
+        // Filter events: hide if ended or older than 1 day from now
+        const filteredEvents = dateEvents.filter((event) => {
+          const duration = 2.6; // as before
+          const nowUnix = Math.floor(Date.now() / 1000);
+          const eventStartUnix = event.unix_timestamp;
+          const eventEndUnix = eventStartUnix + duration * 3600;
+          // Hide if ended or event start more than 1 day before now
+          if (eventEndUnix < nowUnix) return false;
+          if (eventStartUnix < nowUnix - 86400) return false;
+          return true;
+        });
+
+        if (filteredEvents.length === 0) continue; // skip date with no visible events
+
+        const dateHeader = document.createElement("h2");
+        dateHeader.className = "text-2xl font-semibold mt-8 mb-4 text-gray-700";
+        dateHeader.textContent = new Date(date).toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        eventsContainer.appendChild(dateHeader);
+
+        filteredEvents.forEach((event) => {
+          const matchName = event.match.replace(/\s*-\s*/g, " vs ");
+          const homeTeam = matchName.split(" vs ")[0].trim().replace(/\s+/g, "_");
+
+          const eventObj = {
+            name: matchName,
+            start: formatDateTime(event.unix_timestamp),
+            duration: 2.6,
+            link: `https://blog.cricfoot.net/?yosintv=____`,
+          };
+
+          const formattedText = `{\n  "name": "${eventObj.name}",\n  "start": "${eventObj.start}",\n  "duration": ${eventObj.duration},\n  "link": "${eventObj.link}"\n},`;
+
+          const eventCard = document.createElement("div");
+          eventCard.className =
+            "bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow relative cursor-pointer";
+
+          const pre = document.createElement("pre");
+          pre.className =
+            "bg-gray-900 text-white p-4 rounded-md overflow-x-auto text-sm";
+          pre.textContent = formattedText;
+
+          // Countdown container
+          const countdown = document.createElement("div");
+          countdown.className = "mt-2 text-sm text-gray-700 font-mono";
+
+          // Update countdown every second
+          function updateCountdown() {
+            const now = new Date();
+            const jstOffset = 9 * 60 * 60 * 1000;
+            const eventStart = new Date(event.unix_timestamp * 1000 + jstOffset);
+            const eventEnd = new Date(
+              eventStart.getTime() + eventObj.duration * 60 * 60 * 1000
+            );
+            let diff = eventStart - now;
+
+            if (diff > 0) {
+              // Event hasn't started yet
+              countdown.textContent =
+                "Starts in: " + formatDuration(diff);
+            } else if (now < eventEnd) {
+              // Event ongoing
+              diff = eventEnd - now;
+              countdown.textContent =
+                "Ongoing, ends in: " + formatDuration(diff);
+            } else {
+              // Event ended — hide card
+              eventCard.style.display = "none";
+              clearInterval(intervalId);
             }
-        }
+          }
 
-        function formatDateTime(unixTimestamp) {
-            const date = new Date(unixTimestamp * 1000);
-            const jstOffset = 9 * 60;
-            const jstDate = new Date(date.getTime() + (jstOffset * 60 * 1000));
-            return jstDate.toISOString().replace('Z', '+09:00');
-        }
+          const intervalId = setInterval(updateCountdown, 1000);
+          updateCountdown();
 
-        function displayEvents(data) {
-            const eventsContainer = document.getElementById('events');
-            eventsContainer.innerHTML = '';
+          // Click-to-copy on pre
+          pre.addEventListener("click", () => {
+            copyToClipboard(formattedText);
+            showCopiedPopup();
+          });
 
-            for (const date in data.events) {
-                const dateEvents = data.events[date];
-                const dateHeader = document.createElement('h2');
-                dateHeader.className = 'text-2xl font-semibold mt-8 mb-4 text-gray-700';
-                dateHeader.textContent = new Date(date).toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
-                eventsContainer.appendChild(dateHeader);
+          eventCard.appendChild(pre);
+          eventCard.appendChild(countdown);
+          eventsContainer.appendChild(eventCard);
+        });
+      }
+    }
 
-                dateEvents.forEach(event => {
-                    const matchName = event.match.replace(/\s*-\s*/g, ' vs ');
-                    const homeTeam = matchName.split(' vs ')[0].trim().replace(/\s+/g, '_');
+    // Format ms duration to "X days HH:MM:SS"
+    function formatDuration(ms) {
+      if (ms < 0) return "Ended";
 
-                    const eventObj = {
-                        name: matchName,
-                        start: formatDateTime(event.unix_timestamp),
-                        duration: 2.6,
-                        link: `https://blog.cricfoot.net/?yosintv=_____`
-                    };
+      let totalSeconds = Math.floor(ms / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      totalSeconds %= 86400;
+      const hours = Math.floor(totalSeconds / 3600);
+      totalSeconds %= 3600;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
 
-                    const formattedText = `{\n  "name": "${eventObj.name}",\n  "start": "${eventObj.start}",\n  "duration": ${eventObj.duration},\n  "link": "${eventObj.link}"\n},`;
+      let parts = [];
+      if (days > 0) parts.push(days + (days === 1 ? " day": " days"));
+      parts.push(
+        String(hours).padStart(2, "0") +
+          ":" +
+          String(minutes).padStart(2, "0") +
+          ":" +
+          String(seconds).padStart(2, "0")
+      );
+      return parts.join(" ");
+    }
 
-                    const eventCard = document.createElement('div');
-                    eventCard.className = 'bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow relative cursor-pointer';
+    function copyToClipboard(text) {
+      navigator.clipboard
+        .writeText(text)
+        .then(() => console.log("Copied:", text))
+        .catch((err) => console.error("Copy failed", err));
+    }
 
-                    const pre = document.createElement('pre');
-                    pre.className = 'bg-gray-900 text-white p-4 rounded-md overflow-x-auto text-sm';
-                    pre.textContent = formattedText;
+    function showCopiedPopup() {
+      const popup = document.getElementById("copiedNotice");
+      popup.classList.remove("opacity-0");
+      popup.classList.add("opacity-100");
+      setTimeout(() => {
+        popup.classList.remove("opacity-100");
+        popup.classList.add("opacity-0");
+      }, 1500);
+    }
 
-                    // Click-to-copy with popup
-                    pre.addEventListener('click', () => {
-                        copyToClipboard(formattedText);
-                        showCopiedPopup();
-                    });
-
-                    eventCard.appendChild(pre);
-                    eventsContainer.appendChild(eventCard);
-                });
-            }
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text)
-                .then(() => console.log('Copied:', text))
-                .catch(err => console.error('Copy failed', err));
-        }
-
-        function showCopiedPopup() {
-            const popup = document.getElementById('copiedNotice');
-            popup.classList.remove('opacity-0');
-            popup.classList.add('opacity-100');
-            setTimeout(() => {
-                popup.classList.remove('opacity-100');
-                popup.classList.add('opacity-0');
-            }, 1500);
-        }
-
-        window.onload = fetchEvents;
-    </script>
+    window.onload = fetchEvents;
+  </script>
 </body>
 </html>
