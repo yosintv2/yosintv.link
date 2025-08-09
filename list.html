@@ -13,6 +13,12 @@
         <div id="error" class="text-center text-red-500 hidden"></div>
         <div id="events" class="space-y-6 hidden"></div>
     </div>
+
+    <!-- Copied Notification -->
+    <div id="copiedNotice" class="fixed top-5 left-1/2 -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none">
+        Copied!
+    </div>
+
     <script>
         async function fetchEvents() {
             const loadingDiv = document.getElementById('loading');
@@ -66,38 +72,31 @@
                 eventsContainer.appendChild(dateHeader);
 
                 dateEvents.forEach(event => {
-                    // Change " - " to " vs "
                     const matchName = event.match.replace(/\s*-\s*/g, ' vs ');
-
-                    // Extract home team (first part before "vs")
                     const homeTeam = matchName.split(' vs ')[0].trim().replace(/\s+/g, '_');
 
-                    // Create object with required structure
                     const eventObj = {
                         name: matchName,
                         start: formatDateTime(event.unix_timestamp),
                         duration: 2.6,
-                        link: `https://blog.cricfoot.net/?yosintv=_____`
+                        link: `https://blog.cricfoot.net/?yosintv=${homeTeam}`
                     };
 
-                    // Format for display & copy
                     const formattedText = `{\n  "name": "${eventObj.name}",\n  "start": "${eventObj.start}",\n  "duration": ${eventObj.duration},\n  "link": "${eventObj.link}"\n},`;
 
                     const eventCard = document.createElement('div');
-                    eventCard.className = 'bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow relative';
+                    eventCard.className = 'bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow relative cursor-pointer';
 
                     const pre = document.createElement('pre');
                     pre.className = 'bg-gray-900 text-white p-4 rounded-md overflow-x-auto text-sm';
                     pre.textContent = formattedText;
 
-                    const copyBtn = document.createElement('button');
-                    copyBtn.className = 'absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600';
-                    copyBtn.textContent = 'Copy';
-                    copyBtn.addEventListener('click', () => {
+                    // Click-to-copy with popup
+                    pre.addEventListener('click', () => {
                         copyToClipboard(formattedText);
+                        showCopiedPopup();
                     });
 
-                    eventCard.appendChild(copyBtn);
                     eventCard.appendChild(pre);
                     eventsContainer.appendChild(eventCard);
                 });
@@ -106,12 +105,18 @@
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text)
-                .then(() => {
-                    console.log('Copied:', text);
-                })
-                .catch(err => {
-                    console.error('Copy failed', err);
-                });
+                .then(() => console.log('Copied:', text))
+                .catch(err => console.error('Copy failed', err));
+        }
+
+        function showCopiedPopup() {
+            const popup = document.getElementById('copiedNotice');
+            popup.classList.remove('opacity-0');
+            popup.classList.add('opacity-100');
+            setTimeout(() => {
+                popup.classList.remove('opacity-100');
+                popup.classList.add('opacity-0');
+            }, 1500);
         }
 
         window.onload = fetchEvents;
