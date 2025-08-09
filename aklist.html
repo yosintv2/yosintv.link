@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Broadcast Extractor with Storage & Search</title>
+  <style>
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+      display: flex;
+      justify-content: center;
+    }
+    main {
+      max-width: 720px;
+      width: 100%;
+      background: #fff;
+      padding: 25px 30px;
+      border-radius: 10px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    }
+    h1 {
+      margin-top: 0;
+      font-weight: 700;
+      font-size: 1.9rem;
+      color: #222;
+      user-select: none;
+    }
+    p {
+      margin-top: 5px;
+      margin-bottom: 20px;
+      color: #555;
+      font-size: 1rem;
+      line-height: 1.4;
+      user-select: none;
+    }
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 14px 16px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 15px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      resize: vertical;
+      transition: border-color 0.3s ease;
+      outline-offset: 2px;
+    }
+    textarea:focus {
+      border-color: #4a90e2;
+      outline: none;
+      box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
+    }
+    button.extract-btn {
+      margin-top: 15px;
+      padding: 12px 25px;
+      font-size: 16px;
+      font-weight: 600;
+      background: #4a90e2;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(74,144,226,0.5);
+      transition: background-color 0.25s ease, box-shadow 0.25s ease;
+      user-select: none;
+    }
+    button.extract-btn:hover {
+      background: #357ABD;
+      box-shadow: 0 6px 18px rgba(53,122,189,0.7);
+    }
+
+    #searchBar {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 16px;
+      margin: 28px 0 12px 0;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      transition: border-color 0.3s ease;
+      outline-offset: 2px;
+      display: none;
+    }
+    #searchBar:focus {
+      border-color: #4a90e2;
+      outline: none;
+      box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
+    }
+
+    #results {
+      font-size: 1rem;
+      color: #222;
+    }
+    h2 {
+      margin-top: 36px;
+      margin-bottom: 12px;
+      font-weight: 700;
+      font-size: 1.3rem;
+      border-bottom: 2px solid #e1e5eb;
+      padding-bottom: 6px;
+      user-select: text;
+    }
+
+    .blv-container {
+      margin-bottom: 20px;
+    }
+    .blv-container button {
+      margin: 6px 8px 6px 0;
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1.5px solid #4a90e2;
+      background-color: #f0f5ff;
+      color: #1a3c7d;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(74,144,226,0.3);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+      user-select: text;
+    }
+    .blv-container button:hover {
+      background-color: #d3e0ff;
+      box-shadow: 0 4px 10px rgba(74,144,226,0.5);
+      color: #154a96;
+    }
+
+    .copy-alert {
+      display: inline-block;
+      margin-left: 10px;
+      color: #2e7d32;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      user-select: none;
+    }
+    .copy-alert.show {
+      opacity: 1;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 480px) {
+      main {
+        padding: 20px 15px;
+      }
+      .blv-container button {
+        margin: 5px 5px 5px 0;
+        padding: 7px 12px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Broadcast Number Extractor</h1>
+    <p>Paste your links below, then click the button to extract match names and their broadcast numbers (click a number to copy it):</p>
+    <textarea id="linksInput" placeholder="Paste your links here..."></textarea>
+    <button class="extract-btn" onclick="extractBroadcasts()">Extract Broadcasts</button>
+
+    <input type="text" id="searchBar" placeholder="Search matches or broadcast numbers..." oninput="filterResults()" />
+
+    <div id="results"></div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'broadcastExtractorData';
+    const STORAGE_TIME_KEY = 'broadcastExtractorTimestamp';
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+    window.onload = function() {
+      clearExpiredData();
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        if (parsed && typeof parsed === 'object') {
+          displayResults(parsed);
+          document.getElementById('searchBar').style.display = 'block';
+        }
+      }
+    };
+
+    function clearExpiredData() {
+      const savedTime = localStorage.getItem(STORAGE_TIME_KEY);
+      if (savedTime && Date.now() - savedTime > ONE_DAY_MS) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_TIME_KEY);
+      }
+    }
+
+    function extractBroadcasts() {
+      const input = document.getElementById('linksInput').value.trim();
+      const resultsDiv = document.getElementById('results');
+      const searchBar = document.getElementById('searchBar');
+      resultsDiv.innerHTML = '';
+
+      if (!input) {
+        alert('Please paste some links first.');
+        return;
+      }
+
+      const lines = input.split('\n').map(line => line.trim()).filter(line => line);
+      const urlPattern = /\/truc-tiep\/([^\/\?]+).*blv=(\d+)/i;
+
+      const matches = {};
+
+      lines.forEach(link => {
+        const match = link.match(urlPattern);
+        if (match) {
+          const matchName = match[1];
+          const blv = match[2];
+
+          if (!matches[matchName]) {
+            matches[matchName] = new Set();
+          }
+          matches[matchName].add(blv);
+        }
+      });
+
+      if (Object.keys(matches).length === 0) {
+        alert('No valid links with broadcast numbers found.');
+        return;
+      }
+
+      const matchesForStorage = {};
+      for (const key in matches) {
+        matchesForStorage[key] = Array.from(matches[key]);
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(matchesForStorage));
+      localStorage.setItem(STORAGE_TIME_KEY, Date.now().toString());
+
+      displayResults(matchesForStorage);
+      searchBar.style.display = 'block';
+      searchBar.value = '';
+    }
+
+    function displayResults(matches) {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '';
+
+      for (const matchName in matches) {
+        const heading = document.createElement('h2');
+        heading.textContent = matchName;
+        resultsDiv.appendChild(heading);
+
+        const container = document.createElement('div');
+        container.className = 'blv-container';
+
+        matches[matchName].forEach(blv => {
+          const btn = document.createElement('button');
+          btn.textContent = blv;
+          btn.title = 'Click to copy';
+          btn.onclick = () => copyToClipboard(blv, btn);
+          container.appendChild(btn);
+        });
+
+        resultsDiv.appendChild(container);
+      }
+    }
+
+    function copyToClipboard(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        showCopyAlert(btn);
+      }, () => {
+        alert('Failed to copy to clipboard.');
+      });
+    }
+
+    function showCopyAlert(button) {
+      let alertSpan = button.nextElementSibling;
+      if (!alertSpan || !alertSpan.classList.contains('copy-alert')) {
+        alertSpan = document.createElement('span');
+        alertSpan.className = 'copy-alert';
+        alertSpan.textContent = 'Copied!';
+        button.parentNode.insertBefore(alertSpan, button.nextSibling);
+      }
+      alertSpan.classList.add('show');
+      setTimeout(() => {
+        alertSpan.classList.remove('show');
+      }, 1500);
+    }
+
+    function filterResults() {
+      const query = document.getElementById('searchBar').value.toLowerCase();
+      const resultsDiv = document.getElementById('results');
+      if (!query) {
+        [...resultsDiv.children].forEach(child => {
+          child.style.display = '';
+        });
+        return;
+      }
+
+      for (let i = 0; i < resultsDiv.children.length; i += 2) {
+        const heading = resultsDiv.children[i];
+        const blvContainer = resultsDiv.children[i + 1];
+        const matchName = heading.textContent.toLowerCase();
+
+        let anyBlvMatch = false;
+        [...blvContainer.children].forEach(btn => {
+          const blvText = btn.textContent.toLowerCase();
+          if (blvText.includes(query) || matchName.includes(query)) {
+            btn.style.display = '';
+            anyBlvMatch = true;
+          } else {
+            btn.style.display = 'none';
+          }
+        });
+
+        if (anyBlvMatch) {
+          heading.style.display = '';
+          blvContainer.style.display = '';
+        } else {
+          heading.style.display = 'none';
+          blvContainer.style.display = 'none';
+        }
+      }
+    }
+  </script>
+</body>
+</html>
