@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Events Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+    <div class="container mx-auto p-6">
+        <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">Sports Events Schedule</h1>
+        <div id="loading" class="text-center text-gray-500">Loading events...</div>
+        <div id="error" class="text-center text-red-500 hidden"></div>
+        <div id="events" class="space-y-6 hidden"></div>
+    </div>
+    <script>
+        async function fetchEvents() {
+            const loadingDiv = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const eventsContainer = document.getElementById('events');
+            try {
+                const response = await fetch('https://topembed.pw/api.php?format=json', {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('API Response:', data);
+                if (!data.events || Object.keys(data.events).length === 0) {
+                    throw new Error('No events found in the API response');
+                }
+                displayEvents(data);
+                loadingDiv.classList.add('hidden');
+                eventsContainer.classList.remove('hidden');
+            } catch (error) {
+                console.error('Fetch error:', error);
+                loadingDiv.classList.add('hidden');
+                errorDiv.textContent = `Failed to load events: ${error.message}. Please try again later.`;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        function formatDateTime(unixTimestamp) {
+            const date = new Date(unixTimestamp * 1000);
+            const jstOffset = 9 * 60;
+            const jstDate = new Date(date.getTime() + (jstOffset * 60 * 1000));
+            return jstDate.toISOString().replace('Z', '+09:00');
+        }
+
+        function displayEvents(data) {
+            const eventsContainer = document.getElementById('events');
+            eventsContainer.innerHTML = '';
+
+            for (const date in data.events) {
+                const dateEvents = data.events[date];
+                const dateHeader = document.createElement('h2');
+                dateHeader.className = 'text-2xl font-semibold mt-8 mb-4 text-gray-700';
+                dateHeader.textContent = new Date(date).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                eventsContainer.appendChild(dateHeader);
+
+                dateEvents.forEach(event => {
+                    // Change " - " to " vs "
+                    const matchName = event.match.replace(/\s*-\s*/g, ' vs ');
+
+                    // Extract home team (first part before "vs")
+                    const homeTeam = matchName.split(' vs ')[0].trim().replace(/\s+/g, '_');
+
+                    // Create object with required structure
+                    const eventObj = {
+                        name: matchName,
+                        start: formatDateTime(event.unix_timestamp),
+                        duration: 2.6,
+                        link: `https://blog.cricfoot.net/?yosintv=_____`
+                    };
+
+                    // Format for display & copy
+                    const formattedText = `{\n  "name": "${eventObj.name}",\n  "start": "${eventObj.start}",\n  "duration": ${eventObj.duration},\n  "link": "${eventObj.link}"\n},`;
+
+                    const eventCard = document.createElement('div');
+                    eventCard.className = 'bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow relative';
+
+                    const pre = document.createElement('pre');
+                    pre.className = 'bg-gray-900 text-white p-4 rounded-md overflow-x-auto text-sm';
+                    pre.textContent = formattedText;
+
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600';
+                    copyBtn.textContent = 'Copy';
+                    copyBtn.addEventListener('click', () => {
+                        copyToClipboard(formattedText);
+                    });
+
+                    eventCard.appendChild(copyBtn);
+                    eventCard.appendChild(pre);
+                    eventsContainer.appendChild(eventCard);
+                });
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    console.log('Copied:', text);
+                })
+                .catch(err => {
+                    console.error('Copy failed', err);
+                });
+        }
+
+        window.onload = fetchEvents;
+    </script>
+</body>
+</html>
