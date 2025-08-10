@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Matches with Channels</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+  <div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Matches with Channels</h1>
+
+    <!-- Search Bar -->
+    <div class="mb-6">
+      <input 
+        type="text" 
+        id="search" 
+        placeholder="Search matches..." 
+        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+      />
+    </div>
+
+    <div id="loading" class="text-center text-gray-500">Loading matches...</div>
+    <div id="error" class="text-center text-red-500 hidden"></div>
+    <div id="matches" class="space-y-4 hidden"></div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow hidden">
+    Copied!
+  </div>
+
+  <script>
+    let allMatches = [];
+
+    async function fetchMatches() {
+      const loadingDiv = document.getElementById('loading');
+      const errorDiv = document.getElementById('error');
+      const matchesContainer = document.getElementById('matches');
+
+      try {
+        // Replace this with your actual API URL
+        const res = await fetch('https://back.liveboxpro.com/allFixtures');
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error('No matches found');
+        }
+
+        allMatches = data;
+        renderMatches(allMatches);
+
+        loadingDiv.classList.add('hidden');
+        matchesContainer.classList.remove('hidden');
+      } catch (err) {
+        console.error(err);
+        loadingDiv.classList.add('hidden');
+        errorDiv.textContent = `Error: ${err.message}`;
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    function renderMatches(matches) {
+      const matchesContainer = document.getElementById('matches');
+      matchesContainer.innerHTML = '';
+
+      matches.forEach(match => {
+        const card = document.createElement('div');
+        card.className = 'bg-white p-4 rounded-lg shadow';
+
+        const title = document.createElement('h2');
+        title.className = 'text-lg font-semibold text-gray-800 mb-2';
+        title.textContent = match.event || match.match || 'Unknown Match';
+
+        const channelsDiv = document.createElement('div');
+        channelsDiv.className = 'flex flex-wrap gap-2';
+
+        if (Array.isArray(match.channels)) {
+          match.channels.forEach(channel => {
+            const btn = document.createElement('button');
+            btn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm';
+            btn.textContent = `${channel.name} (${channel.id})`;
+            btn.onclick = () => copyToClipboard(channel.id);
+            channelsDiv.appendChild(btn);
+          });
+        }
+
+        card.appendChild(title);
+        card.appendChild(channelsDiv);
+        matchesContainer.appendChild(card);
+      });
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('toast');
+        toast.classList.remove('hidden');
+        setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 1500);
+      });
+    }
+
+    document.getElementById('search').addEventListener('input', e => {
+      const query = e.target.value.toLowerCase();
+      const filtered = allMatches.filter(m =>
+        (m.event || m.match || '').toLowerCase().includes(query)
+      );
+      renderMatches(filtered);
+    });
+
+    window.onload = fetchMatches;
+  </script>
+</body>
+</html>
