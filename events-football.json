@@ -2,15 +2,17 @@
   "title": "All Football Events",
   "matches": [
     {
-      "name": "Club Friendly Matches",
-      "image": "https://cdn.yosintv.link/friendly.png",
-      "link": "https://www.yosintv.link/football.html"
-    },
-    {
       "name": "All Football Live Stream",
       "image": "https://cdn.yosintv.link/football.png",
       "link": "https://www.yosintv.link/football.html"
     },
+    
+    {
+      "name": " Community Shield Final",
+      "image": "https://images.fotmob.com/image_resources/logo/leaguelogo/247.png",
+      "link": "https://www.yosintv.link/football.html"
+    },
+    
     {
       "name": "UEFA Super Cup Final",
       "image": "https://images.fotmob.com/image_resources/logo/leaguelogo/74.png",
