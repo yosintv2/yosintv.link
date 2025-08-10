@@ -40,8 +40,8 @@
     </div>
 
     <div class="mb-3">
-      <label for="matchInput" class="form-label">Enter Match Data (format: Date\n  Time\n  Team1 vs Team2\n  appended_teamname):</label>
-      <textarea id="matchInput" class="form-control" rows="10" placeholder="  Aug 03\n    20:00\n    Team A vs Team B\n    teama\n\n  Aug 04\n    14:00\n    India vs Australia\n    india\n    Test"></textarea>
+      <label for="matchInput" class="form-label">Enter Match Data:</label>
+      <textarea id="matchInput" class="form-control" rows="10" placeholder=" "></textarea>
     </div>
 
     <button id="generateBtn" class="btn btn-primary w-100 mb-4">Generate JSON</button>
@@ -73,11 +73,20 @@
       return (
         /^[A-Za-z]+\s+\d{1,2}$/.test(line) ||  // August 03
         /^\d{1,2}[./]\d{1,2}$/.test(line) ||   // 08.03 or 8/3
-        /^\d{1,2}\/\d{1,2}$/.test(line)       // 8/3
+        /^\d{1,2}\/\d{1,2}$/.test(line) ||     // 8/3
+        /^aja/i.test(line) ||               // Today
+        /^voli/i.test(line)               // Tomorrow
       );
     }
 
     function parseDate(line, baseYear = 2025) {
+      if (/^Today$/i.test(line)) {
+        return new Date(2025, 7, 10); // August 10, 2025
+      }
+      if (/^Tomorrow$/i.test(line)) {
+        return new Date(2025, 7, 11); // August 11, 2025
+      }
+
       let m = line.match(/^([A-Za-z]+)\s+(\d{1,2})$/);
       if (m) {
         const monthName = m[1];
@@ -122,47 +131,49 @@
     function parseInput(text, duration) {
       const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
       const main = [], normal = [];
+      let currentDate = new Date(2025, 7, 10); // Default to Aug 10, 2025
       let block = [];
-      let currentDate = new Date(2025, 7, 3); // Default to Aug 03, 2025
 
-      for (let i = 0; i <= lines.length; i++) {
-        const line = lines[i] || "";
+      const processMatch = () => {
+        if (block.length >= 2) {
+          const [timeRaw, teamLine, slug = ""] = block;
+          const [h, m] = timeRaw.split(":").map(Number);
+
+          const startDate = new Date(currentDate);
+          startDate.setHours(h, m, 0, 0);
+
+          const start = toJSTIsoString(startDate);
+          const [team1, team2] = teamLine.split(" vs ").map(t => t.trim());
+          if (!team1 || !team2) return;
+
+          const name = `${team1} vs ${team2}`;
+          const link = slug ? `https://blog.cricfoot.net/?yosintv=${slug === 'intermimai' ? 'intermiami' : slug}` : "https://yosintv2.github.io/ads/midd.html?url=_____";
+
+          const match = { name, start, duration: parseFloat(duration), link };
+          slug ? main.push(match) : normal.push(match);
+        }
+      };
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
 
         if (isDateLine(line)) {
+          processMatch(); // Process any previous match before resetting
           const parsed = parseDate(line, 2025);
           if (parsed) {
             currentDate = parsed;
           }
           block = [];
-          continue;
-        }
-
-        if (isTimeLine(line) || i === lines.length) {
-          if (block.length >= 2) {
-            const [timeRaw, teamLine, slug = ""] = block;
-            const [h, m] = timeRaw.split(":").map(Number);
-
-            const startDate = new Date(currentDate);
-            startDate.setHours(h, m, 0, 0);
-
-            const start = toJSTIsoString(startDate);
-
-            const [team1, team2] = teamLine.split(" vs ").map(t => t.trim());
-            if (!team1 || !team2) {
-              block = [];
-              continue;
-            }
-            const name = `${team1} vs ${team2}`;
-            const link = slug ? `https://blog.cricfoot.net/?yosintv=${slug === 'intermimai' ? 'intermiami' : slug}` : "https://yosintv2.github.io/ads/midd.html?url=_____";
-
-            const match = { name, start, duration: parseFloat(duration), link };
-            slug ? main.push(match) : normal.push(match);
-          }
-          block = [line];
+        } else if (isTimeLine(line)) {
+          processMatch(); // Process the previous match
+          block = [line]; // Start new block with time
         } else {
-          block.push(line);
+          block.push(line); // Add team or slug line
         }
       }
+
+      // Process the last match if exists
+      processMatch();
 
       return { mainMatches: { matches: main }, normalMatches: { matches: normal } };
     }
