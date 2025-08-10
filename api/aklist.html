@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>BLV Match List</title>
+  <title>BLV Match List </title>
   <style>
-    /* Reset and base */
     * {
       box-sizing: border-box;
     }
@@ -123,6 +122,11 @@
       box-shadow: 0 1px 3px rgba(74,144,226,0.3);
       transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
       user-select: text;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      /* to keep space for tick top-right */
+      padding-right: 30px;
     }
     .blv-container button:hover {
       background-color: #d3e0ff;
@@ -130,20 +134,23 @@
       color: #154a96;
     }
 
-    .copy-alert {
-      display: inline-block;
-      margin-left: 10px;
-      color: #2e7d32;
-      font-weight: 600;
-      opacity: 0;
-      transition: opacity 0.4s ease;
+    /* Copy tick SVG style */
+    .copy-tick {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 18px;
+      height: 18px;
+      fill: #2e7d32;
       user-select: none;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
-    .copy-alert.show {
+    .copy-tick.show {
       opacity: 1;
     }
 
-    /* Responsive tweaks */
     @media (max-width: 480px) {
       main {
         padding: 20px 15px;
@@ -152,6 +159,13 @@
         margin: 5px 5px 5px 0;
         padding: 7px 12px;
         font-size: 13px;
+        padding-right: 28px;
+      }
+      .copy-tick {
+        width: 16px;
+        height: 16px;
+        top: 3px;
+        right: 3px;
       }
     }
   </style>
@@ -172,6 +186,8 @@
     const STORAGE_KEY = 'broadcastExtractorData';
     const STORAGE_TIME_KEY = 'broadcastExtractorTimestamp';
     const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+    let currentTickButton = null;
 
     window.onload = function() {
       clearExpiredData();
@@ -238,6 +254,8 @@
       displayResults(matchesForStorage);
       searchBar.style.display = 'block';
       searchBar.value = '';
+      // Clear tick on new extract
+      removeCurrentTick();
     }
 
     function displayResults(matches) {
@@ -266,24 +284,38 @@
 
     function copyToClipboard(text, btn) {
       navigator.clipboard.writeText(text).then(() => {
-        showCopyAlert(btn);
+        showCopyTick(btn);
       }, () => {
         alert('Failed to copy to clipboard.');
       });
     }
 
-    function showCopyAlert(button) {
-      let alertSpan = button.nextElementSibling;
-      if (!alertSpan || !alertSpan.classList.contains('copy-alert')) {
-        alertSpan = document.createElement('span');
-        alertSpan.className = 'copy-alert';
-        alertSpan.textContent = 'Copied!';
-        button.parentNode.insertBefore(alertSpan, button.nextSibling);
+    function showCopyTick(button) {
+      // Remove tick from old button
+      removeCurrentTick();
+
+      // Create SVG tick element
+      const svgns = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgns, "svg");
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.classList.add('copy-tick', 'show');
+
+      const path = document.createElementNS(svgns, "path");
+      path.setAttribute("d", "M20.285 6.708l-11.4 11.4-5.37-5.37 1.414-1.414 3.957 3.956 9.986-9.985z");
+      svg.appendChild(path);
+
+      button.appendChild(svg);
+      currentTickButton = button;
+    }
+
+    function removeCurrentTick() {
+      if (currentTickButton) {
+        const oldTick = currentTickButton.querySelector('.copy-tick');
+        if (oldTick) {
+          oldTick.remove();
+        }
+        currentTickButton = null;
       }
-      alertSpan.classList.add('show');
-      setTimeout(() => {
-        alertSpan.classList.remove('show');
-      }, 1500);
     }
 
     function filterResults() {
