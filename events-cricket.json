@@ -1,13 +1,6 @@
 {
   "title": "All Upcoming Events",
-  "matches": [  
-    
-    {
-      "name": " UFC/MMA Fight All Matches ",
-      "image": "https://cdn.yosintv.link/ufc.png",
-      "link": "https://www.yosintv.link/fight.html"
-    },
-    
+  "matches": [     
     
     {
       "name": "All Cricket Live Stream",
@@ -51,6 +44,13 @@
       "name": "Sri Lanka vs Bangladesh, 2025",
       "image": "https://images.fancode.com/skillup-uploads/cms-media/SL-vs-BAN.png",
       "link": "https://www.yosintv.link/cricket.html"
+    },
+
+    {
+      "name": " UFC/MMA Fight All Matches ",
+      "image": "https://cdn.yosintv.link/ufc.png",
+      "link": "https://www.yosintv.link/fight.html"
     }
+    
   ]
 }
