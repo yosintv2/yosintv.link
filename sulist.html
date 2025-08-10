@@ -35,6 +35,8 @@
 
   <script>
     let allMatches = [];
+    let countdownIntervals = {};
+    const MATCH_DURATION_MS = 10 * 60 * 60 * 1000; // 10 hours in milliseconds
 
     async function fetchMatches() {
       const loadingDiv = document.getElementById('loading');
@@ -51,7 +53,7 @@
         }
 
         allMatches = data;
-        renderMatches(allMatches);
+        renderMatches(filterMatches());
 
         loadingDiv.classList.add('hidden');
         matchesContainer.classList.remove('hidden');
@@ -63,17 +65,47 @@
       }
     }
 
+    function filterMatches() {
+      const query = document.getElementById('search').value.toLowerCase();
+      const now = Date.now();
+
+      return allMatches.filter(match => {
+        if (!match.date) return false;
+        const startTime = new Date(match.date).getTime();
+        if (isNaN(startTime)) return false;
+
+        // Hide if current time is after start + 10 hours
+        if (now > startTime + MATCH_DURATION_MS) return false;
+
+        // Filter by search query in title
+        if (match.title.toLowerCase().includes(query)) {
+          return true;
+        }
+        return false;
+      });
+    }
+
     function renderMatches(matches) {
       const matchesContainer = document.getElementById('matches');
       matchesContainer.innerHTML = '';
+
+      // Clear previous countdowns
+      Object.values(countdownIntervals).forEach(clearInterval);
+      countdownIntervals = {};
 
       matches.forEach(match => {
         const card = document.createElement('div');
         card.className = 'bg-white p-4 rounded-lg shadow';
 
         const title = document.createElement('h2');
-        title.className = 'text-lg font-semibold text-gray-800 mb-2';
+        title.className = 'text-lg font-semibold text-gray-800 mb-1';
         title.textContent = match.title;
+
+        // Countdown
+        const countdown = document.createElement('div');
+        countdown.className = 'text-sm text-gray-600 mb-2';
+        countdown.textContent = 'Starts in: calculating...';
+        startCountdown(match.date, countdown);
 
         const btnsDiv = document.createElement('div');
         btnsDiv.className = 'flex flex-wrap gap-2';
@@ -89,9 +121,43 @@
         }
 
         card.appendChild(title);
+        card.appendChild(countdown);
         card.appendChild(btnsDiv);
         matchesContainer.appendChild(card);
       });
+    }
+
+    function startCountdown(dateStr, element) {
+      const targetTime = new Date(dateStr).getTime();
+
+      if (isNaN(targetTime)) {
+        element.textContent = 'Starts in: Unknown date';
+        return;
+      }
+
+      const updateTimer = () => {
+        const now = Date.now();
+        let diff = targetTime - now;
+
+        if (diff <= 0) {
+          element.textContent = 'Match started';
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        diff %= (1000 * 60 * 60 * 24);
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        diff %= (1000 * 60 * 60);
+        const minutes = Math.floor(diff / (1000 * 60));
+        diff %= (1000 * 60);
+        const seconds = Math.floor(diff / 1000);
+
+        element.textContent = `Starts in: ${days}d ${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`;
+      };
+
+      updateTimer();
+      const interval = setInterval(updateTimer, 1000);
+      countdownIntervals[element] = interval;
     }
 
     function copyLink(text) {
@@ -104,10 +170,8 @@
       });
     }
 
-    document.getElementById('search').addEventListener('input', e => {
-      const query = e.target.value.toLowerCase();
-      const filtered = allMatches.filter(match => match.title.toLowerCase().includes(query));
-      renderMatches(filtered);
+    document.getElementById('search').addEventListener('input', () => {
+      renderMatches(filterMatches());
     });
 
     window.onload = fetchMatches;
