@@ -74,8 +74,8 @@
         /^[A-Za-z]+\s+\d{1,2}$/.test(line) ||  // August 03
         /^\d{1,2}[./]\d{1,2}$/.test(line) ||   // 08.03 or 8/3
         /^\d{1,2}\/\d{1,2}$/.test(line) ||     // 8/3
-        /^aja/i.test(line) ||               // Today
-        /^voli/i.test(line)               // Tomorrow
+        /^Today/i.test(line) ||               // Today
+        /^Tomorrow$/i.test(line)               // Tomorrow
       );
     }
 
