@@ -31,7 +31,7 @@
 
     <div class="mb-3">
       <label for="matchInput" class="form-label">Enter Match Data (format: Team1 vs Team2, Category, URL):</label>
-      <textarea id="matchInput" class="form-control" rows="10" placeholder="Barcelona vs Como, Friendly, https://highlight.api-football.xyz/2025/08/12/1754864825724/index.m3u8"></textarea>
+      <textarea id="matchInput" class="form-control" rows="10" placeholder="Barcelona vs Como, Friendly, https://highlight.api-football.xyz/2025/08/13/1754864825724/index.m3u8 "></textarea>
     </div>
 
     <button id="generateBtn" class="btn btn-primary w-100 mb-4">Generate JSON</button>
@@ -51,9 +51,10 @@
       const letters = 'abcdefghijklmnopqrstuvwxyz';
       let id;
       do {
-        const randomLetter = letters[Math.floor(Math.random() * letters.length)];
-        const randomNumber = Math.floor(10000 + Math.random() * 90000).toString(); // Generate 5-digit number (10000-99999)
-        id = randomLetter + randomNumber;
+        const randomLetter1 = letters[Math.floor(Math.random() * letters.length)];
+        const randomLetter2 = letters[Math.floor(Math.random() * letters.length)];
+        const randomNumber = Math.floor(100000 + Math.random() * 900000).toString(); // Generate 6-digit number (000000-999999)
+        id = randomLetter1 + randomLetter2 + randomNumber;
       } while (usedIds.has(id)); // Ensure ID is not already used
       usedIds.add(id);
       return id;
@@ -97,18 +98,6 @@
       element.textContent = jsonString;
     }
 
-    function saveToLocalStorage(matches, input) {
-      localStorage.setItem("matchesJSON", JSON.stringify(matches));
-      localStorage.setItem("matchInput", input);
-    }
-
-    function loadLastSaved() {
-      const matches = JSON.parse(localStorage.getItem("matchesJSON") || '[]');
-      const savedInput = localStorage.getItem("matchInput") || "";
-      inputEl.value = savedInput;
-      showJSON(jsonOutput, matches);
-    }
-
     function copyJSON(id) {
       const jsonText = document.getElementById(id).textContent;
       navigator.clipboard.writeText(jsonText).then(() => {
@@ -122,7 +111,6 @@
       const input = inputEl.value;
       const matches = parseInput(input);
       showJSON(jsonOutput, matches);
-      saveToLocalStorage(matches, input);
       inputEl.value = ''; // Clear textarea after generating JSON
     });
 
@@ -140,8 +128,6 @@
     } else {
       themeToggle.textContent = "Dark Theme";
     }
-
-    window.onload = loadLastSaved;
   </script>
 </body>
 </html>
