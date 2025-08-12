@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Match Highlights JSON Generator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body.dark-mode { background-color: #121212; color: white; }
+    .json-box {
+      white-space: pre-wrap;
+      font-family: monospace;
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      min-height: 150px;
+      overflow-x: auto;
+    }
+    body.dark-mode .json-box {
+      background: #1e1e1e;
+      color: #eee;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Match Highlights JSON Generator</h2>
+      <button id="themeToggle" class="btn btn-secondary">Dark Theme</button>
+    </div>
+
+    <div class="mb-3">
+      <label for="matchInput" class="form-label">Enter Match Data (format: Team1 vs Team2, Category, URL):</label>
+      <textarea id="matchInput" class="form-control" rows="10" placeholder="Barcelona vs Como, Friendly, https://highlight.api-football.xyz/2025/08/12/1754864825724/index.m3u8"></textarea>
+    </div>
+
+    <button id="generateBtn" class="btn btn-primary w-100 mb-4">Generate JSON</button>
+
+    <div class="mb-4">
+      <h5>Generated JSON</h5>
+      <button class="btn btn-outline-secondary btn-sm mb-2" onclick="copyJSON('jsonOutput')">Copy JSON</button>
+      <div id="jsonOutput" class="json-box"></div>
+    </div>
+  </div>
+
+  <script>
+    const inputEl = document.getElementById("matchInput");
+    const jsonOutput = document.getElementById("jsonOutput");
+
+    function generateRandomId(usedIds) {
+      const letters = 'abcdefghijklmnopqrstuvwxyz';
+      let id;
+      do {
+        const randomLetter = letters[Math.floor(Math.random() * letters.length)];
+        const randomNumber = Math.floor(10000 + Math.random() * 90000).toString(); // Generate 5-digit number (10000-99999)
+        id = randomLetter + randomNumber;
+      } while (usedIds.has(id)); // Ensure ID is not already used
+      usedIds.add(id);
+      return id;
+    }
+
+    function parseInput(text) {
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      const matches = [];
+      const usedIds = new Set(); // Track used IDs to ensure uniqueness
+
+      for (const line of lines) {
+        const parts = line.split(",").map(p => p.trim());
+        if (parts.length !== 3) continue; // Skip invalid lines
+
+        const [teamLine, category, url] = parts;
+        const [team1, team2] = teamLine.split(" vs ").map(t => t.trim());
+        if (!team1 || !team2 || !category || !url) continue; // Skip incomplete matches
+
+        const id = generateRandomId(usedIds);
+        const match = {
+          id,
+          team1: team1.toUpperCase(),
+          team2: team2.toUpperCase(),
+          category,
+          link: `video?src=${url}`
+        };
+        matches.push(match);
+      }
+
+      return matches;
+    }
+
+    function showJSON(element, data) {
+      if (data.length === 0) {
+        element.textContent = "";
+        return;
+      }
+      const jsonString = data
+        .map(item => JSON.stringify(item, null, 2) + ',') // Add comma after every object
+        .join("\n\n");
+      element.textContent = jsonString;
+    }
+
+    function saveToLocalStorage(matches, input) {
+      localStorage.setItem("matchesJSON", JSON.stringify(matches));
+      localStorage.setItem("matchInput", input);
+    }
+
+    function loadLastSaved() {
+      const matches = JSON.parse(localStorage.getItem("matchesJSON") || '[]');
+      const savedInput = localStorage.getItem("matchInput") || "";
+      inputEl.value = savedInput;
+      showJSON(jsonOutput, matches);
+    }
+
+    function copyJSON(id) {
+      const jsonText = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(jsonText).then(() => {
+        alert("Copied to clipboard!");
+      }).catch(() => {
+        alert("Failed to copy.");
+      });
+    }
+
+    document.getElementById("generateBtn").addEventListener("click", () => {
+      const input = inputEl.value;
+      const matches = parseInput(input);
+      showJSON(jsonOutput, matches);
+      saveToLocalStorage(matches, input);
+      inputEl.value = ''; // Clear textarea after generating JSON
+    });
+
+    // Theme Toggle
+    const themeToggle = document.getElementById("themeToggle");
+    themeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+      themeToggle.textContent = document.body.classList.contains("dark-mode") ? "Light Theme" : "Dark Theme";
+    });
+
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
+      themeToggle.textContent = "Light Theme";
+    } else {
+      themeToggle.textContent = "Dark Theme";
+    }
+
+    window.onload = loadLastSaved;
+  </script>
+</body>
+</html>
