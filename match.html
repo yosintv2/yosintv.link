@@ -40,7 +40,7 @@
     </div>
 
     <div class="mb-3">
-      <label for="matchInput" class="form-label">Enter Match Data:</label>
+      <label for="matchInput" class="form-label">Enter Match Data :</label>
       <textarea id="matchInput" class="form-control" rows="10" placeholder=" "></textarea>
     </div>
 
@@ -74,17 +74,17 @@
         /^[A-Za-z]+\s+\d{1,2}$/.test(line) ||  // August 03
         /^\d{1,2}[./]\d{1,2}$/.test(line) ||   // 08.03 or 8/3
         /^\d{1,2}\/\d{1,2}$/.test(line) ||     // 8/3
-        /^Today/i.test(line) ||               // Today
+        /^Today$/i.test(line) ||               // Today
         /^Tomorrow$/i.test(line)               // Tomorrow
       );
     }
 
     function parseDate(line, baseYear = 2025) {
       if (/^Today$/i.test(line)) {
-        return new Date(2025, 7, 10); // August 10, 2025
+        return new Date(2025, 7, 12); // August 12, 2025
       }
       if (/^Tomorrow$/i.test(line)) {
-        return new Date(2025, 7, 11); // August 11, 2025
+        return new Date(2025, 7, 13); // August 13, 2025
       }
 
       let m = line.match(/^([A-Za-z]+)\s+(\d{1,2})$/);
@@ -131,7 +131,7 @@
     function parseInput(text, duration) {
       const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
       const main = [], normal = [];
-      let currentDate = new Date(2025, 7, 10); // Default to Aug 10, 2025
+      let currentDate = new Date(2025, 7, 12); // Default to Aug 12, 2025
       let block = [];
 
       const processMatch = () => {
@@ -182,14 +182,17 @@
       element.textContent = JSON.stringify(data, null, 2).replace(/},/g, '},\n\n');
     }
 
-    function saveToLocalStorage(main, normal) {
+    function saveToLocalStorage(main, normal, input) {
       localStorage.setItem("mainJSON", JSON.stringify(main));
       localStorage.setItem("normalJSON", JSON.stringify(normal));
+      localStorage.setItem("matchInput", input);
     }
 
     function loadLastSaved() {
       const main = JSON.parse(localStorage.getItem("mainJSON") || '{"matches": []}');
       const normal = JSON.parse(localStorage.getItem("normalJSON") || '{"matches": []}');
+      const savedInput = localStorage.getItem("matchInput") || "";
+      inputEl.value = savedInput;
       showJSON(mainOutput, main);
       showJSON(normalOutput, normal);
     }
@@ -209,8 +212,8 @@
       const { mainMatches, normalMatches } = parseInput(input, duration);
       showJSON(mainOutput, mainMatches);
       showJSON(normalOutput, normalMatches);
-      saveToLocalStorage(mainMatches, normalMatches);
-      inputEl.value = '';
+      saveToLocalStorage(mainMatches, normalMatches, input);
+      inputEl.value = ''; // Clear textarea after generating JSON
     });
 
     // Theme Toggle
