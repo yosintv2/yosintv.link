@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title> SU Match List </title>
+  <title>SU Match List</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen">
@@ -36,7 +36,7 @@
   <script>
     let allMatches = [];
     let countdownIntervals = {};
-    const MATCH_DURATION_MS = 10 * 60 * 60 * 1000; // 10 hours in milliseconds
+    const MATCH_DURATION_MS = 10 * 60 * 60 * 1000; // 10 hours
 
     async function fetchMatches() {
       const loadingDiv = document.getElementById('loading');
@@ -74,14 +74,10 @@
         const startTime = new Date(match.date).getTime();
         if (isNaN(startTime)) return false;
 
-        // Hide if current time is after start + 10 hours
+        // Hide if already finished (after +10h)
         if (now > startTime + MATCH_DURATION_MS) return false;
 
-        // Filter by search query in title
-        if (match.title.toLowerCase().includes(query)) {
-          return true;
-        }
-        return false;
+        return match.title.toLowerCase().includes(query);
       });
     }
 
@@ -97,7 +93,7 @@
         const card = document.createElement('div');
         card.className = 'bg-white p-4 rounded-lg shadow';
 
-        // Match title row with copy button
+        // Title row
         const titleRow = document.createElement('div');
         titleRow.className = 'flex items-center justify-between mb-1';
 
@@ -119,10 +115,11 @@
         countdown.textContent = 'Starts in: calculating...';
         startCountdown(match.date, countdown);
 
-        // Sources row
+        // Buttons row
         const btnsDiv = document.createElement('div');
         btnsDiv.className = 'flex flex-wrap gap-2';
 
+        // Sources
         if (Array.isArray(match.sources)) {
           match.sources.forEach(src => {
             const btn = document.createElement('button');
@@ -131,6 +128,25 @@
             btn.onclick = () => copyLink(src.id);
             btnsDiv.appendChild(btn);
           });
+        }
+
+        // Poster link short URL
+        if (match.poster) {
+          const posterBtn = document.createElement('button');
+          posterBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm';
+          posterBtn.textContent = 'Poster Link';
+          posterBtn.onclick = () => copyPosterShortUrl('https://streamed.pk' + match.poster);
+          btnsDiv.appendChild(posterBtn);
+        }
+
+        // Alpha link short URL (from sources)
+        const alphaSource = match.sources?.find(s => s.source.toLowerCase() === 'alpha');
+        if (alphaSource) {
+          const alphaBtn = document.createElement('button');
+          alphaBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
+          alphaBtn.textContent = 'Alpha Link';
+          alphaBtn.onclick = () => copyAlphaShortUrl(alphaSource.id);
+          btnsDiv.appendChild(alphaBtn);
         }
 
         card.appendChild(titleRow);
@@ -174,13 +190,37 @@
     }
 
     function copyLink(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        const toast = document.getElementById('toast');
-        toast.classList.remove('hidden');
-        setTimeout(() => {
-          toast.classList.add('hidden');
-        }, 1500);
-      });
+      navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+    }
+
+    function copyPosterShortUrl(url) {
+      showToast('Generating poster short URL...');
+      fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`)
+        .then(res => res.text())
+        .then(shortUrl => {
+          navigator.clipboard.writeText(shortUrl);
+          showToast('Poster URL copied!');
+        })
+        .catch(() => showToast('Error generating poster URL'));
+    }
+
+    function copyAlphaShortUrl(mid) {
+      const alphaUrl = `https://ytvlive.pages.dev/alpha?mid=${mid}`;
+      showToast('Generating Alpha short URL...');
+      fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(alphaUrl)}`)
+        .then(res => res.text())
+        .then(shortUrl => {
+          navigator.clipboard.writeText(shortUrl);
+          showToast('Alpha URL copied!');
+        })
+        .catch(() => showToast('Error generating Alpha URL'));
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 1500);
     }
 
     document.getElementById('search').addEventListener('input', () => {
