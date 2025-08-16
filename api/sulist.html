@@ -74,7 +74,6 @@
         const startTime = new Date(match.date).getTime();
         if (isNaN(startTime)) return false;
 
-        // Hide if already finished (after +10h)
         if (now > startTime + MATCH_DURATION_MS) return false;
 
         return match.title.toLowerCase().includes(query);
@@ -119,35 +118,41 @@
         const btnsDiv = document.createElement('div');
         btnsDiv.className = 'flex flex-wrap gap-2';
 
-        // Sources
-        if (Array.isArray(match.sources)) {
-          match.sources.forEach(src => {
+        // First: Alpha, Admin, Poster
+        ['alpha', 'admin', 'poster'].forEach(type => {
+          if (type === 'poster' && match.poster) {
+            const posterBtn = document.createElement('button');
+            posterBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm';
+            posterBtn.textContent = 'Poster Link';
+            posterBtn.onclick = () => copyPosterShortUrl('https://streamed.pk' + match.poster);
+            btnsDiv.appendChild(posterBtn);
+          } else if (type !== 'poster') {
+            const srcObj = match.sources?.find(s => s.source.toLowerCase() === type);
+            if (srcObj) {
+              const btn = document.createElement('button');
+              btn.className = type === 'alpha' 
+                ? 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm'
+                : 'bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm';
+              btn.textContent = type.charAt(0).toUpperCase() + type.slice(1) + ' Link';
+              btn.onclick = () => type === 'alpha' 
+                ? copyAlphaShortUrl(srcObj.id)
+                : copyAdminShortUrl(srcObj.id);
+              btnsDiv.appendChild(btn);
+            }
+          }
+        });
+
+        // Then: remaining sources
+        match.sources?.forEach(src => {
+          const lower = src.source.toLowerCase();
+          if (!['alpha', 'admin'].includes(lower)) {
             const btn = document.createElement('button');
             btn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm';
             btn.textContent = src.source;
             btn.onclick = () => copyLink(src.id);
             btnsDiv.appendChild(btn);
-          });
-        }
-
-        // Poster link short URL
-        if (match.poster) {
-          const posterBtn = document.createElement('button');
-          posterBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm';
-          posterBtn.textContent = 'Poster Link';
-          posterBtn.onclick = () => copyPosterShortUrl('https://streamed.pk' + match.poster);
-          btnsDiv.appendChild(posterBtn);
-        }
-
-        // Alpha link short URL (from sources)
-        const alphaSource = match.sources?.find(s => s.source.toLowerCase() === 'alpha');
-        if (alphaSource) {
-          const alphaBtn = document.createElement('button');
-          alphaBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
-          alphaBtn.textContent = 'Alpha Link';
-          alphaBtn.onclick = () => copyAlphaShortUrl(alphaSource.id);
-          btnsDiv.appendChild(alphaBtn);
-        }
+          }
+        });
 
         card.appendChild(titleRow);
         card.appendChild(countdown);
@@ -214,6 +219,18 @@
           showToast('Alpha URL copied!');
         })
         .catch(() => showToast('Error generating Alpha URL'));
+    }
+
+    function copyAdminShortUrl(mid) {
+      const adminUrl = `https://ytvlive.pages.dev/admin?mid=${mid}`;
+      showToast('Generating Admin short URL...');
+      fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(adminUrl)}`)
+        .then(res => res.text())
+        .then(shortUrl => {
+          navigator.clipboard.writeText(shortUrl);
+          showToast('Admin URL copied!');
+        })
+        .catch(() => showToast('Error generating Admin URL'));
     }
 
     function showToast(msg) {
