@@ -97,9 +97,21 @@
         const card = document.createElement('div');
         card.className = 'bg-white p-4 rounded-lg shadow';
 
+        // Match title row with copy button
+        const titleRow = document.createElement('div');
+        titleRow.className = 'flex items-center justify-between mb-1';
+
         const title = document.createElement('h2');
-        title.className = 'text-lg font-semibold text-gray-800 mb-1';
+        title.className = 'text-lg font-semibold text-gray-800';
         title.textContent = match.title;
+
+        const copyNameBtn = document.createElement('button');
+        copyNameBtn.className = 'bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-1 rounded text-xs ml-3';
+        copyNameBtn.textContent = 'Copy Match Title';
+        copyNameBtn.onclick = () => copyLink(match.title);
+
+        titleRow.appendChild(title);
+        titleRow.appendChild(copyNameBtn);
 
         // Countdown
         const countdown = document.createElement('div');
@@ -107,6 +119,7 @@
         countdown.textContent = 'Starts in: calculating...';
         startCountdown(match.date, countdown);
 
+        // Sources row
         const btnsDiv = document.createElement('div');
         btnsDiv.className = 'flex flex-wrap gap-2';
 
@@ -120,7 +133,7 @@
           });
         }
 
-        card.appendChild(title);
+        card.appendChild(titleRow);
         card.appendChild(countdown);
         card.appendChild(btnsDiv);
         matchesContainer.appendChild(card);
