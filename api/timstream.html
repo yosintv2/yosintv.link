@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Timstream Match List</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+  <div class="container mx-auto p-6">
+    <h1 class="text-4xl font-bold text-center mb-4 text-gray-800">Events Schedule</h1>
+
+    <!-- Search bar -->
+    <input
+      id="searchInput"
+      type="text"
+      placeholder="Search events..."
+      class="w-full mb-6 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+    />
+
+    <div id="loading" class="text-center text-gray-500">Loading events...</div>
+    <div id="error" class="text-center text-red-500 hidden"></div>
+    <div id="events" class="space-y-6 hidden"></div>
+  </div>
+
+  <script>
+    let allEventsData = [];
+
+    async function fetchEvents() {
+      const loadingDiv = document.getElementById("loading");
+      const errorDiv = document.getElementById("error");
+      const eventsContainer = document.getElementById("events");
+
+      try {
+        const response = await fetch(
+          "https://timgfdscfghnjmhbgfrfcredcedeerrffrrfrf.jdx3.org/main",
+          {
+            method: "GET",
+            headers: { Accept: "application/json" },
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("API Response:", data);
+
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error("No events found in the API response");
+        }
+
+        // Flatten events from all categories
+        allEventsData = data.flatMap((cat) =>
+          (cat.events || []).map((ev) => ({
+            ...ev,
+            category: cat.category || "Unknown",
+          }))
+        );
+
+        displayEvents(allEventsData);
+
+        loadingDiv.classList.add("hidden");
+        eventsContainer.classList.remove("hidden");
+      } catch (error) {
+        console.error("Fetch error:", error);
+        loadingDiv.classList.add("hidden");
+        errorDiv.textContent = `Failed to load events: ${error.message}. Please try again later.`;
+        errorDiv.classList.remove("hidden");
+      }
+    }
+
+    function createCountdown(startTime, container) {
+      const startUnix = new Date(startTime).getTime() / 1000;
+      const durationHours = 2.6;
+      const durationSeconds = durationHours * 3600;
+
+      function updateCountdown() {
+        const now = Math.floor(Date.now() / 1000);
+        const eventEnd = startUnix + durationSeconds;
+        let text = "";
+
+        if (now < startUnix) {
+          const diff = startUnix - now;
+          text = `Starts in: ${formatDuration(diff)}`;
+        } else if (now >= startUnix && now <= eventEnd) {
+          const diff = eventEnd - now;
+          text = `Ends in: ${formatDuration(diff)}`;
+        } else {
+          text = "Event ended";
+        }
+
+        container.textContent = text;
+      }
+
+      updateCountdown();
+      return setInterval(updateCountdown, 1000);
+    }
+
+    function formatDuration(seconds) {
+      const d = Math.floor(seconds / (3600 * 24));
+      seconds -= d * 3600 * 24;
+      const h = Math.floor(seconds / 3600);
+      seconds -= h * 3600;
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${d > 0 ? d + "d " : ""}${h}h ${m}m ${s}s`;
+    }
+
+    function displayEvents(events, filterText = "") {
+      const eventsContainer = document.getElementById("events");
+      eventsContainer.innerHTML = "";
+      const searchLower = filterText.toLowerCase();
+
+      events
+        .filter((ev) => {
+          if (!filterText) return true;
+          const categoryText = ev.category.toLowerCase();
+          return (
+            ev.name.toLowerCase().includes(searchLower) ||
+            categoryText.includes(searchLower)
+          );
+        })
+        .forEach((ev) => {
+          const eventCard = document.createElement("div");
+          eventCard.className =
+            "bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow relative";
+
+          // Date/time above match name
+          const timeDiv = document.createElement("div");
+          timeDiv.className = "text-gray-600 text-sm mb-1";
+          const localTime = new Date(ev.time).toLocaleString();
+          timeDiv.textContent = localTime;
+          eventCard.appendChild(timeDiv);
+
+          // Match name
+          const matchDiv = document.createElement("div");
+          matchDiv.className = "text-lg font-semibold text-gray-800";
+          matchDiv.textContent = ev.name;
+          eventCard.appendChild(matchDiv);
+
+          // Countdown
+          const countdownDiv = document.createElement("div");
+          countdownDiv.className = "text-gray-700 text-sm mt-1";
+          eventCard.appendChild(countdownDiv);
+          createCountdown(ev.time, countdownDiv);
+
+          // Links + Category
+          const bottomDiv = document.createElement("div");
+          bottomDiv.className = "flex justify-between items-center mt-3";
+
+          const linksDiv = document.createElement("div");
+          linksDiv.className = "flex space-x-2";
+          if (Array.isArray(ev.streams)) {
+            ev.streams.slice(0, 3).forEach((stream, index) => {
+              const fullUrl =
+                "https://yosintv.github.io/yosintv/jwplayers.html?src=" +
+                stream.url; // ⚡ no encodeURIComponent
+
+              const linkBtn = document.createElement("button");
+              linkBtn.className =
+                "bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs";
+              linkBtn.textContent = `Link${index + 1}`;
+              linkBtn.title = fullUrl;
+              linkBtn.addEventListener("click", () =>
+                shortenAndCopy(fullUrl, `Link${index + 1}`)
+              );
+              linksDiv.appendChild(linkBtn);
+            });
+          }
+
+          const categoryDiv = document.createElement("div");
+          categoryDiv.className = "italic text-gray-500 text-sm";
+          categoryDiv.textContent = ev.category || "Unknown";
+
+          bottomDiv.appendChild(linksDiv);
+          bottomDiv.appendChild(categoryDiv);
+
+          eventCard.appendChild(bottomDiv);
+          eventsContainer.appendChild(eventCard);
+        });
+    }
+
+    // ✅ Shorten plain URL before copying
+    async function shortenAndCopy(url, label) {
+      try {
+        showCopiedToast(`${label}: generating short URL...`);
+        const res = await fetch(
+          `https://tinyurl.com/api-create.php?url=${url}`
+        );
+        const shortUrl = await res.text();
+
+        await navigator.clipboard.writeText(shortUrl);
+        showCopiedToast(`${label} short link copied!`);
+      } catch (err) {
+        console.error("TinyURL error:", err);
+        showCopiedToast(`Error shortening ${label}`);
+      }
+    }
+
+    function showCopiedToast(message = "Copied to clipboard!") {
+      let toast = document.getElementById("copyToast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "copyToast";
+        toast.className =
+          "fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded shadow-lg opacity-90 z-50";
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.style.display = "block";
+      setTimeout(() => {
+        toast.style.display = "none";
+      }, 2000);
+    }
+
+    document
+      .getElementById("searchInput")
+      .addEventListener("input", (e) => {
+        const searchTerm = e.target.value.trim();
+        displayEvents(allEventsData, searchTerm);
+      });
+
+    window.onload = fetchEvents;
+  </script>
+</body>
+</html>
