@@ -147,7 +147,7 @@
           if (!team1 || !team2) return;
 
           const name = `${team1} vs ${team2}`;
-          const link = slug ? `https://blog.cricfoot.net/?yosintv=${slug === 'intermimai' ? 'intermiami' : slug}` : "https://yosintv2.github.io/ads/midd.html?url=_____";
+          const link = slug ? `https://blog.cricfoot.net/?yosintv=${slug === 'intermimai' ? 'intermiami' : slug}&id=______` : "https://yosintv2.github.io/ads/midd.html?url=_____";
 
           const match = { name, start, duration: parseFloat(duration), link };
           slug ? main.push(match) : normal.push(match);
