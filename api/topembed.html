@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,7 +88,7 @@
                     const diff = eventEnd - now;
                     text = `Ends in: ${formatDuration(diff)}`;
                 } else {
-                    text = 'Event ended';
+                    text = 'Event Ended';
                 }
 
                 container.textContent = text;
@@ -201,7 +202,7 @@
                             const linkBtn = document.createElement('button');
                             linkBtn.className =
                                 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs';
-                            linkBtn.textContent = `Link${index + 1}`;
+                            linkBtn.textContent = `Link ${index + 1}`;
                             linkBtn.title = channelUrl;
                             linkBtn.addEventListener('click', () => {
                                 copyToClipboard(channelUrl);
