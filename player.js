@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Domain restriction check
 (function() {
-  const allowedDomains = ['ww.yosintvlive.com', 'tv.yosintvlive.com', 'dplayerr.blogspot.com' ]; // Added 'localhost' for testing
+  const allowedDomains = ['ww.yosintvlive.com', 'tv.getemoji.online', 'dplayerr.blogspot.com' ]; // Added 'localhost' for testing
   const currentDomain = window.location.hostname.toLowerCase().split(':')[0]; // Normalize domain, remove port
 
   if (!allowedDomains.includes(currentDomain)) {
