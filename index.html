@@ -367,75 +367,45 @@ Highlights
           <div class='recent-wid section' id='match-cricket' name='Cricket Matches'>
             <div class='widget HTML' data-version='2' id='HTML1'>
               <div class='widget-content'>
-                <div class="yosintv-wrapper">
-                  <div class="yosintv-button">
-                    All Cricket Events
-                  </div>
-                  <div class="yosintv-grid" id="cricket-events">
-                  </div>
-                </div>
-                <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147"
-     crossorigin="anonymous">
-                </script>
-                <!-- Mid-Ads-Homepage -->
-                <ins class="adsbygoogle"
+
+<!-- Cricket Matches -->
+<div id="yosintv-cleague"></div>
+
+  
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
      style="display:block"
      data-ad-client="ca-pub-5525538810839147"
      data-ad-slot="3542194806"
-     data-ad-format="auto"
-     data-full-width-responsive="true">
-                </ins>
-                <script>
-                  
+     data-ad-format="horizontal"
+     data-full-width-responsive="true"></ins>
+<script>
      (adsbygoogle = window.adsbygoogle || []).push({});
+</script>		
 
-                </script>
-                <div class="yosintv-wrapper">
-                  <div class="yosintv-button">
-                    All Football Events
-                  </div>
-                  <div class="yosintv-grid" id="football-events">
-                  </div>
-                </div>
-                <script>
-                  
-  function displayEvents(events, containerId) {
-    const container = document.getElementById(containerId);
-    events.forEach(event =>
-                   {
-      const card = document.createElement("a");
-      card.href = event.link;
-      card.target = "_blank";
-      card.className = "yosintv-card";
-      card.innerHTML = `
-        
-                  <img src="${event.image.trim()}" alt="${event.name}">
-                    <div class="yosintv-title">
-                      ${event.name}
-                    </div>
-                    
-      `;
-      container.appendChild(card);
-    });
-  }
+  
+<div id="yosintv-cricket"></div>       
+<div id="yosintv-football"></div>
 
-  fetch('https://www.yosintv.link/events-cricket.json')
-    .then(response =>
-                     response.json())
-    .then(data =>
-                     displayEvents(data.matches, 'cricket-events'))
-    .catch(error =>
-                     console.error('Error loading cricket events:', error));
+<center>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-5525538810839147"
+     data-ad-slot="3542194806"
+     data-ad-format="horizontal"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>		
+</center>
+<div id="yosintv-laliga"></div>
 
-  fetch('https://www.yosintv.link/events-football.json')
-    .then(response =>
-                     response.json())
-    .then(data =>
-                     displayEvents(data.matches, 'football-events'))
-    .catch(error =>
-                     console.error('Error loading football events:', error));
 
-                  </script>
+
+                
+                
                 </div>
               </div>
             </div>
@@ -613,5 +583,7 @@ $(document).ready(function() {$('img#closed').click(function(){$('#bl_banner').h
         </div>
         
 -->
-      </body>
-    </html>
+<script async src="https://web.cricfoot.net/script.js"></script>
+
+  </body>
+  </html>
