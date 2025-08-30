@@ -19,7 +19,6 @@ setTimeout(showPopup, 5000); // Show popup after 5 seconds
 document.addEventListener('DOMContentLoaded', function() {
     let shortenedUrl = '';
     let displayUrl = '';
-    let posterShortUrl = '';
 
     // Utility function for base36 encoding
     function base36Encode(str) {
@@ -68,27 +67,13 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(apiUrl)
                 .then(response => response.text())
                 .then(shortUrl => {
+                    if (!shortUrl.startsWith('http')) throw new Error('Invalid TinyURL');
                     shortenedUrl = shortUrl;
-                    const shortUrlObj = new URL(shortUrl);
-                    const shortSrcParam = shortUrlObj.searchParams.get('src');
-                    if (shortSrcParam) {
-                        const decodedShortSrc = decodeURIComponent(shortSrcParam);
-                        displayUrl = shortUrl.replace(shortSrcParam, decodedShortSrc);
-                        displayUrl = decodeURIComponent(displayUrl);
-                    } else {
-                        displayUrl = decodeURIComponent(shortUrl);
-                    }
+                    const tinyId = shortUrl.replace('https://tinyurl.com/', '');
+                    const encoded = base36Encode(tinyId);
+                    displayUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
                     const shareLinkBox = document.getElementById("shareLinkBox");
                     if (shareLinkBox) shareLinkBox.textContent = displayUrl;
-
-                    // Generate and display Base36-encoded poster URL
-                    if (shortUrl.startsWith('http')) {
-                        const tinyId = shortUrl.replace('https://tinyurl.com/', '');
-                        const encoded = base36Encode(tinyId);
-                        posterShortUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
-                        const posterLinkBox = document.getElementById("posterLinkBox");
-                        if (posterLinkBox) posterLinkBox.textContent = posterShortUrl;
-                    }
                 })
                 .catch(error => {
                     shortenedUrl = originalUrl;
@@ -107,10 +92,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!shareLinkBox) throw new Error("shareLinkBox not found");
             const text = shareLinkBox.textContent;
             navigator.clipboard.writeText(text).then(() => {
-                alert("Link copied to clipboard!");
+                showToast("Link copied to clipboard!");
             }).catch(error => {
                 console.error("Copy failed:", error);
-                alert("Failed to copy link. Please select and copy manually.");
+                showToast("Failed to copy link. Please select and copy manually.");
             });
         } catch (error) {
             console.error("copyToClipboard error:", error);
@@ -119,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function copyPosterShortUrl(url) {
         try {
-            showToast('Generating poster short URL...');
+            showToast('Generating share URL...');
             fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`)
                 .then(res => res.text())
                 .then(tinyUrl => {
@@ -128,21 +113,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     const encoded = base36Encode(tinyId);
                     const shortUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
                     navigator.clipboard.writeText(shortUrl);
-                    showToast('Poster URL copied!');
-                    const posterLinkBox = document.getElementById("posterLinkBox");
-                    if (posterLinkBox) posterLinkBox.textContent = shortUrl;
+                    showToast('Share URL copied!');
+                    const shareLinkBox = document.getElementById("shareLinkBox");
+                    if (shareLinkBox) shareLinkBox.textContent = shortUrl;
                 })
-                .catch(() => showToast('Error generating poster URL'));
+                .catch(() => showToast('Error generating share URL'));
         } catch (error) {
             console.error("copyPosterShortUrl error:", error);
-            showToast('Error generating poster URL');
+            showToast('Error generating share URL');
         }
     }
 
     function shareTo(platform) {
         try {
             const text = encodeURIComponent("Check out this live stream on YoSinTV!");
-            const url = encodeURIComponent(shortenedUrl || window.location.href);
+            const url = encodeURIComponent(displayUrl || window.location.href);
             let shareUrl;
 
             switch (platform) {
@@ -154,10 +139,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     break;
                 case 'instagram':
                     navigator.clipboard.writeText(displayUrl).then(() => {
-                        alert("Instagram doesn't support direct web sharing. Link copied to clipboard! Open Instagram, create a story or post, and paste the link.");
+                        showToast("Instagram doesn't support direct web sharing. Link copied to clipboard! Open Instagram, create a story or post, and paste the link.");
                     }).catch(error => {
                         console.error("Copy failed:", error);
-                        alert("Failed to copy link for Instagram. Please select and copy manually.");
+                        showToast("Failed to copy link for Instagram. Please select and copy manually.");
                     });
                     return;
                 case 'twitter':
