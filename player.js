@@ -1,15 +1,14 @@
-        function showPopup() {
-            document.getElementById('popup').style.display = 'block';
-            document.getElementById('overlay').style.display = 'block';
-        }
+function showPopup() {
+    document.getElementById('popup').style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+}
 
-        function closePopup() {
-            document.getElementById('popup').style.display = 'none';
-            document.getElementById('overlay').style.display = 'none';
-        }
+function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+}
 
-        setTimeout(showPopup, 5000); // Show popup after 10 seconds
-
+setTimeout(showPopup, 5000); // Show popup after 5 seconds
 
 // Apply initial theme immediately
 (function initializeTheme() {
@@ -20,6 +19,35 @@
 document.addEventListener('DOMContentLoaded', function() {
     let shortenedUrl = '';
     let displayUrl = '';
+
+    // Utility function for base36 encoding
+    function base36Encode(str) {
+        const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
+        let result = '';
+        for (let i = 0; i < str.length; i++) {
+            const charCode = str.charCodeAt(i);
+            result += chars[charCode % 36];
+        }
+        return result;
+    }
+
+    // Utility function for showing toast notifications
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.padding = '10px 20px';
+        toast.style.backgroundColor = '#333';
+        toast.style.color = '#fff';
+        toast.style.borderRadius = '5px';
+        toast.style.zIndex = '1000';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
 
     function loadShareLink() {
         try {
@@ -76,6 +104,26 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (error) {
             console.error("copyToClipboard error:", error);
+        }
+    }
+
+    function copyPosterShortUrl(url) {
+        try {
+            showToast('Generating poster short URL...');
+            fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`)
+                .then(res => res.text())
+                .then(tinyUrl => {
+                    if (!tinyUrl.startsWith('http')) throw new Error('Invalid TinyURL');
+                    const tinyId = tinyUrl.replace('https://tinyurl.com/', '');
+                    const encoded = base36Encode(tinyId);
+                    const shortUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
+                    navigator.clipboard.writeText(shortUrl);
+                    showToast('Poster URL copied!');
+                })
+                .catch(() => showToast('Error generating poster URL'));
+        } catch (error) {
+            console.error("copyPosterShortUrl error:", error);
+            showToast('Error generating poster URL');
         }
     }
 
@@ -258,19 +306,17 @@ document.addEventListener('DOMContentLoaded', function() {
     window.toggleChat = toggleChat;
     window.copyToClipboard = copyToClipboard;
     window.shareTo = shareTo;
+    window.copyPosterShortUrl = copyPosterShortUrl;
 });
 
 // Domain restriction check
 (function() {
-  const allowedDomains = ['ww.yosintvlive.com', 'tv.getemoji.online', 'dplayerr.blogspot.com' ]; // Added 'localhost' for testing
-  const currentDomain = window.location.hostname.toLowerCase().split(':')[0]; // Normalize domain, remove port
+    const allowedDomains = ['ww.yosintvlive.com', 'tv.getemoji.online', 'dplayerr.blogspot.com'];
+    const currentDomain = window.location.hostname.toLowerCase().split(':')[0]; // Normalize domain, remove port
 
-  if (!allowedDomains.includes(currentDomain)) {
-    // Redirect to the main allowed domain
-    window.location.replace('https://www.yosin-tv.net/');
-  } else {
-    // Allowed domain - place your code here
-    console.log('Domain allowed:', currentDomain);
-    // Your main code logic can go here
-  }
+    if (!allowedDomains.includes(currentDomain)) {
+        window.location.replace('https://www.yosin-tv.net/');
+    } else {
+        console.log('Domain allowed:', currentDomain);
+    }
 })();
