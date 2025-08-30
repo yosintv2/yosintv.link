@@ -1,11 +1,19 @@
 function showPopup() {
-    document.getElementById('popup').style.display = 'block';
-    document.getElementById('overlay').style.display = 'block';
+    const popup = document.getElementById('popup');
+    const overlay = document.getElementById('overlay');
+    if (popup && overlay) {
+        popup.style.display = 'block';
+        overlay.style.display = 'block';
+    }
 }
 
 function closePopup() {
-    document.getElementById('popup').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
+    const popup = document.getElementById('popup');
+    const overlay = document.getElementById('overlay');
+    if (popup && overlay) {
+        popup.style.display = 'none';
+        overlay.style.display = 'none';
+    }
 }
 
 setTimeout(showPopup, 5000); // Show popup after 5 seconds
@@ -52,12 +60,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Utility function to extract TinyURL shortcode
     function extractTinyUrlShortcode(url) {
         try {
-            // Validate URL format
             if (!url.startsWith('https://tinyurl.com/')) {
                 throw new Error('Not a valid TinyURL');
             }
             const path = new URL(url).pathname.replace('/', '');
-            // Ensure shortcode contains only alphanumeric, underscores, or hyphens
             if (!/^[a-zA-Z0-9_-]+$/.test(path)) {
                 throw new Error('Invalid TinyURL shortcode');
             }
@@ -88,8 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
                 shortenedUrl = originalUrl;
             } else {
-                displayUrl = originalUrl; // Fallback to original URL if not a valid TinyURL
-                showToast("Invalid TinyURL format. Using original URL.");
+                displayUrl = originalUrl; // Fallback to original URL
+                showToast("Invalid TinyURL format. Displaying original URL.");
             }
 
             const shareLinkBox = document.getElementById("shareLinkBox");
@@ -97,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 shareLinkBox.textContent = displayUrl;
             } else {
                 console.warn("shareLinkBox element not found");
-                showToast("Share link box not found");
+                showToast("Share link box not found. Please check HTML.");
             }
         } catch (error) {
             console.error("loadShareLink error:", error);
@@ -337,4 +343,9 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.log('Domain allowed:', currentDomain);
     }
+})();
+
+// Run loadShareLink immediately to handle redirect page
+(function immediateLoadShareLink() {
+    loadShareLink();
 })();
