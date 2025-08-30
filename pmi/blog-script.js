@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const normalize = (s='') => s.toString()
         .toLowerCase()
         .normalize('NFKD')
@@ -33,7 +33,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const totalSeconds = 0;
         return `Time: ${elapsedHours}:${elapsedMinutes.toString().padStart(2, '0')}:${elapsedSeconds.toString().padStart(2, '0')} / ${totalHours}:${totalMinutes.toString().padStart(2, '0')}:${totalSeconds.toString().padStart(2, '0')}`;
       };
-      const formatCountdown = (diff) => {
+      const formatCountdown = (diff, duration) => {
+        const now = new Date();
+        const startTime = new Date(start);
+        const endTime = new Date(startTime.getTime() + duration * 3600000);
+        const total = endTime.getTime() - startTime.getTime();
+        if (diff < 0 && now.getTime() > endTime.getTime()) return '<span class="text-gray-600 font-bold">Match Ended</span>';
         if (diff < 0) return '<span class="text-red-600 font-bold">Watch Now</span>';
         const hours = Math.floor(diff / 3600000);
         const minutes = Math.floor((diff % 3600000) / 60000);
@@ -145,12 +150,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           matchCard.className = 'bg-gray-50 p-4 rounded-lg flex justify-between items-center block hover:bg-gray-100';
           matchCard.innerHTML = `
             <h4 class="text-lg font-semibold text-gray-900 pr-4">${name}</h4>
-            <p class="text-sm text-gray-600 pl-4">${formatCountdown(diff)}</p>
+            <p class="text-sm text-gray-600 pl-4">${formatCountdown(diff, duration)}</p>
           `;
           moreMatchesContainer.appendChild(matchCard);
           setInterval(() => {
             const updatedDiff = new Date(start).getTime() - new Date().getTime();
-            matchCard.querySelector('p').innerHTML = formatCountdown(updatedDiff);
+            matchCard.querySelector('p').innerHTML = formatCountdown(updatedDiff, duration);
           }, 1000);
         }
       };
