@@ -1,22 +1,15 @@
-function showPopup() {
-    const popup = document.getElementById('popup');
-    const overlay = document.getElementById('overlay');
-    if (popup && overlay) {
-        popup.style.display = 'block';
-        overlay.style.display = 'block';
-    }
-}
+        function showPopup() {
+            document.getElementById('popup').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
 
-function closePopup() {
-    const popup = document.getElementById('popup');
-    const overlay = document.getElementById('overlay');
-    if (popup && overlay) {
-        popup.style.display = 'none';
-        overlay.style.display = 'none';
-    }
-}
+        function closePopup() {
+            document.getElementById('popup').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
 
-setTimeout(showPopup, 5000); // Show popup after 5 seconds
+        setTimeout(showPopup, 5000); // Show popup after 10 seconds
+
 
 // Apply initial theme immediately
 (function initializeTheme() {
@@ -25,78 +18,48 @@ setTimeout(showPopup, 5000); // Show popup after 5 seconds
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
+    let shortenedUrl = '';
     let displayUrl = '';
-
-    // Utility function for base36 encoding
-    function base36Encode(str) {
-        const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
-        let result = '';
-        for (let i = 0; i < str.length; i++) {
-            const charCode = str.charCodeAt(i);
-            result += chars[charCode % 36];
-        }
-        return result;
-    }
-
-    // Utility function for showing toast notifications
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.style.position = 'fixed';
-        toast.style.bottom = '20px';
-        toast.style.right = '20px';
-        toast.style.padding = '10px 20px';
-        toast.style.backgroundColor = '#333';
-        toast.style.color = '#fff';
-        toast.style.borderRadius = '5px';
-        toast.style.zIndex = '1000';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
-    }
-
-    // Utility function to extract TinyURL shortcode
-    function extractTinyUrlShortcode(url) {
-        try {
-            if (!url.startsWith('https://tinyurl.com/')) {
-                throw new Error('Not a valid TinyURL');
-            }
-            const path = new URL(url).pathname.replace('/', '');
-            if (!/^[a-zA-Z0-9_-]+$/.test(path)) {
-                throw new Error('Invalid TinyURL shortcode');
-            }
-            return path;
-        } catch (error) {
-            console.error("Error extracting TinyURL shortcode:", error);
-            return null;
-        }
-    }
 
     function loadShareLink() {
         try {
             const originalUrl = window.location.href;
-            const shortcode = extractTinyUrlShortcode(originalUrl);
-            if (shortcode) {
-                const encoded = base36Encode(shortcode);
-                displayUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
-            } else {
-                displayUrl = originalUrl; // Fallback to original URL
-                showToast("Invalid TinyURL format. Displaying original URL.");
-            }
+            const url = new URL(originalUrl);
+            const srcParam = url.searchParams.get('src');
+            let displayUrlBase = originalUrl;
 
-            const shareLinkBox = document.getElementById("shareLinkBox");
-            if (shareLinkBox) {
-                shareLinkBox.textContent = displayUrl;
-            } else {
-                console.warn("shareLinkBox element not found");
-                showToast("Share link box not found. Please check HTML.");
+            if (srcParam) {
+                const decodedSrc = decodeURIComponent(srcParam);
+                displayUrlBase = originalUrl.replace(srcParam, decodedSrc);
             }
+            displayUrl = decodeURIComponent(displayUrlBase);
+
+            const apiUrl = 'https://tinyurl.com/api-create.php?url=' + encodeURIComponent(originalUrl);
+
+            fetch(apiUrl)
+                .then(response => response.text())
+                .then(shortUrl => {
+                    shortenedUrl = shortUrl;
+                    const shortUrlObj = new URL(shortUrl);
+                    const shortSrcParam = shortUrlObj.searchParams.get('src');
+                    if (shortSrcParam) {
+                        const decodedShortSrc = decodeURIComponent(shortSrcParam);
+                        displayUrl = shortUrl.replace(shortSrcParam, decodedShortSrc);
+                        displayUrl = decodeURIComponent(displayUrl);
+                    } else {
+                        displayUrl = decodeURIComponent(shortUrl);
+                    }
+                    const shareLinkBox = document.getElementById("shareLinkBox");
+                    if (shareLinkBox) shareLinkBox.textContent = displayUrl;
+                })
+                .catch(error => {
+                    shortenedUrl = originalUrl;
+                    const shareLinkBox = document.getElementById("shareLinkBox");
+                    if (shareLinkBox) shareLinkBox.textContent = displayUrl;
+                    console.error("Shortening failed:", error);
+                });
         } catch (error) {
             console.error("loadShareLink error:", error);
-            showToast("Error loading share link");
-            const shareLinkBox = document.getElementById("shareLinkBox");
-            if (shareLinkBox) shareLinkBox.textContent = window.location.href;
         }
     }
 
@@ -106,21 +69,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!shareLinkBox) throw new Error("shareLinkBox not found");
             const text = shareLinkBox.textContent;
             navigator.clipboard.writeText(text).then(() => {
-                showToast("Link copied to clipboard!");
+                alert("Link copied to clipboard!");
             }).catch(error => {
                 console.error("Copy failed:", error);
-                showToast("Failed to copy link. Please select and copy manually.");
+                alert("Failed to copy link. Please select and copy manually.");
             });
         } catch (error) {
             console.error("copyToClipboard error:", error);
-            showToast("Error copying link");
         }
     }
 
     function shareTo(platform) {
         try {
             const text = encodeURIComponent("Check out this live stream on YoSinTV!");
-            const url = encodeURIComponent(displayUrl || window.location.href);
+            const url = encodeURIComponent(shortenedUrl || window.location.href);
             let shareUrl;
 
             switch (platform) {
@@ -132,10 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     break;
                 case 'instagram':
                     navigator.clipboard.writeText(displayUrl).then(() => {
-                        showToast("Instagram doesn't support direct web sharing. Link copied to clipboard! Open Instagram, create a story or post, and paste the link.");
+                        alert("Instagram doesn't support direct web sharing. Link copied to clipboard! Open Instagram, create a story or post, and paste the link.");
                     }).catch(error => {
                         console.error("Copy failed:", error);
-                        showToast("Failed to copy link for Instagram. Please select and copy manually.");
+                        alert("Failed to copy link for Instagram. Please select and copy manually.");
                     });
                     return;
                 case 'twitter':
@@ -287,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize the app
-    initializePlayer();
+    initializePlayer(); 
     loadShareLink();
 
     // Expose functions globally for inline event handlers
@@ -300,17 +262,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Domain restriction check
 (function() {
-    const allowedDomains = ['ww.yosintvlive.com', 'tv.getemoji.online', 'dplayerr.blogspot.com'];
-    const currentDomain = window.location.hostname.toLowerCase().split(':')[0]; // Normalize domain, remove port
+  const allowedDomains = ['ww.yosintvlive.com', 'tv.getemoji.online', 'dplayerr.blogspot.com' ]; // Added 'localhost' for testing
+  const currentDomain = window.location.hostname.toLowerCase().split(':')[0]; // Normalize domain, remove port
 
-    if (!allowedDomains.includes(currentDomain)) {
-        window.location.replace('https://www.yosin-tv.net/');
-    } else {
-        console.log('Domain allowed:', currentDomain);
-    }
-})();
-
-// Run loadShareLink immediately to handle redirect page
-(function immediateLoadShareLink() {
-    loadShareLink();
+  if (!allowedDomains.includes(currentDomain)) {
+    // Redirect to the main allowed domain
+    window.location.replace('https://www.yosin-tv.net/');
+  } else {
+    // Allowed domain - place your code here
+    console.log('Domain allowed:', currentDomain);
+    // Your main code logic can go here
+  }
 })();
