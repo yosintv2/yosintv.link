@@ -1,136 +1,121 @@
-const leagues = [
-  { id: 'yosintv-fight', file: 'https://yosintv11.pages.dev/fight.json', title: 'UFC/MMA/Boxing' },
-  { id: 'yosintv-cricket', file: 'https://yosintv11.pages.dev/cricket.json', title: 'Top Cricket' },
-  { id: 'yosintv-cleague', file: 'https://yosintv11.pages.dev/cleague.json', title: 'Cricket League' },
-  { id: 'yosintv-nepal', file: 'https://yosintv11.pages.dev/nepal.json', title: '4-Nations Women' },
-  { id: 'yosintv-npl', file: 'https://yosintv11.pages.dev/npl.json', title: 'NPL T20' },
-  { id: 'yosintv-ucl', file: 'https://yosintv11.pages.dev/ucl.json', title: 'Champions League' },
-  { id: 'yosintv-football', file: 'https://yosintv11.pages.dev/football.json', title: 'Top Football' },
-  { id: 'yosintv-laliga', file: 'https://yosintv11.pages.dev/more.json', title: 'More Football' },
-  { id: 'yosintv-epl', file: 'https://yosintv11.pages.dev/epl.json', title: 'EPL' },
-  { id: 'yosintv-seriea', file: 'https://yosintv11.pages.dev/seriea.json', title: 'Serie A' },
-  { id: 'yosintv-ligue1', file: 'https://yosintv11.pages.dev/ligue1.json', title: 'Ligue 1' },
-  { id: 'yosintv-bundesliga', file: 'https://yosintv11.pages.dev/bundesliga.json', title: 'Bundesliga' }
-];
+document.addEventListener('DOMContentLoaded', () => {
 
-leagues.forEach(league => {
-  fetch(league.file)
-    .then(response => response.json())
-    .then(data => {
-      if (data.matches) {
-        const now = Date.now();
-        data.matches.sort((a, b) => {
-          const getStatus = match => {
-            const repeat = match.repeat || 1;
-            for (let i = 0; i < repeat; i++) {
-              const s = new Date(match.start).getTime() + i * 86400000;
-              const e = s + parseFloat(match.duration) * 3600000;
-              if (now >= s && now <= e) return 0; // Live
-              if (now < s) return 1; // Upcoming
-            }
-            return 2; // Ended
-          };
-
-          const priA = getStatus(a);
-          const priB = getStatus(b);
-          if (priA !== priB) return priA - priB;
-
-          const nextTime = m => {
-            const repeat = m.repeat || 1;
-            for (let i = 0; i < repeat; i++) {
-              const s = new Date(m.start).getTime() + i * 86400000;
-              if (now <= s) return s;
-            }
-            return new Date(m.start).getTime();
-          };
-
-          return nextTime(a) - nextTime(b);
-        });
-      }
-      renderLeague(data, league.id, league.title);
-    })
-    .catch(error => console.error(`Error loading ${league.title} events:`, error));
-});
-
-function renderLeague(data, containerId, leagueTitle) {
-  const container = document.getElementById(containerId);
-  container.innerHTML = '';
-  const title = document.createElement('div');
-  title.className = 'league-title';
-  title.textContent = `${leagueTitle} Matches`;
-  container.appendChild(title);
-
-  if (!data.matches || data.matches.length === 0) {
-    const noMatch = document.createElement('p');
-    noMatch.textContent = `No ${leagueTitle} Matches Today`;
-    container.appendChild(noMatch);
-    return;
+  // --- Helper: Get URL query parameters ---
+  function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
   }
 
-  data.matches.forEach(match => renderEvent(match, container));
-}
+  // --- Render Live Tracker iframe ---
+  function renderLiveTracker(matchId) {
+    const liveTrackerDiv = document.getElementById('live-tracker');
+    if (!liveTrackerDiv) {
+      console.error('Error: <div id="live-tracker"> not found in the DOM');
+      return;
+    }
+    console.log(`Rendering live tracker with matchId: ${matchId}`);
+    liveTrackerDiv.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://widgets-livetracker.nami.com/en/football?profile=g9rzlugz3uxie81&trend=0&id=${matchId}`;
+    iframe.style.width = '100%';
+    iframe.style.height = '300px';
+    iframe.style.border = 'none';
+    iframe.onerror = () => console.error('Error: Failed to load iframe content');
+    liveTrackerDiv.appendChild(iframe);
+  }
 
-function renderEvent(match, container) {
-  const el = document.createElement('div');
-  el.className = 'event';
-  el.setAttribute('data-link', match.link);
-  el.setAttribute('data-start', match.start);
-  el.setAttribute('data-duration', match.duration);
-  el.setAttribute('data-repeat', match.repeat || 1);
+  // --- Initialize Live Tracker if matchId exists ---
+  const matchId = getQueryParam('id');
+  if (matchId) renderLiveTracker(matchId);
 
-  const name = document.createElement('div');
-  name.className = 'event-name';
-  name.textContent = match.name;
+  // --- Determine JSON file ---
+  const fileParam = getQueryParam('yosintv');
+  const jsonFile = fileParam ? `https://blog.cricfoot.net/${fileParam}.json` : 'https://blog.cricfoot.net/default.json';
 
-  const countdown = document.createElement('div');
-  countdown.className = 'event-countdown';
-
-  el.appendChild(name);
-  el.appendChild(countdown);
-  container.appendChild(el);
-}
-
-function updateStatus() {
-  const now = Date.now();
-
-  document.querySelectorAll('.event').forEach(el => {
-    const start = new Date(el.getAttribute('data-start')).getTime();
-    const duration = parseFloat(el.getAttribute('data-duration')) * 3600000;
-    const repeat = parseInt(el.getAttribute('data-repeat')) || 1;
-    const countdown = el.querySelector('.event-countdown');
-
-    let shown = false;
-
-    for (let i = 0; i < repeat; i++) {
-      const s = start + i * 86400000;
-      const e = s + duration;
-
-      if (now >= s && now <= e) {
-        countdown.innerHTML = `<div class="live-now blink">Live Now</div>`;
-        shown = true;
-        break;
+  // --- Fetch JSON ---
+  fetch(jsonFile)
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+      return res.json();
+    })
+    .then(data => {
+      const container = document.getElementById('live-container');
+      if (!container) {
+        console.error('Error: <div id="live-container"> not found in the DOM');
+        return;
       }
 
-      if (now < s && !shown) {
-        const diff = s - now;
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        countdown.innerHTML = `<span>${d}d</span> <span>${h}h</span> <span>${m}m</span>`;
-        shown = true;
-        break;
-      }
-    }
+      // --- Render each event ---
+      data.events.forEach(event => {
+        // Single link
+        if (event.link) {
+          const eventDiv = document.createElement('div');
+          eventDiv.className = 'livee';
+          eventDiv.style.cssText = data.styles.livee;
+          eventDiv.innerHTML = `<div class="livee-name" style="${data.styles.liveeName}">${event.name}</div>`;
+          eventDiv.addEventListener('click', () => window.open(event.link, '_blank'));
+          eventDiv.addEventListener('mouseover', () => eventDiv.style.cssText += data.styles.liveeHover);
+          eventDiv.addEventListener('mouseout', () => eventDiv.style.cssText = data.styles.livee);
+          container.appendChild(eventDiv);
+        }
 
-    if (!shown) {
-      countdown.textContent = 'Match End';
-    }
+        // Multiple links
+        if (event.links) {
+          event.links.forEach((link, index) => {
+            const eventDiv = document.createElement('div');
+            eventDiv.className = 'livee';
+            eventDiv.style.cssText = data.styles.livee;
+            eventDiv.innerHTML = `<div class="livee-name" style="${data.styles.liveeName}">${event.name} - Link ${index + 1}</div>`;
+            eventDiv.addEventListener('click', () => window.open(link, '_blank'));
+            eventDiv.addEventListener('mouseover', () => eventDiv.style.cssText += data.styles.liveeHover);
+            eventDiv.addEventListener('mouseout', () => eventDiv.style.cssText = data.styles.livee);
+            container.appendChild(eventDiv);
+          });
+        }
 
-    el.onclick = () => {
-      window.location.href = el.getAttribute('data-link');
-    };
-  });
-}
+        // Optional: Countdown for events with "start"
+        if (event.start) {
+          const countdownId = `countdown-${Math.random().toString(36).substring(2, 9)}`;
+          const countdownDiv = document.createElement('div');
+          countdownDiv.id = countdownId;
+          countdownDiv.style.cssText = "margin-top:5px;color:white;text-align:center;";
+          container.appendChild(countdownDiv);
 
-setInterval(updateStatus, 1000);
-updateStatus();
+          function startCountdown(startTime, elementId) {
+            function updateCountdown() {
+              const now = new Date();
+              const start = new Date(startTime);
+              const diff = start - now;
+
+              if (diff <= 0) {
+                document.getElementById(elementId).textContent = 'Live Now';
+                clearInterval(timer);
+                return;
+              }
+
+              const hours = Math.floor(diff / (1000 * 60 * 60));
+              const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+              const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+              document.getElementById(elementId).textContent = `Starts in: ${hours}h ${minutes}m ${seconds}s`;
+            }
+
+            updateCountdown();
+            const timer = setInterval(updateCountdown, 1000);
+          }
+
+          startCountdown(event.start, countdownId);
+        }
+      });
+    })
+  .catch(err => {
+     console.error('Error fetching JSON:', err);
+     const container = document.getElementById('live-container');
+      if (container) {
+      const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = "Please Check Later, Match Not Started!";
+        container.appendChild(errorDiv);
+ }
+    });
+});
