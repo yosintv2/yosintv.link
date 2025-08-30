@@ -33,12 +33,11 @@
         const totalSeconds = 0;
         return `Time: ${elapsedHours}:${elapsedMinutes.toString().padStart(2, '0')}:${elapsedSeconds.toString().padStart(2, '0')} / ${totalHours}:${totalMinutes.toString().padStart(2, '0')}:${totalSeconds.toString().padStart(2, '0')}`;
       };
-      const formatCountdown = (diff, duration) => {
+      const formatCountdown = (diff, duration, start) => {
         const now = new Date();
         const startTime = new Date(start);
         const endTime = new Date(startTime.getTime() + duration * 3600000);
-        const total = endTime.getTime() - startTime.getTime();
-        if (diff < 0 && now.getTime() > endTime.getTime()) return '<span class="text-gray-600 font-bold">Match Ended</span>';
+        if (now.getTime() > endTime.getTime()) return '<span class="text-gray-600 font-bold">Match Ended</span>';
         if (diff < 0) return '<span class="text-red-600 font-bold">Watch Now</span>';
         const hours = Math.floor(diff / 3600000);
         const minutes = Math.floor((diff % 3600000) / 60000);
@@ -80,6 +79,7 @@
       const matchInfoContainer = document.getElementById('match-info');
       const matchNameElement = document.getElementById('match-name');
       const moreMatchesContainer = document.getElementById('more-matches');
+      const noMatchesMessage = document.getElementById('no-matches');
       const renderMatchCard = (matchData, leagueTitle, isMainMatch = true) => {
         const { name, start, duration, link } = matchData;
         const [team1='', team2=''] = splitTeams(name);
@@ -150,12 +150,12 @@
           matchCard.className = 'bg-gray-50 p-4 rounded-lg flex justify-between items-center block hover:bg-gray-100';
           matchCard.innerHTML = `
             <h4 class="text-lg font-semibold text-gray-900 pr-4">${name}</h4>
-            <p class="text-sm text-gray-600 pl-4">${formatCountdown(diff, duration)}</p>
+            <p class="text-sm text-gray-600 pl-4">${formatCountdown(diff, duration, start)}</p>
           `;
           moreMatchesContainer.appendChild(matchCard);
           setInterval(() => {
             const updatedDiff = new Date(start).getTime() - new Date().getTime();
-            matchCard.querySelector('p').innerHTML = formatCountdown(updatedDiff, duration);
+            matchCard.querySelector('p').innerHTML = formatCountdown(updatedDiff, duration, start);
           }, 1000);
         }
       };
@@ -178,10 +178,10 @@
           const { league, file, data } = r.value;
           const list = Array.isArray(data) ? data : Array.isArray(data.matches) ? data.matches : Array.isArray(data.events) ? data.events : Array.isArray(data.data) ? data.data : [];
           for (const m of list) {
-            if (!m?.name || !m?.link) continue;
+            if (!m?.name || !m?.link || !m?.start || !m?.duration) continue;
             const linkTeam = extractTeamFromLink(m.link);
             if (linkTeam === qNorm) {
-              const key = m.id ? `id:${m.id}` : `ns:${normalize(m.name)}|${m.start||''}|${league}`;
+              const key = m.id ? `id:${m.id}` : `ns:${normalize(m.name)}|${m.start}|${league}`;
               if (seen.has(key) || found.length >= 1) continue;
               seen.add(key);
               found.push({ match: m, league });
@@ -194,24 +194,39 @@
           found.sort((a, b) => new Date(a.match.start || 0) - new Date(b.match.start || 0));
           found.forEach(item => renderMatchCard(item.match, item.league));
           if (mainMatchJsonFile) {
-            const response = await fetch(mainMatchJsonFile);
-            if (response.ok) {
-              const data = await response.json();
-              const list = Array.isArray(data) ? data : Array.isArray(data.matches) ? data.matches : Array.isArray(data.events) ? data.events : Array.isArray(data.data) ? data.data : [];
-              const otherMatches = list.filter(m => {
-                const linkTeam = extractTeamFromLink(m.link);
-                return linkTeam !== qNorm && m.name && m.link && m.start;
-              });
-              const shuffled = otherMatches.sort(() => 0.5 - Math.random());
-              const randomMatches = shuffled.slice(0, 3);
-              randomMatches.forEach(match => renderMatchCard(match, found[0].league, false));
+            try {
+              const response = await fetch(mainMatchJsonFile);
+              if (response.ok) {
+                const data = await response.json();
+                const list = Array.isArray(data) ? data : Array.isArray(data.matches) ? data.matches : Array.isArray(data.events) ? data.events : Array.isArray(data.data) ? data.data : [];
+                const otherMatches = list.filter(m => {
+                  const linkTeam = extractTeamFromLink(m.link);
+                  return linkTeam !== qNorm && m.name && m.link && m.start && m.duration;
+                });
+                const shuffled = otherMatches.sort(() => 0.5 - Math.random());
+                const randomMatches = shuffled.slice(0, 3);
+                if (randomMatches.length > 0) {
+                  noMatchesMessage.classList.add('hidden');
+                  randomMatches.forEach(match => renderMatchCard(match, found[0].league, false));
+                } else {
+                  noMatchesMessage.classList.remove('hidden');
+                }
+              } else {
+                noMatchesMessage.classList.remove('hidden');
+              }
+            } catch (error) {
+              noMatchesMessage.classList.remove('hidden');
             }
+          } else {
+            noMatchesMessage.classList.remove('hidden');
           }
         } else {
           matchInfoContainer.innerHTML = '<p class="text-red-500">This Match is Not Live Right Now</p>';
           matchNameElement.textContent = 'No Match Available';
+          noMatchesMessage.classList.remove('hidden');
         }
       } else {
         matchNameElement.textContent = 'No Match Selected';
+        noMatchesMessage.classList.remove('hidden');
       }
     });
