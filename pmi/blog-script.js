@@ -1,4 +1,4 @@
-    document.addEventListener('DOMContentLoaded', async () => {
+ document.addEventListener('DOMContentLoaded', async () => {
       const normalize = (s='') => s.toString()
         .toLowerCase()
         .normalize('NFKD')
@@ -51,14 +51,18 @@
         const diff = now.getTime() - startTime.getTime();
         const total = endTime.getTime() - startTime.getTime();
         if (diff < 0) {
+          bar.style.width = '0%';
+          bar.classList.remove('bg-red-600');
           const minutesLeft = Math.abs(Math.floor(diff / 60000));
           text.textContent = `Starts in: ${Math.floor(minutesLeft / 60)}h ${minutesLeft % 60}m`;
           return;
         }
         if (diff > total) {
+          bar.style.width = '100%';
           text.textContent = 'Match Ended';
           return;
         }
+        bar.classList.add('bg-red-600');
         text.textContent = formatProgressTime(diff, total, duration);
         bar.style.width = `${(diff / total) * 100}%`;
       };
@@ -82,6 +86,13 @@
       const noMatchesMessage = document.getElementById('no-matches');
       const renderMatchCard = (matchData, leagueTitle, isMainMatch = true) => {
         const { name, start, duration, link } = matchData;
+        if (!name || !start || !duration || !link) {
+          if (isMainMatch) {
+            matchInfoContainer.innerHTML = '<p class="text-red-500">Invalid match data. Please try another match.</p>';
+            matchNameElement.textContent = 'Invalid Match Data';
+          }
+          return;
+        }
         const [team1='', team2=''] = splitTeams(name);
         const startTime = formatTime(start);
         if (isMainMatch) {
@@ -98,7 +109,7 @@
           const progressContainer = document.createElement('div');
           progressContainer.className = 'w-full bg-gray-200 rounded-full h-6 mb-4';
           const progressBar = document.createElement('div');
-          progressBar.className = 'bg-red-600 h-6 rounded-full';
+          progressBar.className = 'h-6 rounded-full';
           const progressText = document.createElement('div');
           progressText.className = 'text-sm text-gray-600 mb-2 font-bold';
           progressContainer.appendChild(progressBar);
@@ -111,7 +122,7 @@
             <h3 class="text-2xl font-bold border-b-2 border-gray-200 pb-2 text-gray-900">Frequently Asked Questions</h3>
             <div class="space-y-4">
               <div class="bg-gray-50 p-4 rounded-lg">
-                <h4 class="text-lg font-semibold text-gray-900">Which teams will face against ${team2} in this match ?</h4>
+                <h4 class="text-lg font-semibold text-gray-900">Which teams will face against ${team2} in this match?</h4>
                 <p class="text-gray-600">${team1} will face off against ${team2} in this exciting match.</p>
               </div>
               <div class="bg-gray-50 p-4 rounded-lg">
@@ -138,6 +149,7 @@
           `;
           content.prepend(progressText);
           content.prepend(progressContainer);
+          matchInfoContainer.innerHTML = '';
           matchInfoContainer.appendChild(content);
           setInterval(() => updateProgressBar(start, duration, progressContainer, progressBar, progressText), 1000);
         } else {
@@ -184,7 +196,7 @@
               const key = m.id ? `id:${m.id}` : `ns:${normalize(m.name)}|${m.start}|${league}`;
               if (seen.has(key) || found.length >= 1) continue;
               seen.add(key);
-              found.push({ match: m, league });
+              found.push({ match: m, league, file });
               mainMatchJsonFile = file;
             }
           }
@@ -200,14 +212,19 @@
                 const data = await response.json();
                 const list = Array.isArray(data) ? data : Array.isArray(data.matches) ? data.matches : Array.isArray(data.events) ? data.events : Array.isArray(data.data) ? data.data : [];
                 const otherMatches = list.filter(m => {
+                  if (!m?.name || !m?.link || !m?.start || !m?.duration) return false;
                   const linkTeam = extractTeamFromLink(m.link);
-                  return linkTeam !== qNorm && m.name && m.link && m.start && m.duration;
+                  const key = m.id ? `id:${m.id}` : `ns:${normalize(m.name)}|${m.start}|${found[0].league}`;
+                  return linkTeam !== qNorm && !seen.has(key);
                 });
                 const shuffled = otherMatches.sort(() => 0.5 - Math.random());
                 const randomMatches = shuffled.slice(0, 3);
                 if (randomMatches.length > 0) {
                   noMatchesMessage.classList.add('hidden');
-                  randomMatches.forEach(match => renderMatchCard(match, found[0].league, false));
+                  randomMatches.forEach(match => {
+                    seen.add(match.id ? `id:${match.id}` : `ns:${normalize(match.name)}|${match.start}|${found[0].league}`);
+                    renderMatchCard(match, found[0].league, false);
+                  });
                 } else {
                   noMatchesMessage.classList.remove('hidden');
                 }
@@ -216,6 +233,7 @@
               }
             } catch (error) {
               noMatchesMessage.classList.remove('hidden');
+              matchInfoContainer.innerHTML = '<p class="text-red-500">Error loading match data. Please try again later.</p>';
             }
           } else {
             noMatchesMessage.classList.remove('hidden');
@@ -226,6 +244,7 @@
           noMatchesMessage.classList.remove('hidden');
         }
       } else {
+        matchInfoContainer.innerHTML = '<p class="text-gray-500">Please select a match to view details.</p>';
         matchNameElement.textContent = 'No Match Selected';
         noMatchesMessage.classList.remove('hidden');
       }
