@@ -1,4 +1,4 @@
- document.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const normalize = (s='') => s.toString()
         .toLowerCase()
         .normalize('NFKD')
@@ -96,6 +96,7 @@
         const [team1='', team2=''] = splitTeams(name);
         const startTime = formatTime(start);
         if (isMainMatch) {
+          console.log('Rendering main match:', name);
           document.title = `YoSinTV - ${name} Live Stream`;
           document.getElementById('meta-description').content = `Watch ${team1} vs ${team2} live stream on YoSinTV, your source for sports matches.`;
           document.getElementById('meta-keywords').content = `${team1} vs ${team2} live stream, sports live, ${team1} highlights, ${team2} highlights, YoSinTV`;
@@ -114,39 +115,62 @@
           progressText.className = 'text-sm text-gray-600 mb-2 font-bold';
           progressContainer.appendChild(progressBar);
           const content = document.createElement('div');
-          content.className = 'space-y-4 text-left';
-          content.innerHTML = `
-            <h3 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">${name} - Match Details</h3>
-            <p class="text-sm text-gray-600">Start: ${startTime}</p>
-            <div class="flex justify-center my-4"></div>
-            <h3 class="text-2xl font-bold border-b-2 border-gray-200 pb-2 text-gray-900">Frequently Asked Questions</h3>
-            <div class="space-y-4">
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <h4 class="text-lg font-semibold text-gray-900">Which teams will face against ${team2} in this match?</h4>
-                <p class="text-gray-600">${team1} will face off against ${team2} in this exciting match.</p>
-              </div>
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <h4 class="text-lg font-semibold text-gray-900">When is the ${name} match happening?</h4>
-                <p class="text-gray-600">The match starts at ${startTime}. Check official sources for venue details.</p>
-              </div>
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <h4 class="text-lg font-semibold text-gray-900">How long will the ${name} match last?</h4>
-                <p class="text-gray-600">The match is expected to last about ${duration} hours, including stoppage time.</p>
-              </div>
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <h4 class="text-lg font-semibold text-gray-900">Where can I watch the ${name} match live online?</h4>
-                <p class="text-gray-600">Stream the match live via the <a href="${link}" target="_blank" class="text-blue-600 hover:underline">official live stream</a>.</p>
-              </div>
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <h4 class="text-lg font-semibold text-gray-900">Who are the key players to watch in the ${name} match?</h4>
-                <p class="text-gray-600">Look out for star players from ${team1} and ${team2}. Check official sources for confirmed lineups.</p>
-              </div>
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <h4 class="text-lg font-semibold text-gray-900">What is the recent performance of ${team1} and ${team2}?</h4>
-                <p class="text-gray-600">Check the latest form guides and stats for ${team1} and ${team2} on official sports websites.</p>
-              </div>
-            </div>
-          `;
+          content.className = 'space-y-4 text-left overflow-auto';
+          const title = document.createElement('h3');
+          title.className = 'text-xl sm:text-2xl md:text-3xl font-bold text-gray-900';
+          title.textContent = `${name} - Match Details`;
+          const startPara = document.createElement('p');
+          startPara.className = 'text-sm text-gray-600';
+          startPara.textContent = `Start: ${startTime}`;
+          const faqTitle = document.createElement('h3');
+          faqTitle.className = 'text-2xl font-bold border-b-2 border-gray-200 pb-2 text-gray-900';
+          faqTitle.textContent = 'Frequently Asked Questions';
+          const faqContainer = document.createElement('div');
+          faqContainer.className = 'space-y-4';
+          const faqs = [
+            {
+              question: `Which teams will face against ${team2} in this match?`,
+              answer: `${team1} will face off against ${team2} in this exciting match.`
+            },
+            {
+              question: `When is the ${name} match happening?`,
+              answer: `The match starts at ${startTime}. Check official sources for venue details.`
+            },
+            {
+              question: `How long will the ${name} match last?`,
+              answer: `The match is expected to last about ${duration} hours, including stoppage time.`
+            },
+            {
+              question: `Where can I watch the ${name} match live online?`,
+              answer: `Stream the match live via the <a href="${link}" target="_blank" class="text-blue-600 hover:underline">official live stream</a>.`
+            },
+            {
+              question: `Who are the key players to watch in the ${name} match?`,
+              answer: `Look out for star players from ${team1} and ${team2}. Check official sources for confirmed lineups.`
+            },
+            {
+              question: `What is the recent performance of ${team1} and ${team2}?`,
+              answer: `Check the latest form guides and stats for ${team1} and ${team2} on official sports websites.`
+            }
+          ];
+          faqs.forEach(faq => {
+            const faqDiv = document.createElement('div');
+            faqDiv.className = 'bg-gray-50 p-4 rounded-lg';
+            const faqQuestion = document.createElement('h4');
+            faqQuestion.className = 'text-lg font-semibold text-gray-900';
+            faqQuestion.textContent = faq.question;
+            const faqAnswer = document.createElement('p');
+            faqAnswer.className = 'text-gray-600';
+            faqAnswer.innerHTML = faq.answer;
+            faqDiv.appendChild(faqQuestion);
+            faqDiv.appendChild(faqAnswer);
+            faqContainer.appendChild(faqDiv);
+          });
+          content.appendChild(title);
+          content.appendChild(startPara);
+          content.appendChild(document.createElement('div')).className = 'flex justify-center my-4';
+          content.appendChild(faqTitle);
+          content.appendChild(faqContainer);
           content.prepend(progressText);
           content.prepend(progressContainer);
           matchInfoContainer.innerHTML = '';
@@ -159,10 +183,10 @@
           const matchCard = document.createElement('a');
           matchCard.href = link;
           matchCard.target = '_blank';
-          matchCard.className = 'bg-gray-50 p-4 rounded-lg flex justify-between items-center block hover:bg-gray-100';
+          matchCard.className = 'bg-gray-50 p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center block hover:bg-gray-100';
           matchCard.innerHTML = `
-            <h4 class="text-lg font-semibold text-gray-900 pr-4">${name}</h4>
-            <p class="text-sm text-gray-600 pl-4">${formatCountdown(diff, duration, start)}</p>
+            <h4 class="text-base font-semibold text-gray-900 text-left">${name}</h4>
+            <p class="text-xs text-gray-600 text-right">${formatCountdown(diff, duration, start)}</p>
           `;
           moreMatchesContainer.appendChild(matchCard);
           setInterval(() => {
@@ -179,6 +203,7 @@
         const found = [];
         const seen = new Set();
         let mainMatchJsonFile = null;
+        console.log('Fetching JSON files for main match...');
         const results = await Promise.allSettled(
           jsonFiles.map(l => fetch(l.file).then(r => {
             if (!r.ok) throw new Error(`${r.status}`);
@@ -186,7 +211,10 @@
           }))
         );
         for (const r of results) {
-          if (r.status !== 'fulfilled') continue;
+          if (r.status !== 'fulfilled') {
+            console.log(`Failed to fetch: ${r.reason}`);
+            continue;
+          }
           const { league, file, data } = r.value;
           const list = Array.isArray(data) ? data : Array.isArray(data.matches) ? data.matches : Array.isArray(data.events) ? data.events : Array.isArray(data.data) ? data.data : [];
           for (const m of list) {
@@ -202,11 +230,13 @@
           }
         }
         if (found.length) {
+          console.log('Main match found:', found[0].match.name);
           matchInfoContainer.innerHTML = '';
           found.sort((a, b) => new Date(a.match.start || 0) - new Date(b.match.start || 0));
           found.forEach(item => renderMatchCard(item.match, item.league));
           if (mainMatchJsonFile) {
             try {
+              console.log(`Fetching more matches from: ${mainMatchJsonFile}`);
               const response = await fetch(mainMatchJsonFile);
               if (response.ok) {
                 const data = await response.json();
@@ -217,33 +247,41 @@
                   const key = m.id ? `id:${m.id}` : `ns:${normalize(m.name)}|${m.start}|${found[0].league}`;
                   return linkTeam !== qNorm && !seen.has(key);
                 });
+                moreMatchesContainer.innerHTML = '';
                 const shuffled = otherMatches.sort(() => 0.5 - Math.random());
                 const randomMatches = shuffled.slice(0, 3);
                 if (randomMatches.length > 0) {
+                  console.log(`Rendering ${randomMatches.length} more matches`);
                   noMatchesMessage.classList.add('hidden');
                   randomMatches.forEach(match => {
                     seen.add(match.id ? `id:${match.id}` : `ns:${normalize(match.name)}|${match.start}|${found[0].league}`);
                     renderMatchCard(match, found[0].league, false);
                   });
                 } else {
+                  console.log('No additional matches found');
                   noMatchesMessage.classList.remove('hidden');
                 }
               } else {
+                console.log(`Failed to fetch more matches: ${response.status}`);
                 noMatchesMessage.classList.remove('hidden');
               }
             } catch (error) {
+              console.log(`Error fetching more matches: ${error}`);
               noMatchesMessage.classList.remove('hidden');
               matchInfoContainer.innerHTML = '<p class="text-red-500">Error loading match data. Please try again later.</p>';
             }
           } else {
+            console.log('No main match JSON file found');
             noMatchesMessage.classList.remove('hidden');
           }
         } else {
+          console.log('No main match found for yosintv:', qNorm);
           matchInfoContainer.innerHTML = '<p class="text-red-500">This Match is Not Live Right Now</p>';
           matchNameElement.textContent = 'No Match Available';
           noMatchesMessage.classList.remove('hidden');
         }
       } else {
+        console.log('No yosintv parameter provided');
         matchInfoContainer.innerHTML = '<p class="text-gray-500">Please select a match to view details.</p>';
         matchNameElement.textContent = 'No Match Selected';
         noMatchesMessage.classList.remove('hidden');
