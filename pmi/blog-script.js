@@ -31,7 +31,7 @@
         const totalHours = Math.floor(duration);
         const totalMinutes = Math.round((duration % 1) * 60);
         const totalSeconds = 0;
-        return `Time: ${elapsedHours}:${elapsedMinutes.toString().padStart(2, '0')}:${elapsedSeconds.toString().padStart(2, '0')} / ${totalHours}:${totalMinutes.toString().padStart(2, '0')}:${totalSeconds.toString().padStart(2, '0')}`;
+        return `Match Playing Time: ${elapsedHours}:${elapsedMinutes.toString().padStart(2, '0')}:${elapsedSeconds.toString().padStart(2, '0')} / ${totalHours}:${totalMinutes.toString().padStart(2, '0')}:${totalSeconds.toString().padStart(2, '0')}`;
       };
       const formatCountdown = (diff, duration, start) => {
         const now = new Date();
