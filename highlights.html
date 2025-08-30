@@ -64,6 +64,7 @@
       const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
       const matches = [];
       const usedIds = new Set(); // Track used IDs to ensure uniqueness
+      const today = "2025-08-30"; // Today's date in YYYY-MM-DD format
 
       for (const line of lines) {
         const parts = line.split(",").map(p => p.trim());
@@ -76,9 +77,10 @@
         const id = generateRandomId(usedIds);
         const match = {
           id,
-          team1: team1.toUpperCase(),
-          team2: team2.toUpperCase(),
+          team1, // Keep as input, no uppercase
+          team2, // Keep as input, no uppercase
           category,
+          date: today, // Add today's date
           link: `video?src=${url}`
         };
         matches.push(match);
