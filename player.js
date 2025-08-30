@@ -25,7 +25,6 @@ setTimeout(showPopup, 5000); // Show popup after 5 seconds
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
-    let shortenedUrl = '';
     let displayUrl = '';
 
     // Utility function for base36 encoding
@@ -77,22 +76,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadShareLink() {
         try {
             const originalUrl = window.location.href;
-            const url = new URL(originalUrl);
-            const srcParam = url.searchParams.get('src');
-            let displayUrlBase = originalUrl;
-
-            if (srcParam) {
-                const decodedSrc = decodeURIComponent(srcParam);
-                displayUrlBase = originalUrl.replace(srcParam, decodedSrc);
-            }
-            displayUrl = decodeURIComponent(displayUrlBase);
-
-            // Extract shortcode from TinyURL
             const shortcode = extractTinyUrlShortcode(originalUrl);
             if (shortcode) {
                 const encoded = base36Encode(shortcode);
                 displayUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
-                shortenedUrl = originalUrl;
             } else {
                 displayUrl = originalUrl; // Fallback to original URL
                 showToast("Invalid TinyURL format. Displaying original URL.");
@@ -127,27 +114,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error("copyToClipboard error:", error);
             showToast("Error copying link");
-        }
-    }
-
-    function copyPosterShortUrl(url) {
-        try {
-            showToast('Generating share URL...');
-            const shortcode = extractTinyUrlShortcode(url);
-            if (!shortcode) {
-                throw new Error('Invalid TinyURL shortcode');
-            }
-            const encoded = base36Encode(shortcode);
-            const shortUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
-            navigator.clipboard.writeText(shortUrl);
-            showToast('Share URL copied!');
-            const shareLinkBox = document.getElementById("shareLinkBox");
-            if (shareLinkBox) shareLinkBox.textContent = shortUrl;
-        } catch (error) {
-            console.error("copyPosterShortUrl error:", error);
-            showToast('Error generating share URL');
-            const shareLinkBox = document.getElementById("shareLinkBox");
-            if (shareLinkBox) shareLinkBox.textContent = url;
         }
     }
 
@@ -330,7 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.toggleChat = toggleChat;
     window.copyToClipboard = copyToClipboard;
     window.shareTo = shareTo;
-    window.copyPosterShortUrl = copyPosterShortUrl;
 });
 
 // Domain restriction check
