@@ -111,11 +111,11 @@
             <h3 class="text-2xl font-bold border-b-2 border-gray-200 pb-2 text-gray-900">Frequently Asked Questions</h3>
             <div class="space-y-4">
               <div class="bg-gray-50 p-4 rounded-lg">
-                <h4 class="text-lg font-semibold text-gray-900">Which teams are playing in the ${name} match?</h4>
+                <h4 class="text-lg font-semibold text-gray-900">Which teams will face against ${team2} in this match ?</h4>
                 <p class="text-gray-600">${team1} will face off against ${team2} in this exciting match.</p>
               </div>
               <div class="bg-gray-50 p-4 rounded-lg">
-                <h4 class="text-lg font-semibold text-gray-900">When and where is the ${name} match happening?</h4>
+                <h4 class="text-lg font-semibold text-gray-900">When is the ${name} match happening?</h4>
                 <p class="text-gray-600">The match starts at ${startTime}. Check official sources for venue details.</p>
               </div>
               <div class="bg-gray-50 p-4 rounded-lg">
