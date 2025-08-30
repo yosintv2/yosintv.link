@@ -52,9 +52,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Utility function to clean and validate TinyURL ID
     function cleanTinyUrlId(url) {
         try {
-            const decodedUrl = decodeURIComponent(url);
-            const match = decodedUrl.match(/tinyurl\.com\/([a-zA-Z0-9_-]+)/);
-            return match ? match[1] : null;
+            // Decode URL to handle encoded characters
+            let decodedUrl = decodeURIComponent(url);
+            // Try to match valid TinyURL ID (alphanumeric, underscores, hyphens)
+            let match = decodedUrl.match(/tinyurl\.com\/([a-zA-Z0-9_-]+)/);
+            if (match) return match[1];
+
+            // Additional attempt: decode again in case of double encoding
+            decodedUrl = decodeURIComponent(decodedUrl.replace(/%25/g, '%'));
+            match = decodedUrl.match(/tinyurl\.com\/([a-zA-Z0-9_-]+)/);
+            if (match) return match[1];
+
+            // Fallback: try to extract any plausible ID from the path
+            const path = new URL(url).pathname.replace('/', '');
+            if (/^[a-zA-Z0-9_-]+$/.test(path)) return path;
+
+            return null;
         } catch (error) {
             console.error("Error cleaning TinyURL ID:", error);
             return null;
@@ -77,27 +90,41 @@ document.addEventListener('DOMContentLoaded', function() {
             const apiUrl = 'https://tinyurl.com/api-create.php?url=' + encodeURIComponent(originalUrl);
 
             fetch(apiUrl)
-                .then(response => response.text())
+                .then(response => {
+                    if (!response.ok) throw new Error('TinyURL API request failed');
+                    return response.text();
+                })
                 .then(shortUrl => {
-                    if (!shortUrl.startsWith('http')) throw new Error('Invalid TinyURL');
+                    if (!shortUrl.startsWith('https://tinyurl.com/')) {
+                        throw new Error('Invalid TinyURL format');
+                    }
                     shortenedUrl = shortUrl;
                     const tinyId = cleanTinyUrlId(shortUrl);
-                    if (!tinyId) throw new Error('Could not extract valid TinyURL ID');
+                    if (!tinyId) {
+                        throw new Error('Could not extract valid TinyURL ID');
+                    }
                     const encoded = base36Encode(tinyId);
                     displayUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
                     const shareLinkBox = document.getElementById("shareLinkBox");
-                    if (shareLinkBox) shareLinkBox.textContent = displayUrl;
+                    if (shareLinkBox) {
+                        shareLinkBox.textContent = displayUrl;
+                    } else {
+                        console.warn("shareLinkBox element not found");
+                    }
                 })
                 .catch(error => {
                     shortenedUrl = originalUrl;
+                    displayUrl = originalUrl;
                     const shareLinkBox = document.getElementById("shareLinkBox");
                     if (shareLinkBox) shareLinkBox.textContent = displayUrl;
-                    console.error("Shortening failed:", error);
-                    showToast("Failed to generate share URL");
+                    console.error("loadShareLink error:", error);
+                    showToast("Failed to generate share URL. Using original URL.");
                 });
         } catch (error) {
             console.error("loadShareLink error:", error);
             showToast("Error loading share link");
+            const shareLinkBox = document.getElementById("shareLinkBox");
+            if (shareLinkBox) shareLinkBox.textContent = window.location.href;
         }
     }
 
@@ -114,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (error) {
             console.error("copyToClipboard error:", error);
+            showToast("Error copying link");
         }
     }
 
@@ -121,11 +149,18 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             showToast('Generating share URL...');
             fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`)
-                .then(res => res.text())
+                .then(res => {
+                    if (!res.ok) throw new Error('TinyURL API request failed');
+                    return res.text();
+                })
                 .then(tinyUrl => {
-                    if (!tinyUrl.startsWith('http')) throw new Error('Invalid TinyURL');
+                    if (!tinyUrl.startsWith('https://tinyurl.com/')) {
+                        throw new Error('Invalid TinyURL format');
+                    }
                     const tinyId = cleanTinyUrlId(tinyUrl);
-                    if (!tinyId) throw new Error('Could not extract valid TinyURL ID');
+                    if (!tinyId) {
+                        throw new Error('Could not extract valid TinyURL ID');
+                    }
                     const encoded = base36Encode(tinyId);
                     const shortUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
                     navigator.clipboard.writeText(shortUrl);
@@ -136,10 +171,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 .catch(error => {
                     console.error("copyPosterShortUrl error:", error);
                     showToast('Error generating share URL');
+                    const shareLinkBox = document.getElementById("shareLinkBox");
+                    if (shareLinkBox) shareLinkBox.textContent = url;
                 });
         } catch (error) {
             console.error("copyPosterShortUrl error:", error);
             showToast('Error generating share URL');
+            const shareLinkBox = document.getElementById("shareLinkBox");
+            if (shareLinkBox) shareLinkBox.textContent = url;
         }
     }
 
