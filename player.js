@@ -19,6 +19,7 @@ setTimeout(showPopup, 5000); // Show popup after 5 seconds
 document.addEventListener('DOMContentLoaded', function() {
     let shortenedUrl = '';
     let displayUrl = '';
+    let posterShortUrl = '';
 
     // Utility function for base36 encoding
     function base36Encode(str) {
@@ -79,6 +80,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     const shareLinkBox = document.getElementById("shareLinkBox");
                     if (shareLinkBox) shareLinkBox.textContent = displayUrl;
+
+                    // Generate and display Base36-encoded poster URL
+                    if (shortUrl.startsWith('http')) {
+                        const tinyId = shortUrl.replace('https://tinyurl.com/', '');
+                        const encoded = base36Encode(tinyId);
+                        posterShortUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
+                        const posterLinkBox = document.getElementById("posterLinkBox");
+                        if (posterLinkBox) posterLinkBox.textContent = posterShortUrl;
+                    }
                 })
                 .catch(error => {
                     shortenedUrl = originalUrl;
@@ -119,6 +129,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const shortUrl = `https://www.getemoji.online/url.html?u=${encoded}`;
                     navigator.clipboard.writeText(shortUrl);
                     showToast('Poster URL copied!');
+                    const posterLinkBox = document.getElementById("posterLinkBox");
+                    if (posterLinkBox) posterLinkBox.textContent = shortUrl;
                 })
                 .catch(() => showToast('Error generating poster URL'));
         } catch (error) {
