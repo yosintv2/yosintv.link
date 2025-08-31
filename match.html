@@ -135,12 +135,19 @@
       <button class="btn btn-outline-secondary btn-sm mb-2" onclick="copyJSON('normalMatchesOutput', 'Normal Matches JSON')">Copy Normal JSON</button>
       <div id="normalMatchesOutput" class="json-box"></div>
     </div>
+    
+    <div id="current-data-section">
+      <h5>Current Match Data</h5>
+      <button class="btn btn-outline-secondary btn-sm mb-2" onclick="copyRawText('currentDataOutput', 'Current Match Data')">Copy Current Data</button>
+      <div id="currentDataOutput" class="json-box"></div>
+    </div>
   </div>
 
   <div class="sticky-nav">
-    <button class="btn btn-primary" onclick="handleStickyGenerate()">Generate All JSON </button>
+    <button class="btn btn-primary" onclick="handleStickyGenerate()">Generate All JSON</button>
     <button class="btn btn-info" onclick="handleStickyCopy('mainMatchesOutput', 'main-matches-section', 'Main Matches JSON')">Copy Main Matches</button>
     <button class="btn btn-info" onclick="handleStickyCopy('normalMatchesOutput', 'normal-matches-section', 'Normal Matches JSON')">Copy Normal Matches</button>
+    <button class="btn btn-info" onclick="handleStickyCurrent()">Current Data</button>
   </div>
 
   <div class="toast-container">
@@ -152,6 +159,7 @@
     const matchTypeEl = document.getElementById("matchType");
     const mainOutput = document.getElementById("mainMatchesOutput");
     const normalOutput = document.getElementById("normalMatchesOutput");
+    const currentDataOutput = document.getElementById("currentDataOutput");
     const toastNotification = document.getElementById("toastNotification");
 
     function showToast(message) {
@@ -268,6 +276,10 @@
     function showJSON(element, data) {
       element.textContent = JSON.stringify(data, null, 2).replace(/},/g, '},\n\n');
     }
+    
+    function showText(element, text) {
+      element.textContent = text;
+    }
 
     function saveToLocalStorage(main, normal, input) {
       localStorage.setItem("mainJSON", JSON.stringify(main));
@@ -282,13 +294,23 @@
       inputEl.value = savedInput;
       showJSON(mainOutput, main);
       showJSON(normalOutput, normal);
+      showText(currentDataOutput, savedInput);
       autoResize(inputEl);
     }
 
     function copyJSON(id, message) {
       const jsonText = document.getElementById(id).textContent;
       navigator.clipboard.writeText(jsonText).then(() => {
-        // This is now handled by the parent function
+        showToast(message + " copied!");
+      }).catch(() => {
+        showToast("Failed to copy.");
+      });
+    }
+    
+    function copyRawText(id, message) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(message + " copied!");
       }).catch(() => {
         showToast("Failed to copy.");
       });
@@ -310,8 +332,10 @@
       const input = inputEl.value;
       const duration = matchTypeEl.value;
       const { mainMatches, normalMatches } = parseInput(input, duration);
+      
       showJSON(mainOutput, mainMatches);
       showJSON(normalOutput, normalMatches);
+      showText(currentDataOutput, input); // Store the raw text for current data
       saveToLocalStorage(mainMatches, normalMatches, input);
       inputEl.value = '';
       autoResize(inputEl);
@@ -321,17 +345,18 @@
     }
 
     function handleStickyGenerate() {
-        generateJSON();
-        copyJSON('mainMatchesOutput');
-        copyJSON('normalMatchesOutput');
-        showToast("All JSON Generated !");
-        scrollToSection('main-matches-section');
+      generateJSON(true);
+      scrollToSection('main-matches-section');
     }
 
     function handleStickyCopy(outputId, sectionId, message) {
-        copyJSON(outputId, message);
-        showToast(message + " copied!");
-        scrollToSection(sectionId);
+      copyJSON(outputId, message);
+      scrollToSection(sectionId);
+    }
+    
+    function handleStickyCurrent() {
+      copyRawText('currentDataOutput', 'Current Match Data');
+      scrollToSection('current-data-section');
     }
     
     document.getElementById("generateBtn").addEventListener("click", () => generateJSON(true));
