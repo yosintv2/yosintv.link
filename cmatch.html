@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Match Extractor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom animation for popups */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+        .popup {
+            animation: fadeInOut 2s ease-in-out forwards;
+        }
+    </style>
+</head>
+<body class="font-sans max-w-2xl mx-auto p-5">
+    <h1 class="text-2xl font-bold mb-4">Cricket Match Extractor</h1>
+    <p class="mb-2">Paste match data below and click Extract to get match names, dates, and times in 24-hour format:</p>
+    <textarea id="inputData" class="w-full h-screen mb-2 p-2 border border-gray-300 rounded-md resize-none" placeholder="Paste your match data here..."> Raw Data Here !! </textarea>
+    <div class="fixed right-5 top-1/2 -translate-y-1/2 flex flex-col space-y-2">
+        <button onclick="extractMatches()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Extract</button>
+        <button onclick="copyMatches()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Copy</button>
+    </div>
+    <div id="output" class="mt-5 border border-gray-300 p-4 rounded-md"></div>
+    <div id="extractNotification" class="hidden fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-md popup">Extracted!</div>
+    <div id="copyNotification" class="hidden fixed top-12 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-md popup">Copied!</div>
+    <script>
+        function extractMatches() {
+            const input = document.getElementById('inputData').value;
+            const output = document.getElementById('output');
+            const extractNotification = document.getElementById('extractNotification');
+            // Remove square brackets
+            const cleanedInput = input.replace(/[\[\]]/g, '');
+            // Split by explicit date headers
+            const dateBlocks = cleanedInput.split(/([A-Z]{3},\s*[A-Z]{3}\s*\d{1,2}\s*202[3-7])/m).filter(block => block.trim());
+            let result = '';
+            let currentDate = 'Date not found';
+            let matchesByDate = {};
+
+            // Helper function to convert 12-hour time to 24-hour format
+            function convertTo24Hour(timeStr) {
+                const [time, period] = timeStr.split(/(AM|PM)/).filter(Boolean);
+                let [hours, minutes] = time.split(':').map(Number);
+                if (period === 'PM' && hours !== 12) hours += 12;
+                if (period === 'AM' && hours === 12) hours = 0;
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            }
+
+            // Helper function to extract month and day from date
+            function formatDate(dateStr) {
+                const match = dateStr.match(/[A-Z]{3},\s*([A-Z]{3}\s*\d{1,2})\s*202[3-7]/);
+                return match ? match[1] : dateStr;
+            }
+
+            for (let i = 0; i < dateBlocks.length; i++) {
+                const block = dateBlocks[i].trim();
+                // Check if the block is a date header
+                if (block.match(/[A-Z]{3},\s*[A-Z]{3}\s*\d{1,2}\s*202[3-7]/)) {
+                    currentDate = formatDate(block);
+                    matchesByDate[currentDate] = [];
+                    continue;
+                }
+                // Split block into individual matches
+                const matches = block.split(/(?=[A-Za-z\s\-,\d]+202[3-7][A-Za-z\s,\d]*$)/m).filter(match => match.trim());
+                matches.forEach(match => {
+                    const lines = match.trim().split('\n');
+                    // Extract full match name from line with "vs"
+                    const teamLine = lines.find(line => line.includes(' vs '));
+                    let matchName = 'TBC vs TBC';
+                    if (teamLine) {
+                        const matchNameMatch = teamLine.match(/([A-Za-z\s]+ vs [A-Za-z\s]+,\s*[A-Za-z0-9\s]+)$/);
+                        matchName = matchNameMatch ? matchNameMatch[1].trim() : matchName;
+                    }
+                    // Extract main time from line with AM/PM but not GMT/LOCAL
+                    const timeLine = lines.find(line =>
+                        (line.includes('AM') || line.includes('PM')) &&
+                        !line.includes('GMT') &&
+                        !line.includes('LOCAL')
+                    );
+                    let time = 'Time not found';
+                    if (timeLine) {
+                        const cleanedTime = timeLine.trim().replace(/\(.*?\)/, '').trim();
+                        time = convertTo24Hour(cleanedTime);
+                    }
+                    // Only include valid matches with match name and time
+                    if (matchName && time !== 'Time not found') {
+                        matchesByDate[currentDate].push({ time, matchName });
+                    }
+                });
+            }
+
+            // Format output with date at top and matches below
+            for (const date in matchesByDate) {
+                if (matchesByDate[date].length > 0) {
+                    result += `<p class="font-bold">${date}</p><p>`;
+                    matchesByDate[date].forEach(match => {
+                        result += `${match.time}<br>${match.matchName}<br><br>`;
+                    });
+                    result += `</p>`;
+                }
+            }
+
+            output.innerHTML = result || '<p class="text-red-500">No valid matches found.</p>';
+
+            // Show extract notification and scroll to output
+            extractNotification.classList.remove('hidden');
+            setTimeout(() => {
+                extractNotification.classList.add('hidden');
+            }, 2000);
+            output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function copyMatches() {
+            const output = document.getElementById('output');
+            const copyNotification = document.getElementById('copyNotification');
+            // Get all paragraphs
+            const matchParagraphs = output.querySelectorAll('p');
+            let textToCopy = '';
+            matchParagraphs.forEach(p => {
+                textToCopy += p.textContent + '\n\n';
+            });
+            // Copy to clipboard
+            navigator.clipboard.writeText(textToCopy.trim()).then(() => {
+                copyNotification.classList.remove('hidden');
+                setTimeout(() => {
+                    copyNotification.classList.add('hidden');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy matches:', err);
+            });
+        }
+    </script>
+</body>
+</html>
