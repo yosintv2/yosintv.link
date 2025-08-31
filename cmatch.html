@@ -18,112 +18,144 @@
         }
     </style>
 </head>
-<body class="font-sans max-w-2xl mx-auto p-5">
-    <h1 class="text-2xl font-bold mb-4">Cricket Match Extractor</h1>
-    <p class="mb-2">Paste match data below and click Extract to get match names, dates, and times in 24-hour format:</p>
-    <textarea id="inputData" class="w-full h-screen mb-2 p-2 border border-gray-300 rounded-md resize-none" placeholder="Paste your match data here..."> Raw Data Here !! </textarea>
-    <div class="fixed right-5 top-1/2 -translate-y-1/2 flex flex-col space-y-2">
-        <button onclick="extractMatches()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Extract</button>
-        <button onclick="copyMatches()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Copy</button>
+<body class="font-sans max-w-2xl mx-auto p-5 bg-gray-50">
+    <h1 class="text-3xl font-bold mb-4 text-center text-gray-800">Cricket Match Extractor</h1>
+    <p class="mb-4 text-center text-gray-600">Paste your raw match data below and click "Extract" to get a clean list of matches, dates, and times.</p>
+    
+    <div class="relative w-full h-[600px] mb-4">
+        <textarea id="inputData" class="w-full h-full p-4 border border-gray-300 rounded-lg shadow-inner resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200" placeholder="Paste your match data here..."> SUN, AUG 31 2025
+Eastern Europe Cup 2025
+Croatia vs Serbia, 6th Match
+GB Oval, Szodliget
+4:00 PM
+07:00 AM GMT / 09:00 AM LOCAL
+Hungary vs Serbia, Final
+GB Oval, Szodliget
+8:45 PM
+11:45 AM GMT / 01:45 PM LOCAL
+Switzerland tour of Guernsey, 2025
+Guernsey vs Switzerland, 3rd T20I
+King George V Sports Ground, Castel
+7:00 PM
+10:00 AM GMT / 11:00 AM LOCAL
+ICC Cricket World Cup League Two 2023-27
+Canada vs Scotland, 82nd Match
+Maple Leaf North-West Ground, King City
+12:00 AM (Sep 01)
+03:00 PM GMT / 11:00 AM LOCAL
+</textarea>
     </div>
-    <div id="output" class="mt-5 border border-gray-300 p-4 rounded-md"></div>
-    <div id="extractNotification" class="hidden fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-md popup">Extracted!</div>
-    <div id="copyNotification" class="hidden fixed top-12 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-md popup">Copied!</div>
+
+    <div class="fixed right-5 top-1/2 -translate-y-1/2 flex flex-col space-y-2 z-10">
+        <button onclick="extractMatches()" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Extract</button>
+        <button onclick="copyMatches()" class="px-6 py-3 bg-green-600 text-white font-semibold rounded-full shadow-lg hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">Copy</button>
+    </div>
+    
+    <div id="output" class="min-h-[100px] mt-5 p-6 border border-gray-300 bg-white rounded-lg shadow-md text-gray-800">
+        <p class="text-gray-500 italic">Extracted matches will appear here...</p>
+    </div>
+
+    <div id="extractNotification" class="hidden fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-md shadow-md popup">Extracted!</div>
+    <div id="copyNotification" class="hidden fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-md shadow-md popup">Copied to clipboard!</div>
+
     <script>
         function extractMatches() {
             const input = document.getElementById('inputData').value;
             const output = document.getElementById('output');
             const extractNotification = document.getElementById('extractNotification');
-            // Remove square brackets
-            const cleanedInput = input.replace(/[\[\]]/g, '');
-            // Split by explicit date headers
-            const dateBlocks = cleanedInput.split(/([A-Z]{3},\s*[A-Z]{3}\s*\d{1,2}\s*202[3-7])/m).filter(block => block.trim());
+            
+            // Regex to find all match blocks. A block starts with a line containing 'vs' and ends before the next one.
+            const matchRegex = /([A-Za-z\s]+ vs [A-Za-z\s]+(?:,.*?\n)?)(.*?)(?=^[A-Za-z\s]+ vs [A-Za-z\s]+|^\n$)/gms;
+            
             let result = '';
             let currentDate = 'Date not found';
             let matchesByDate = {};
-
+            
             // Helper function to convert 12-hour time to 24-hour format
             function convertTo24Hour(timeStr) {
                 const [time, period] = timeStr.split(/(AM|PM)/).filter(Boolean);
                 let [hours, minutes] = time.split(':').map(Number);
-                if (period === 'PM' && hours !== 12) hours += 12;
-                if (period === 'AM' && hours === 12) hours = 0;
+                if (period.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+                if (period.toUpperCase() === 'AM' && hours === 12) hours = 0;
                 return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
             }
 
-            // Helper function to extract month and day from date
+            // Helper function to extract month and day from a full date string
             function formatDate(dateStr) {
                 const match = dateStr.match(/[A-Z]{3},\s*([A-Z]{3}\s*\d{1,2})\s*202[3-7]/);
                 return match ? match[1] : dateStr;
             }
 
-            for (let i = 0; i < dateBlocks.length; i++) {
-                const block = dateBlocks[i].trim();
-                // Check if the block is a date header
-                if (block.match(/[A-Z]{3},\s*[A-Z]{3}\s*\d{1,2}\s*202[3-7]/)) {
-                    currentDate = formatDate(block);
-                    matchesByDate[currentDate] = [];
-                    continue;
-                }
-                // Split block into individual matches
-                const matches = block.split(/(?=[A-Za-z\s\-,\d]+202[3-7][A-Za-z\s,\d]*$)/m).filter(match => match.trim());
-                matches.forEach(match => {
-                    const lines = match.trim().split('\n');
-                    // Extract full match name from line with "vs"
-                    const teamLine = lines.find(line => line.includes(' vs '));
-                    let matchName = 'TBC vs TBC';
-                    if (teamLine) {
-                        const matchNameMatch = teamLine.match(/([A-Za-z\s]+ vs [A-Za-z\s]+,\s*[A-Za-z0-9\s]+)$/);
-                        matchName = matchNameMatch ? matchNameMatch[1].trim() : matchName;
-                    }
-                    // Extract main time from line with AM/PM but not GMT/LOCAL
-                    const timeLine = lines.find(line =>
-                        (line.includes('AM') || line.includes('PM')) &&
-                        !line.includes('GMT') &&
-                        !line.includes('LOCAL')
-                    );
-                    let time = 'Time not found';
-                    if (timeLine) {
-                        const cleanedTime = timeLine.trim().replace(/\(.*?\)/, '').trim();
-                        time = convertTo24Hour(cleanedTime);
-                    }
-                    // Only include valid matches with match name and time
-                    if (matchName && time !== 'Time not found') {
-                        matchesByDate[currentDate].push({ time, matchName });
-                    }
-                });
-            }
+            // Split by explicit date headers first
+            const dateBlocks = input.split(/([A-Z]{3},\s*[A-Z]{3}\s*\d{1,2}\s*202[3-7])/).filter(block => block.trim());
 
-            // Format output with date at top and matches below
+            dateBlocks.forEach((block, index) => {
+                // If it's a date header, set the current date.
+                if (block.match(/^[A-Z]{3},\s*[A-Z]{3}\s*\d{1,2}\s*202[3-7]/)) {
+                    currentDate = formatDate(block.trim());
+                    matchesByDate[currentDate] = [];
+                } else {
+                    // It's a block of matches. Process line by line.
+                    const lines = block.split('\n').map(line => line.trim()).filter(line => line);
+                    let currentMatchName = null;
+                    
+                    lines.forEach(line => {
+                        // Look for a line containing "vs"
+                        if (line.includes(' vs ')) {
+                            currentMatchName = line;
+                            // Check if the match name has a date suffix like (Sep 01)
+                            const dateMatch = line.match(/\((.*?)\)/);
+                            if (dateMatch) {
+                                // Update the date for this specific match
+                                const newDate = formatDate(dateMatch[1]);
+                                if (matchesByDate[newDate]) {
+                                    currentDate = newDate;
+                                }
+                                currentMatchName = line.replace(/\(.*\)/, '').trim();
+                            }
+                        }
+                        // Look for a line with AM/PM but not GMT or LOCAL
+                        if ((line.includes('AM') || line.includes('PM')) && !line.includes('GMT') && !line.includes('LOCAL')) {
+                            const time = convertTo24Hour(line.replace(/\(.*?\)/, '').trim());
+                            if (currentMatchName && time) {
+                                if (!matchesByDate[currentDate]) {
+                                    matchesByDate[currentDate] = [];
+                                }
+                                matchesByDate[currentDate].push({ time, matchName: currentMatchName });
+                                currentMatchName = null; // Reset for the next match
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Format the final output as plain text inside a <pre> tag
+            let outputText = '';
             for (const date in matchesByDate) {
                 if (matchesByDate[date].length > 0) {
-                    result += `<p class="font-bold">${date}</p><p>`;
+                    outputText += `${date}\n\n`;
                     matchesByDate[date].forEach(match => {
-                        result += `${match.time}<br>${match.matchName}<br><br>`;
+                        outputText += `${match.time}\n${match.matchName}\n\n`;
                     });
-                    result += `</p>`;
                 }
             }
 
-            output.innerHTML = result || '<p class="text-red-500">No valid matches found.</p>';
+            output.innerHTML = `<pre class="text-gray-800">${outputText || 'No valid matches found.'}</pre>`;
 
-            // Show extract notification and scroll to output
+            // Show extract notification
             extractNotification.classList.remove('hidden');
             setTimeout(() => {
                 extractNotification.classList.add('hidden');
             }, 2000);
-            output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            output.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
         }
 
         function copyMatches() {
             const output = document.getElementById('output');
             const copyNotification = document.getElementById('copyNotification');
-            // Get all paragraphs
-            const matchParagraphs = output.querySelectorAll('p');
-            let textToCopy = '';
-            matchParagraphs.forEach(p => {
-                textToCopy += p.textContent + '\n\n';
-            });
+            // Get all match paragraphs
+            const textToCopy = output.textContent;
+            
             // Copy to clipboard
             navigator.clipboard.writeText(textToCopy.trim()).then(() => {
                 copyNotification.classList.remove('hidden');
