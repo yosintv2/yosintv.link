@@ -330,14 +330,20 @@
 
     function generateJSON(showToastMessage = false) {
       const input = inputEl.value;
+      
+      // If the input field is empty, don't generate new JSON, just show a toast.
+      if (input.trim() === '') {
+        showToast('No new data to generate. Displaying last saved.');
+        return; // Exit the function to prevent clearing the displays
+      }
+
       const duration = matchTypeEl.value;
       const { mainMatches, normalMatches } = parseInput(input, duration);
       
       showJSON(mainOutput, mainMatches);
       showJSON(normalOutput, normalMatches);
-      showText(currentDataOutput, input); // Store the raw text for current data
+      showText(currentDataOutput, input);
       saveToLocalStorage(mainMatches, normalMatches, input);
-      inputEl.value = '';
       autoResize(inputEl);
       if (showToastMessage) {
         showToast("JSON Generated!");
@@ -359,8 +365,18 @@
       scrollToSection('current-data-section');
     }
     
-    document.getElementById("generateBtn").addEventListener("click", () => generateJSON(true));
-    inputEl.addEventListener("input", () => autoResize(inputEl));
+    document.getElementById("generateBtn").addEventListener("click", () => {
+      // Check if the input is empty on click. If so, don't generate.
+      if (inputEl.value.trim() === '') {
+        showToast('Input is empty. Cannot generate new JSON.');
+      } else {
+        generateJSON(true);
+      }
+    });
+
+    inputEl.addEventListener("input", () => {
+        autoResize(inputEl);
+    });
 
     const themeToggle = document.getElementById("themeToggle");
     themeToggle.addEventListener("click", () => {
