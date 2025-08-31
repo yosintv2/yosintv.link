@@ -30,8 +30,13 @@
     </div>
 
     <div class="mb-3">
+      <label for="dateInput" class="form-label">Select Date (defaults to today):</label>
+      <input type="date" id="dateInput" class="form-control mb-3" value="2025-08-31">
+    </div>
+
+    <div class="mb-3">
       <label for="matchInput" class="form-label">Enter Match Data (format: Team1 vs Team2, Category, URL):</label>
-      <textarea id="matchInput" class="form-control" rows="10" placeholder="Barcelona vs Como, Friendly, https://highlight.api-football.xyz/2025/08/13/1754864825724/index.m3u8 "></textarea>
+      <textarea id="matchInput" class="form-control" rows="10" placeholder="Barcelona vs Como, Friendly, https://highlight.api-football.xyz/2025/08/13/1754864825724/index.m3u8"></textarea>
     </div>
 
     <button id="generateBtn" class="btn btn-primary w-100 mb-4">Generate JSON</button>
@@ -45,7 +50,11 @@
 
   <script>
     const inputEl = document.getElementById("matchInput");
+    const dateInputEl = document.getElementById("dateInput");
     const jsonOutput = document.getElementById("jsonOutput");
+
+    // Set today's date as default value for date input
+    dateInputEl.value = new Date().toISOString().split('T')[0]; // Sets to "2025-08-31" based on provided date
 
     function generateRandomId(usedIds) {
       const letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -60,11 +69,12 @@
       return id;
     }
 
-    function parseInput(text) {
+    function parseInput(text, selectedDate) {
       const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
       const matches = [];
       const usedIds = new Set(); // Track used IDs to ensure uniqueness
-      const today = "2025-08-30"; // Today's date in YYYY-MM-DD format
+      // Use selected date if provided, otherwise use today's date
+      const today = selectedDate || new Date().toISOString().split('T')[0];
 
       for (const line of lines) {
         const parts = line.split(",").map(p => p.trim());
@@ -80,7 +90,7 @@
           team1, // Keep as input, no uppercase
           team2, // Keep as input, no uppercase
           category,
-          date: today, // Add today's date
+          date: today, // Use selected or today's date
           link: `video?src=${url}`
         };
         matches.push(match);
@@ -111,7 +121,8 @@
 
     document.getElementById("generateBtn").addEventListener("click", () => {
       const input = inputEl.value;
-      const matches = parseInput(input);
+      const selectedDate = dateInputEl.value; // Get date from input field
+      const matches = parseInput(input, selectedDate);
       showJSON(jsonOutput, matches);
       inputEl.value = ''; // Clear textarea after generating JSON
     });
