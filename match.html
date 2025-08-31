@@ -28,6 +28,76 @@
       max-width: 800px;   /* narrower width */
       margin: 0 auto;     /* keep it centered */
     }
+    /* Sticky navigation styles */
+    .sticky-nav {
+      position: fixed;
+      top: 50%;
+      right: 1rem;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 1000;
+    }
+    .sticky-nav .btn {
+      width: 150px;
+      text-align: left;
+      font-size: 0.875rem; /* slightly smaller font */
+      padding: 0.5rem 0.75rem; /* comfortable padding */
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .sticky-nav .btn:hover {
+      transform: translateX(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .sticky-nav .btn.btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+    .sticky-nav .btn.btn-info {
+      background-color: #17a2b8;
+      border-color: #17a2b8;
+    }
+    /* For dark mode */
+    body.dark-mode .sticky-nav .btn {
+      box-shadow: 0 4px 6px rgba(255,255,255,0.1);
+    }
+    body.dark-mode .sticky-nav .btn:hover {
+      box-shadow: 0 6px 12px rgba(255,255,255,0.15);
+    }
+    body.dark-mode .sticky-nav .btn-primary {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+    body.dark-mode .sticky-nav .btn-info {
+      background-color: #0dcaf0;
+      border-color: #0dcaf0;
+    }
+    /* Toast notification styles */
+    .toast-container {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 1050;
+    }
+    .toast {
+      background-color: #28a745;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.25rem;
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    .toast.show {
+      opacity: 1;
+    }
+    body.dark-mode .toast {
+      background-color: #218838;
+    }
   </style>
 </head>
 <body>
@@ -52,19 +122,29 @@
       <textarea id="matchInput" class="form-control" placeholder=" "></textarea>
     </div>
 
-    <button id="generateBtn" class="btn btn-primary w-100 mb-4">Generate JSON</button>
+    <button id="generateBtn" class="btn btn-primary w-100 mb-4" onclick="generateJSON(true)">Generate JSON</button>
 
-    <div class="mb-4">
+    <div id="main-matches-section" class="mb-4">
       <h5>Main Matches JSON</h5>
-      <button class="btn btn-outline-secondary btn-sm mb-2" onclick="copyJSON('mainMatchesOutput')">Copy Main JSON</button>
+      <button class="btn btn-outline-secondary btn-sm mb-2" onclick="copyJSON('mainMatchesOutput', 'Main Matches JSON')">Copy Main JSON</button>
       <div id="mainMatchesOutput" class="json-box"></div>
     </div>
 
-    <div>
+    <div id="normal-matches-section">
       <h5>Normal Matches JSON</h5>
-      <button class="btn btn-outline-secondary btn-sm mb-2" onclick="copyJSON('normalMatchesOutput')">Copy Normal JSON</button>
+      <button class="btn btn-outline-secondary btn-sm mb-2" onclick="copyJSON('normalMatchesOutput', 'Normal Matches JSON')">Copy Normal JSON</button>
       <div id="normalMatchesOutput" class="json-box"></div>
     </div>
+  </div>
+
+  <div class="sticky-nav">
+    <button class="btn btn-primary" onclick="handleStickyGenerate()">Generate & Copy</button>
+    <button class="btn btn-info" onclick="handleStickyCopy('mainMatchesOutput', 'main-matches-section', 'Main Matches JSON')">Main Matches</button>
+    <button class="btn btn-info" onclick="handleStickyCopy('normalMatchesOutput', 'normal-matches-section', 'Normal Matches JSON')">Normal Matches</button>
+  </div>
+
+  <div class="toast-container">
+    <div id="toastNotification" class="toast"></div>
   </div>
 
   <script>
@@ -72,6 +152,15 @@
     const matchTypeEl = document.getElementById("matchType");
     const mainOutput = document.getElementById("mainMatchesOutput");
     const normalOutput = document.getElementById("normalMatchesOutput");
+    const toastNotification = document.getElementById("toastNotification");
+
+    function showToast(message) {
+      toastNotification.textContent = message;
+      toastNotification.classList.add("show");
+      setTimeout(() => {
+        toastNotification.classList.remove("show");
+      }, 2000); // Hide after 2 seconds
+    }
 
     function isTimeLine(line) {
       return /^\d{1,2}:\d{2}$/.test(line.trim());
@@ -79,22 +168,23 @@
 
     function isDateLine(line) {
       return (
-        /^[A-Za-z]+\s+\d{1,2}$/.test(line) ||  // August 03
-        /^\d{1,2}[./]\d{1,2}$/.test(line) ||   // 08.03 or 8/3
-        /^\d{1,2}\/\d{1,2}$/.test(line) ||     // 8/3
-        /^Today$/i.test(line) ||               // Today
-        /^Tomorrow$/i.test(line)               // Tomorrow
+        /^[A-Za-z]+\s+\d{1,2}$/.test(line) ||
+        /^\d{1,2}[./]\d{1,2}$/.test(line) ||
+        /^\d{1,2}\/\d{1,2}$/.test(line) ||
+        /^Today$/i.test(line) ||
+        /^Tomorrow$/i.test(line)
       );
     }
 
-    function parseDate(line, baseYear = 2025) {
+    function parseDate(line, baseYear = new Date().getFullYear()) {
       if (/^Today$/i.test(line)) {
-        return new Date(2025, 7, 12); // August 12, 2025
+        return new Date();
       }
       if (/^Tomorrow$/i.test(line)) {
-        return new Date(2025, 7, 13); // August 13, 2025
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow;
       }
-
       let m = line.match(/^([A-Za-z]+)\s+(\d{1,2})$/);
       if (m) {
         const monthName = m[1];
@@ -104,7 +194,6 @@
           return new Date(baseYear, month, day);
         }
       }
-
       m = line.match(/^(\d{1,2})[./](\d{1,2})$/);
       if (m) {
         const month = parseInt(m[1], 10) - 1;
@@ -113,7 +202,6 @@
           return new Date(baseYear, month, day);
         }
       }
-
       m = line.match(/^(\d{1,2})\/(\d{1,2})$/);
       if (m) {
         const month = parseInt(m[1], 10) - 1;
@@ -122,7 +210,6 @@
           return new Date(baseYear, month, day);
         }
       }
-
       return null;
     }
 
@@ -139,24 +226,20 @@
     function parseInput(text, duration) {
       const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
       const main = [], normal = [];
-      let currentDate = new Date(2025, 7, 12); // Default to Aug 12, 2025
+      let currentDate = new Date();
       let block = [];
 
       const processMatch = () => {
         if (block.length >= 2) {
           const [timeRaw, teamLine, slug = ""] = block;
           const [h, m] = timeRaw.split(":").map(Number);
-
           const startDate = new Date(currentDate);
           startDate.setHours(h, m, 0, 0);
-
           const start = toJSTIsoString(startDate);
           const [team1, team2] = teamLine.split(" vs ").map(t => t.trim());
           if (!team1 || !team2) return;
-
           const name = ` ${team1} vs ${team2} `;
           const link = slug ? ` https://blog.cricfoot.net/?yosintv=${slug === 'intermimai' ? 'intermiami' : slug} ` : "https://yosintv2.github.io/ads/midd.html?url=_____";
-
           const match = { name, start, duration: parseFloat(duration), link };
           slug ? main.push(match) : normal.push(match);
         }
@@ -164,25 +247,21 @@
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-
         if (isDateLine(line)) {
-          processMatch(); // Process any previous match before resetting
-          const parsed = parseDate(line, 2025);
+          processMatch();
+          const parsed = parseDate(line, new Date().getFullYear());
           if (parsed) {
             currentDate = parsed;
           }
           block = [];
         } else if (isTimeLine(line)) {
-          processMatch(); // Process the previous match
-          block = [line]; // Start new block with time
+          processMatch();
+          block = [line];
         } else {
-          block.push(line); // Add team or slug line
+          block.push(line);
         }
       }
-
-      // Process the last match if exists
       processMatch();
-
       return { mainMatches: { matches: main }, normalMatches: { matches: normal } };
     }
 
@@ -206,35 +285,58 @@
       autoResize(inputEl);
     }
 
-    function copyJSON(id) {
+    function copyJSON(id, message) {
       const jsonText = document.getElementById(id).textContent;
       navigator.clipboard.writeText(jsonText).then(() => {
-        alert("Copied to clipboard!");
+        // This is now handled by the parent function
       }).catch(() => {
-        alert("Failed to copy.");
+        showToast("Failed to copy.");
       });
     }
 
-    // Auto resize textarea
+    function scrollToSection(id) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
     function autoResize(el) {
       el.style.height = "auto";
       el.style.height = el.scrollHeight + "px";
     }
 
-    inputEl.addEventListener("input", () => autoResize(inputEl));
-
-    document.getElementById("generateBtn").addEventListener("click", () => {
+    function generateJSON(showToastMessage = false) {
       const input = inputEl.value;
       const duration = matchTypeEl.value;
       const { mainMatches, normalMatches } = parseInput(input, duration);
       showJSON(mainOutput, mainMatches);
       showJSON(normalOutput, normalMatches);
       saveToLocalStorage(mainMatches, normalMatches, input);
-      inputEl.value = ''; // Clear textarea after generating JSON
+      inputEl.value = '';
       autoResize(inputEl);
-    });
+      if (showToastMessage) {
+        showToast("JSON Generated!");
+      }
+    }
 
-    // Theme Toggle
+    function handleStickyGenerate() {
+        generateJSON();
+        copyJSON('mainMatchesOutput');
+        copyJSON('normalMatchesOutput');
+        showToast("All JSON Generated !");
+        scrollToSection('main-matches-section');
+    }
+
+    function handleStickyCopy(outputId, sectionId, message) {
+        copyJSON(outputId, message);
+        showToast(message + " copied!");
+        scrollToSection(sectionId);
+    }
+    
+    document.getElementById("generateBtn").addEventListener("click", () => generateJSON(true));
+    inputEl.addEventListener("input", () => autoResize(inputEl));
+
     const themeToggle = document.getElementById("themeToggle");
     themeToggle.addEventListener("click", () => {
       document.body.classList.toggle("dark-mode");
