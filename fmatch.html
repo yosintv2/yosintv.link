@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Match Extractor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(-10px); }
+      10% { opacity: 1; transform: translateY(0); }
+      90% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+    .popup {
+      animation: fadeInOut 2s ease-in-out forwards;
+    }
+  </style>
+</head>
+<body class="font-sans max-w-2xl mx-auto p-5">
+  <h1 class="text-2xl font-bold mb-4">Football Match Extractor</h1>
+  <p class="mb-2">Paste football match data below and click Extract to get dates, times, and match names for all matches:</p>
+  <textarea id="inputData" class="w-full h-screen mb-2 p-2 border border-gray-300 rounded-md resize-none" placeholder="Paste your football match data here...">
+Monday Sep. 1
+  </textarea>
+  <div class="fixed right-5 top-1/2 -translate-y-1/2 flex flex-col space-y-2">
+    <button onclick="extractMatches()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Extract</button>
+    <button onclick="copyMatches()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Copy</button>
+  </div>
+  <div id="output" class="mt-5 border border-gray-300 p-4 rounded-md"></div>
+  <div id="extractNotification" class="hidden fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-md popup">Extracted!</div>
+  <div id="copyNotification" class="hidden fixed top-12 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-md popup">Copied!</div>
+  <script>
+    function extractMatches() {
+      const input = document.getElementById('inputData').value;
+      const output = document.getElementById('output');
+      const extractNotification = document.getElementById('extractNotification');
+
+      // Split by date headers (e.g., Monday Sep. 1)
+      const dateBlocks = input.split(/([A-Za-z]+\s[A-Za-z]+\.\s*\d{1,2})/m).filter(block => block.trim());
+      let result = '';
+      let currentDate = 'Date not found';
+      let matchesByDate = {};
+
+      // Helper function to format date
+      function formatDate(dateStr) {
+        const match = dateStr.match(/([A-Za-z]+\s[A-Za-z]+\.\s*\d{1,2})/);
+        return match ? match[1].trim() : dateStr;
+      }
+
+      for (let i = 0; i < dateBlocks.length; i++) {
+        const block = dateBlocks[i].trim();
+        // Check if the block is a date header
+        if (block.match(/[A-Za-z]+\s[A-Za-z]+\.\s*\d{1,2}/)) {
+          currentDate = formatDate(block);
+          matchesByDate[currentDate] = [];
+          continue;
+        }
+
+        // Process block to find matches
+        const lines = block.trim().split('\n').map(line => line.trim());
+        let time = null;
+        let matchName = null;
+
+        for (let j = 0; j < lines.length; j++) {
+          const line = lines[j];
+          if (line.match(/^\d{1,2}:\d{2}$/)) {
+            time = line;
+            // Look for the next line with " vs " as the match name
+            for (let k = j + 1; k < lines.length; k++) {
+              if (lines[k].includes(' vs ')) {
+                matchName = lines[k];
+                break;
+              }
+            }
+            // If both time and match name are found, add to matches
+            if (time && matchName) {
+              matchesByDate[currentDate].push({ time, matchName });
+              time = null; // Reset for the next match
+              matchName = null;
+            }
+          }
+        }
+      }
+
+      // Format output with date at top and matches below
+      for (const date in matchesByDate) {
+        if (matchesByDate[date].length > 0) {
+          result += `<p class="font-bold">${date}</p><p>`;
+          matchesByDate[date].forEach(match => {
+            result += `${match.time}<br>${match.matchName}<br><br>`;
+          });
+          result += `</p>`;
+        }
+      }
+
+      output.innerHTML = result || '<p class="text-red-500">No valid matches found.</p>';
+
+      // Show extract notification and scroll to output
+      extractNotification.classList.remove('hidden');
+      setTimeout(() => {
+        extractNotification.classList.add('hidden');
+      }, 2000);
+      output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function copyMatches() {
+      const output = document.getElementById('output');
+      const copyNotification = document.getElementById('copyNotification');
+
+      const matchParagraphs = output.querySelectorAll('p');
+      let textToCopy = '';
+      matchParagraphs.forEach(p => {
+        textToCopy += p.textContent + '\n\n';
+      });
+
+      navigator.clipboard.writeText(textToCopy.trim()).then(() => {
+        copyNotification.classList.remove('hidden');
+        setTimeout(() => {
+          copyNotification.classList.add('hidden');
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy matches:', err);
+      });
+    }
+  </script>
+</body>
+</html>
