@@ -20,6 +20,10 @@
       background: #1e1e1e;
       color: #eee;
     }
+    textarea {
+      overflow: hidden; /* prevent scrollbar */
+      resize: none;     /* disable manual resize */
+    }
   </style>
 </head>
 <body>
@@ -32,7 +36,7 @@
     <div class="mb-3">
       <label for="matchType" class="form-label">Select Match Type:</label>
       <select id="matchType" class="form-select">
-        <option value="2.16" selected>All Football Matches (2h)</option>
+        <option value="2.2" selected>All Football Matches (2.2h)</option>
         <option value="10">Cricket - Test Matches (10h)</option>
         <option value="8">Cricket - ODI Matches (8h)</option>
         <option value="5">Cricket - T20 Matches (5h)</option>
@@ -41,7 +45,7 @@
 
     <div class="mb-3">
       <label for="matchInput" class="form-label">Enter Match Data :</label>
-      <textarea id="matchInput" class="form-control" rows="10" placeholder=" "></textarea>
+      <textarea id="matchInput" class="form-control" placeholder=" "></textarea>
     </div>
 
     <button id="generateBtn" class="btn btn-primary w-100 mb-4">Generate JSON</button>
@@ -195,6 +199,7 @@
       inputEl.value = savedInput;
       showJSON(mainOutput, main);
       showJSON(normalOutput, normal);
+      autoResize(inputEl);
     }
 
     function copyJSON(id) {
@@ -206,6 +211,14 @@
       });
     }
 
+    // Auto resize textarea
+    function autoResize(el) {
+      el.style.height = "auto";
+      el.style.height = el.scrollHeight + "px";
+    }
+
+    inputEl.addEventListener("input", () => autoResize(inputEl));
+
     document.getElementById("generateBtn").addEventListener("click", () => {
       const input = inputEl.value;
       const duration = matchTypeEl.value;
@@ -214,6 +227,7 @@
       showJSON(normalOutput, normalMatches);
       saveToLocalStorage(mainMatches, normalMatches, input);
       inputEl.value = ''; // Clear textarea after generating JSON
+      autoResize(inputEl);
     });
 
     // Theme Toggle
