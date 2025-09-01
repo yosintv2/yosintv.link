@@ -31,7 +31,7 @@
 
     <div class="mb-3">
       <label for="dateInput" class="form-label">Select Date (defaults to today):</label>
-      <input type="date" id="dateInput" class="form-control mb-3" value="2025-08-31">
+      <input type="date" id="dateInput" class="form-control mb-3">
     </div>
 
     <div class="mb-3">
@@ -53,8 +53,8 @@
     const dateInputEl = document.getElementById("dateInput");
     const jsonOutput = document.getElementById("jsonOutput");
 
-    // Set today's date as default value for date input
-    dateInputEl.value = new Date().toISOString().split('T')[0]; // Sets to "2025-08-31" based on provided date
+    // Set today's date as default value
+    dateInputEl.value = new Date().toISOString().split('T')[0];
 
     function generateRandomId(usedIds) {
       const letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -62,9 +62,10 @@
       do {
         const randomLetter1 = letters[Math.floor(Math.random() * letters.length)];
         const randomLetter2 = letters[Math.floor(Math.random() * letters.length)];
-        const randomNumber = Math.floor(100000 + Math.random() * 900000).toString(); // Generate 6-digit number (000000-999999)
-        id = randomLetter1 + randomLetter2 + randomNumber;
-      } while (usedIds.has(id)); // Ensure ID is not already used
+        const randomLetter3 = letters[Math.floor(Math.random() * letters.length)];
+        const randomNumber = Math.floor(1000000 + Math.random() * 9000000).toString(); // 7-digit number
+        id = randomLetter1 + randomLetter2 + randomLetter3 + randomNumber;
+      } while (usedIds.has(id)); // Ensure unique ID
       usedIds.add(id);
       return id;
     }
@@ -72,25 +73,24 @@
     function parseInput(text, selectedDate) {
       const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
       const matches = [];
-      const usedIds = new Set(); // Track used IDs to ensure uniqueness
-      // Use selected date if provided, otherwise use today's date
+      const usedIds = new Set();
       const today = selectedDate || new Date().toISOString().split('T')[0];
 
       for (const line of lines) {
         const parts = line.split(",").map(p => p.trim());
-        if (parts.length !== 3) continue; // Skip invalid lines
+        if (parts.length !== 3) continue;
 
         const [teamLine, category, url] = parts;
         const [team1, team2] = teamLine.split(" vs ").map(t => t.trim());
-        if (!team1 || !team2 || !category || !url) continue; // Skip incomplete matches
+        if (!team1 || !team2 || !category || !url) continue;
 
         const id = generateRandomId(usedIds);
         const match = {
           id,
-          team1, // Keep as input, no uppercase
-          team2, // Keep as input, no uppercase
+          team1,
+          team2,
           category,
-          date: today, // Use selected or today's date
+          date: today,
           link: `video?src=${url}`
         };
         matches.push(match);
@@ -105,7 +105,7 @@
         return;
       }
       const jsonString = data
-        .map(item => JSON.stringify(item, null, 2) + ',') // Add comma after every object
+        .map(item => JSON.stringify(item, null, 2) + ',')
         .join("\n\n");
       element.textContent = jsonString;
     }
@@ -121,7 +121,7 @@
 
     document.getElementById("generateBtn").addEventListener("click", () => {
       const input = inputEl.value;
-      const selectedDate = dateInputEl.value; // Get date from input field
+      const selectedDate = dateInputEl.value;
       const matches = parseInput(input, selectedDate);
       showJSON(jsonOutput, matches);
       inputEl.value = ''; // Clear textarea after generating JSON
