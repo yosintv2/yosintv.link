@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Football Match Schedule (JST)</title>
+  <title>Football Match Schedule</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .match-row {
@@ -63,17 +64,20 @@
       <ul id="tournamentList" class="space-y-2"></ul>
     </div>
   </div>
+
   <script>
     let allMatches = [];
     let selectedTournament = null;
-    const currentDateTime = new Date('2025-09-02T03:51:00+09:00'); // Current JST date and time
+    const currentDateTime = new Date(); // Current local time
+
     // Set dynamic schedule header
     function setScheduleHeader() {
       const date = new Date(currentDateTime);
-      const month = date.toLocaleString('en-US', { month: 'long', timeZone: 'Asia/Tokyo' });
-      const day = date.toLocaleString('en-US', { day: '2-digit', timeZone: 'Asia/Tokyo' });
+      const month = date.toLocaleString('en-US', { month: 'long' });
+      const day = date.toLocaleString('en-US', { day: '2-digit' });
       document.getElementById('scheduleHeader').textContent = `F.Schedule - ${month}, ${day}`;
     }
+
     async function fetchMatchData() {
       try {
         const response = await fetch('https://ytvlive.pages.dev/football.json');
@@ -81,10 +85,17 @@
           throw new Error('Failed to fetch match data');
         }
         const data = await response.json();
-        allMatches = data.events.filter(match => {
+        const twentyFourHoursAgo = new Date(currentDateTime.getTime() - 24 * 60 * 60 * 1000);
+        const hasOldMatches = data.events.some(match => {
           const matchDate = new Date(match.startTimestamp * 1000);
-          return matchDate > currentDateTime; // Only include upcoming matches
+          return matchDate <= twentyFourHoursAgo;
         });
+
+        allMatches = hasOldMatches ? data.events : data.events.filter(match => {
+          const matchDate = new Date(match.startTimestamp * 1000);
+          return matchDate > twentyFourHoursAgo;
+        });
+
         setScheduleHeader();
         displayTournaments();
         displayMatches(allMatches);
@@ -94,10 +105,10 @@
         document.getElementById('error').textContent = 'Error: ' + error.message;
       }
     }
-    function convertToJST(timestamp) {
+
+    function convertToLocalTime(timestamp) {
       const date = new Date(timestamp * 1000);
       return new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Tokyo',
         year: 'numeric',
         month: 'short',
         day: '2-digit',
@@ -106,11 +117,12 @@
         hour12: false
       }).format(date).replace(',', '');
     }
+
     function groupMatchesByDate(matches) {
       const grouped = {};
       matches.forEach(match => {
-        const jstTime = convertToJST(match.startTimestamp);
-        const date = jstTime.match(/(\w+ \d{2})/)[0]; // Show only month and day
+        const localTime = convertToLocalTime(match.startTimestamp);
+        const date = localTime.match(/(\w+ \d{2})/)[0]; // Show only month and day
         if (!grouped[date]) {
           grouped[date] = [];
         }
@@ -118,14 +130,12 @@
       });
       return grouped;
     }
+
     function displayMatches(matches) {
       document.getElementById('loading').classList.add('hidden');
       const matchesContainer = document.getElementById('matchesContainer');
       matchesContainer.innerHTML = ''; // Clear previous content
-      if (matches.length === 0) {
-        matchesContainer.innerHTML = '<div class="text-center text-gray-600 p-4">No upcoming matches found.</div>';
-        return;
-      }
+
       const groupedMatches = groupMatchesByDate(matches);
       Object.keys(groupedMatches).sort().forEach(date => {
         const dateDiv = document.createElement('div');
@@ -133,11 +143,12 @@
           <div class="bg-gray-200 p-4 font-semibold text-gray-700 text-lg">${date}</div>
         `;
         matchesContainer.appendChild(dateDiv);
+
         groupedMatches[date].forEach(match => {
           const matchDiv = document.createElement('div');
           matchDiv.className = 'match-row grid grid-cols-2 gap-4 p-4 border-b border-gray-200 text-gray-600';
-          const jstTime = convertToJST(match.startTimestamp);
-          const timeParts = jstTime.match(/(\d{2}:\d{2})/)[0];
+          const localTime = convertToLocalTime(match.startTimestamp);
+          const timeParts = localTime.match(/(\d{2}:\d{2})/)[0];
           const matchName = `${match.homeTeam.name} vs ${match.awayTeam.name}`;
           matchDiv.innerHTML = `
             <div>${timeParts}</div>
@@ -147,6 +158,7 @@
         });
       });
     }
+
     function displayTournaments() {
       const tournamentList = document.getElementById('tournamentList');
       const tournaments = [...new Set(allMatches.map(match => match.tournament.uniqueTournament.name))];
@@ -165,25 +177,30 @@
         tournamentList.appendChild(li);
       });
     }
+
     function filterMatches() {
       const teamSearchTerm = document.getElementById('searchInput').value.toLowerCase();
       const tournamentSearchTerm = document.getElementById('tournamentSearch').value.toLowerCase();
       let filteredMatches = allMatches;
+
       // Apply tournament filter
       if (selectedTournament) {
         filteredMatches = filteredMatches.filter(match => match.tournament.uniqueTournament.name === selectedTournament);
       }
+
       // Apply team search filter
       filteredMatches = filteredMatches.filter(match => {
         const team1 = match.homeTeam.name.toLowerCase();
         const team2 = match.awayTeam.name.toLowerCase();
         return team1.includes(teamSearchTerm) || team2.includes(teamSearchTerm);
       });
+
       // Filter and display tournaments based on search term
       const tournamentList = document.getElementById('tournamentList');
       const tournaments = [...new Set(allMatches.map(match => match.tournament.uniqueTournament.name))].filter(tournament =>
         tournament.toLowerCase().includes(tournamentSearchTerm)
       );
+
       // Only rebuild tournament list if search term changed
       tournamentList.innerHTML = `<li class="tournament-item p-2 rounded-lg ${selectedTournament === null ? 'active' : ''}" data-tournament="all">All Tournaments</li>`;
       tournaments.forEach(tournament => {
@@ -199,11 +216,14 @@
         });
         tournamentList.appendChild(li);
       });
+
       displayMatches(filteredMatches);
     }
+
     // Attach event listeners for both search inputs
     document.getElementById('searchInput').addEventListener('input', filterMatches);
     document.getElementById('tournamentSearch').addEventListener('input', filterMatches);
+
     // Fetch and display matches on load
     window.onload = fetchMatchData;
   </script>
