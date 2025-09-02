@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Live Cricket Schedule & Scores</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
@@ -92,7 +92,7 @@
   <body class="bg-gray-100 min-h-screen text-gray-800">
     <header class="header text-white py-4 shadow-xl">
       <div class="container mx-auto px-4 sm:px-6 flex justify-between items-center">
-        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold">YoSinTV Cricket Schedule</h1>
+        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold">Live Cricket Schedule</h1>
         <nav class="hidden md:flex space-x-6">
           <a href="#" class="hover:text-gray-200 font-medium transition-colors text-sm md:text-base">Home</a>
           <a href="#" class="hover:text-gray-200 font-medium transition-colors text-sm md:text-base">Live</a>
@@ -239,28 +239,23 @@
       }
 
       function groupMatchesByDate(matches) {
-        const grouped = { today: [], upcoming: {} };
-        const today = new Date().toLocaleDateString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-        });
+        const grouped = {};
+        const today = new Date().toDateString(); // Use toDateString for exact date comparison
 
         matches.forEach((match) => {
-          const localDate = new Date(match.start_date).toLocaleDateString('en-US', {
+          const matchDate = new Date(match.start_date).toDateString();
+          const displayDate = new Date(match.start_date).toLocaleDateString('en-US', {
             weekday: 'long',
             month: 'long',
             day: 'numeric',
+            year: 'numeric',
           });
-          if (localDate === today) {
-            grouped.today.push(match);
-          } else {
-            if (!grouped.upcoming[localDate]) {
-              grouped.upcoming[localDate] = [];
-            }
-            grouped.upcoming[localDate].push(match);
+          if (!grouped[matchDate]) {
+            grouped[matchDate] = { displayDate, matches: [] };
           }
+          grouped[matchDate].matches.push(match);
         });
+
         return grouped;
       }
 
@@ -280,31 +275,37 @@
         }
 
         const groupedMatches = groupMatchesByDate(matches);
-        const today = new Date().toLocaleDateString('en-US', {
+        const today = new Date().toDateString();
+        const todayDisplay = new Date().toLocaleDateString('en-US', {
           weekday: 'long',
           month: 'long',
           day: 'numeric',
+          year: 'numeric',
         });
 
-        // Display today's matches
-        if (groupedMatches.today.length > 0) {
-          const todaySection = document.createElement('div');
-          todaySection.innerHTML = `
+        // Sort dates chronologically
+        const sortedDates = Object.keys(groupedMatches).sort((a, b) => new Date(a) - new Date(b));
+
+        sortedDates.forEach((dateKey, dateIndex) => {
+          const { displayDate, matches } = groupedMatches[dateKey];
+          const isToday = dateKey === today;
+          const dateSection = document.createElement('div');
+          dateSection.innerHTML = `
             <div class="bg-blue-100 text-blue-800 py-3 px-4 rounded-lg shadow-inner mb-4 mt-6 font-semibold text-sm sm:text-base">
-              <h2>Today's Matches - ${today}</h2>
+              <h2>${isToday ? `Today's Matches - ${displayDate}` : displayDate}</h2>
             </div>
           `;
-          matchesContainer.appendChild(todaySection);
+          matchesContainer.appendChild(dateSection);
 
-          groupedMatches.today.forEach((match, index) => {
+          matches.forEach((match, matchIndex) => {
             const matchDiv = document.createElement('div');
             const isLive = isMatchLive(match);
-            matchDiv.className = `match-card bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 ${isLive ? 'live-match' : 'today-match'}`;
+            matchDiv.className = `match-card bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 ${isLive ? 'live-match' : isToday ? 'today-match' : ''}`;
             const localFullDateTime = convertToLocal(match.start_date);
             const team1 = match.participants[0];
             const team2 = match.participants[1];
             const matchStatus = match.event_status;
-            const countdownId = `countdown-${today.replace(/\s/g, '-')}-${index}`;
+            const countdownId = `countdown-${dateKey.replace(/\s/g, '-')}-${matchIndex}`;
 
             matchDiv.innerHTML = `
               <div class="flex flex-col items-center justify-center text-center pb-4 mb-4 border-b border-gray-200">
@@ -358,83 +359,7 @@
               startCountdown(match.start_date, countdownId);
             }
           });
-        }
-
-        // Display upcoming matches
-        Object.keys(groupedMatches.upcoming)
-          .sort((a, b) => new Date(a) - new Date(b))
-          .forEach((date) => {
-            const dateSection = document.createElement('div');
-            dateSection.innerHTML = `
-              <div class="bg-blue-100 text-blue-800 py-3 px-4 rounded-lg shadow-inner mb-4 mt-6 font-semibold text-sm sm:text-base">
-                <h2>${date}</h2>
-              </div>
-            `;
-            matchesContainer.appendChild(dateSection);
-
-            groupedMatches.upcoming[date].forEach((match, index) => {
-              const matchDiv = document.createElement('div');
-              const isLive = isMatchLive(match);
-              matchDiv.className = `match-card bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 ${isLive ? 'live-match' : ''}`;
-              const localFullDateTime = convertToLocal(match.start_date);
-              const team1 = match.participants[0];
-              const team2 = match.participants[1];
-              const matchStatus = match.event_status;
-              const countdownId = `countdown-${date.replace(/\s/g, '-')}-${index}`;
-
-              matchDiv.innerHTML = `
-                <div class="flex flex-col items-center justify-center text-center pb-4 mb-4 border-b border-gray-200">
-                  <h3 class="text-lg sm:text-2xl font-bold text-gray-900">
-                    ${team1.name_eng} <span class="text-gray-400 font-normal">vs</span> ${team2.name_eng}
-                    ${isLive ? '<span class="live-badge">Live Now</span>' : ''}
-                  </h3>
-                  <p class="text-sm sm:text-md text-gray-500 font-medium mt-1">${match.series_name || 'Match'}</p>
-                </div>
-
-                <div class="overflow-x-auto">
-                  <table class="match-table w-full text-xs sm:text-sm" role="grid">
-                    <thead>
-                      <tr>
-                        <th scope="col" class="w-[40%]">Detail</th>
-                        <th scope="col" class="w-[60%]">Value</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td class="font-medium">Date & Time</td>
-                        <td>${localFullDateTime}</td>
-                      </tr>
-                      <tr>
-                        <td class="font-medium">Venue</td>
-                        <td>${match.venue_name || 'Venue TBD'}</td>
-                      </tr>
-                      <tr>
-                        <td class="font-medium">Format</td>
-                        <td>${match.event_format.toUpperCase() || 'N/A'}</td>
-                      </tr>
-                      <tr>
-                        <td class="font-medium">Status</td>
-                        <td>${matchStatus}${isLive ? ' (Live)' : ''}</td>
-                      </tr>
-                      <tr>
-                        <td class="font-medium">Coverage</td>
-                        <td>${match.event_coverage_level || 'N/A'}</td>
-                      </tr>
-                      ${!isLive ? `
-                      <tr>
-                        <td class="font-medium">Countdown</td>
-                        <td id="${countdownId}">${getCountdown(match.start_date, countdownId)}</td>
-                      </tr>` : ''}
-                    </tbody>
-                  </table>
-                </div>
-              `;
-              matchesContainer.appendChild(matchDiv);
-              if (!isLive) {
-                startCountdown(match.start_date, countdownId);
-              }
-            });
-          });
+        });
       }
 
       function displaySeries() {
