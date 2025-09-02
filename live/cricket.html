@@ -61,6 +61,20 @@
         border-left: 4px solid #1d4ed8;
         background-color: #eff6ff;
       }
+      .live-match {
+        border-left: 4px solid #dc2626;
+        background-color: #fef2f2;
+      }
+      .live-badge {
+        background-color: #dc2626;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-left: 8px;
+      }
       @media (max-width: 640px) {
         .match-table th, .match-table td {
           font-size: 0.875rem; /* 14px for mobile */
@@ -133,6 +147,7 @@
     <script>
       let allMatches = [];
       let selectedSeries = null;
+      let countdownIntervals = [];
 
       async function fetchMatchData() {
         try {
@@ -181,6 +196,48 @@
         })} ${timeZoneName}`;
       }
 
+      function getCountdown(startDate, elementId) {
+        const start = new Date(startDate);
+        const now = new Date();
+        const timeDiff = start - now;
+
+        if (timeDiff <= 0) {
+          return 'Match Started';
+        }
+
+        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+        return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      }
+
+      function startCountdown(startDate, elementId) {
+        const updateCountdown = () => {
+          const countdownText = getCountdown(startDate, elementId);
+          const element = document.getElementById(elementId);
+          if (element) {
+            element.textContent = countdownText;
+            if (countdownText === 'Match Started') {
+              clearInterval(countdownIntervals[elementId]);
+              delete countdownIntervals[elementId];
+              filterAndDisplayMatches(); // Refresh to show live status
+            }
+          }
+        };
+        updateCountdown();
+        const intervalId = setInterval(updateCountdown, 1000);
+        countdownIntervals[elementId] = intervalId;
+      }
+
+      function isMatchLive(match) {
+        const now = new Date();
+        const start = new Date(match.start_date);
+        const end = new Date(match.end_date);
+        return now >= start && now <= end || match.event_status.toLowerCase().includes('in progress');
+      }
+
       function groupMatchesByDate(matches) {
         const grouped = { today: [], upcoming: {} };
         const today = new Date().toLocaleDateString('en-US', {
@@ -208,6 +265,10 @@
       }
 
       function displayMatches(matches) {
+        // Clear existing countdown intervals
+        Object.values(countdownIntervals).forEach(clearInterval);
+        countdownIntervals = [];
+
         document.getElementById('loading').classList.add('hidden');
         const matchesContainer = document.getElementById('matchesContainer');
         matchesContainer.innerHTML = '';
@@ -235,17 +296,22 @@
           `;
           matchesContainer.appendChild(todaySection);
 
-          groupedMatches.today.forEach((match) => {
+          groupedMatches.today.forEach((match, index) => {
             const matchDiv = document.createElement('div');
-            matchDiv.className = 'match-card bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 today-match';
+            const isLive = isMatchLive(match);
+            matchDiv.className = `match-card bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 ${isLive ? 'live-match' : 'today-match'}`;
             const localFullDateTime = convertToLocal(match.start_date);
             const team1 = match.participants[0];
             const team2 = match.participants[1];
             const matchStatus = match.event_status;
+            const countdownId = `countdown-${today.replace(/\s/g, '-')}-${index}`;
 
             matchDiv.innerHTML = `
               <div class="flex flex-col items-center justify-center text-center pb-4 mb-4 border-b border-gray-200">
-                <h3 class="text-lg sm:text-2xl font-bold text-gray-900">${team1.name_eng} <span class="text-gray-400 font-normal">vs</span> ${team2.name_eng}</h3>
+                <h3 class="text-lg sm:text-2xl font-bold text-gray-900">
+                  ${team1.name_eng} <span class="text-gray-400 font-normal">vs</span> ${team2.name_eng}
+                  ${isLive ? '<span class="live-badge">Live Now</span>' : ''}
+                </h3>
                 <p class="text-sm sm:text-md text-gray-500 font-medium mt-1">${match.series_name || 'Match'}</p>
               </div>
 
@@ -272,17 +338,25 @@
                     </tr>
                     <tr>
                       <td class="font-medium">Status</td>
-                      <td>${matchStatus}</td>
+                      <td>${matchStatus}${isLive ? ' (Live)' : ''}</td>
                     </tr>
                     <tr>
                       <td class="font-medium">Coverage</td>
                       <td>${match.event_coverage_level || 'N/A'}</td>
                     </tr>
+                    ${!isLive ? `
+                    <tr>
+                      <td class="font-medium">Countdown</td>
+                      <td id="${countdownId}">${getCountdown(match.start_date, countdownId)}</td>
+                    </tr>` : ''}
                   </tbody>
                 </table>
               </div>
             `;
             matchesContainer.appendChild(matchDiv);
+            if (!isLive) {
+              startCountdown(match.start_date, countdownId);
+            }
           });
         }
 
@@ -298,17 +372,22 @@
             `;
             matchesContainer.appendChild(dateSection);
 
-            groupedMatches.upcoming[date].forEach((match) => {
+            groupedMatches.upcoming[date].forEach((match, index) => {
               const matchDiv = document.createElement('div');
-              matchDiv.className = 'match-card bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4';
+              const isLive = isMatchLive(match);
+              matchDiv.className = `match-card bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 ${isLive ? 'live-match' : ''}`;
               const localFullDateTime = convertToLocal(match.start_date);
               const team1 = match.participants[0];
               const team2 = match.participants[1];
               const matchStatus = match.event_status;
+              const countdownId = `countdown-${date.replace(/\s/g, '-')}-${index}`;
 
               matchDiv.innerHTML = `
                 <div class="flex flex-col items-center justify-center text-center pb-4 mb-4 border-b border-gray-200">
-                  <h3 class="text-lg sm:text-2xl font-bold text-gray-900">${team1.name_eng} <span class="text-gray-400 font-normal">vs</span> ${team2.name_eng}</h3>
+                  <h3 class="text-lg sm:text-2xl font-bold text-gray-900">
+                    ${team1.name_eng} <span class="text-gray-400 font-normal">vs</span> ${team2.name_eng}
+                    ${isLive ? '<span class="live-badge">Live Now</span>' : ''}
+                  </h3>
                   <p class="text-sm sm:text-md text-gray-500 font-medium mt-1">${match.series_name || 'Match'}</p>
                 </div>
 
@@ -335,17 +414,25 @@
                       </tr>
                       <tr>
                         <td class="font-medium">Status</td>
-                        <td>${matchStatus}</td>
+                        <td>${matchStatus}${isLive ? ' (Live)' : ''}</td>
                       </tr>
                       <tr>
                         <td class="font-medium">Coverage</td>
                         <td>${match.event_coverage_level || 'N/A'}</td>
                       </tr>
+                      ${!isLive ? `
+                      <tr>
+                        <td class="font-medium">Countdown</td>
+                        <td id="${countdownId}">${getCountdown(match.start_date, countdownId)}</td>
+                      </tr>` : ''}
                     </tbody>
                   </table>
                 </div>
               `;
               matchesContainer.appendChild(matchDiv);
+              if (!isLive) {
+                startCountdown(match.start_date, countdownId);
+              }
             });
           });
       }
