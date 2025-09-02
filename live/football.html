@@ -51,12 +51,11 @@
           throw new Error('Failed to fetch match data');
         }
         const data = await response.json();
-        const currentDate = new Date(currentDateTime);
-        currentDate.setHours(0, 0, 0, 0); // Start of current day
+        const startOfCurrentDay = new Date(currentDateTime);
+        startOfCurrentDay.setHours(0, 0, 0, 0); // Set to 00:00 AM of current date
         allMatches = data.events.filter(match => {
           const matchDate = new Date(match.startTimestamp * 1000);
-          matchDate.setHours(0, 0, 0, 0); // Start of match day
-          return matchDate.getTime() >= currentDate.getTime();
+          return matchDate.getTime() >= startOfCurrentDay.getTime();
         });
         setScheduleHeader();
         displayTournaments();
