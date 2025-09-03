@@ -26,7 +26,7 @@
     </div>
   </header>
 
-  <div class="container mx-auto max-w-lg px-4 py-6">
+  <div class="container mx-auto max-w-4xl px-4 py-6">
     <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6">
       <h2 id="match-title" class="text-xl sm:text-2xl font-bold text-blue-600 mb-4"></h2>
       <div id="match-details" class="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6"></div>
@@ -92,20 +92,21 @@
       const event = allEvents.find(e => e.match === match && e.sport === sport && e.tournament === tournament && e.unix_timestamp === timestamp);
       channelsContainer.innerHTML = '';
       if (event && event.channels && event.channels.length > 0) {
+        let linkCounter = 1;
         event.channels.forEach((link, index) => {
           const a = document.createElement('a');
           a.href = `https://ww.yosintvlive.com/ft?src=${encodeURIComponent(link)}`;
           a.target = '_blank';
           a.className = 'block bg-blue-500 text-white text-center font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-102 transition-all duration-200 text-sm sm:text-base';
-          a.textContent = `Link ${index + 1}`;
+          a.textContent = `Link ${linkCounter++}`;
           a.setAttribute('aria-label', `Watch ${match} on channel ${index + 1}`);
           channelsContainer.appendChild(a);
           // Add ad link after every 2 channels
           if ((index + 1) % 2 === 0) {
             const adLink = document.createElement('a');
             adLink.href = 'https://yosintv2.pages.dev/ads.html';
-            adLink.className = 'block text-center text-blue-500 font-medium hover:text-blue-600 hover:underline transition-colors duration-200 text-sm sm:text-base';
-            adLink.textContent = 'More Sports Content';
+            adLink.className = 'block bg-blue-500 text-white text-center font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-102 transition-all duration-200 text-sm sm:text-base';
+            adLink.textContent = `Link ${linkCounter++}`;
             adLink.setAttribute('aria-label', 'View more sports content');
             channelsContainer.appendChild(adLink);
           }
