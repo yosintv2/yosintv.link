@@ -1,330 +1,335 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Cricket Commentary</title>
-  <style>
-    :root {
-      --primary-color: #1a1a2e;
-      --secondary-color: #4a4a6e;
-      --accent-color: #00b4d8;
-      --background-color: #f0f4f8;
-      --card-background: #ffffff;
-      --text-color: #333333;
-      --highlight-color: #e63946;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      background-color: var(--background-color);
-      color: var(--text-color);
-      line-height: 1.6;
-      padding: 20px;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    .header {
-      text-align: center;
-      background-color: var(--card-background);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-    .header h1 {
-      color: var(--primary-color);
-      font-size: 1.5rem;
-      margin: 0;
-    }
-    .scorecard {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      background: var(--card-background);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-      text-align: center;
-    }
-    .scorecard-item h2 {
-      margin: 0;
-      font-size: 1.4rem;
-      color: var(--primary-color);
-    }
-    .scorecard-item p {
-      margin: 5px 0 0;
-      font-size: 0.9rem;
-      color: #7f8c8d;
-      font-weight: 600;
-    }
-    .player-info span {
-      display: block;
-      font-size: 1rem;
-      color: var(--primary-color);
-    }
-    .striker {
-      font-weight: bold;
-      color: var(--highlight-color);
-    }
-    .commentary-section {
-      background-color: var(--card-background);
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-      padding: 20px;
-    }
-    .commentary-section h2 {
-      font-size: 1.3rem;
-      color: var(--primary-color);
-      border-bottom: 2px solid var(--background-color);
-      padding-bottom: 15px;
-      margin-top: 0;
-    }
-    .over-header {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: var(--accent-color);
-      background-color: #e0f0f5;
-      padding: 10px 15px;
-      border-radius: 8px;
-      margin-top: 25px;
-      border-left: 5px solid var(--accent-color);
-    }
-    .commentary-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .commentary-item {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 10px;
-      padding: 15px;
-      background-color: #fafafa;
-      border-left: 3px solid #ccc;
-      border-radius: 8px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .commentary-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    }
-    .over-info {
-      font-weight: 700;
-      color: var(--secondary-color);
-      flex-shrink: 0;
-      width: 50px;
-      text-align: right;
-      padding-right: 15px;
-      font-size: 1rem;
-    }
-    .commentary-text {
-      flex-grow: 1;
-      font-size: 1rem;
-      color: var(--text-color);
-    }
-    .commentary-text p {
-      margin: 0;
-    }
-    .commentary-text strong {
-      color: var(--highlight-color);
-      font-weight: 600;
-    }
-    @media (max-width: 600px) {
-      .header h1 {
-        font-size: 1.4rem;
-      }
-      .scorecard-item h2 {
-        font-size: 1.2rem;
-      }
-      .scorecard-item p {
-        font-size: 0.7rem;
-      }
-      .player-info span {
-        font-size: 0.6rem;
-      }
-      .commentary-section h2 {
-        font-size: 1.4rem;
-      }
-      .over-header {
-        font-size: 1.2rem;
-      }
-      .over-info {
-        font-size: 0.8rem;
-        width: 40px;
-      }
-      .commentary-text {
-        font-size: 0.8rem;
-      }
-      .container {
-        padding: 10px;
-      }
-      .scorecard {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Cricket Commentary</title>
+    <style>
+        :root {
+            --primary-color: #1a1a2e;
+            --secondary-color: #4a4a6e;
+            --accent-color: #00b4d8;
+            --background-color: #f0f4f8;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --highlight-color: #e63946;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .header {
+            text-align: center;
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        .scorecard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+        .scorecard-item h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+        }
+        .scorecard-item p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+        .player-info span {
+            display: block;
+            font-size: 1rem;
+            color: var(--primary-color);
+        }
+        .striker {
+            font-weight: bold;
+            color: var(--highlight-color);
+        }
+        .commentary-section {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+        }
+        .commentary-section h2 {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--background-color);
+            padding-bottom: 15px;
+            margin-top: 0;
+        }
+        .over-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            background-color: #e0f0f5;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 25px;
+            border-left: 5px solid var(--accent-color);
+        }
+        .commentary-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .commentary-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            padding: 15px;
+            background-color: #fafafa;
+            border-left: 3px solid #ccc;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .commentary-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        .over-info {
+            font-weight: 700;
+            color: var(--secondary-color);
+            flex-shrink: 0;
+            width: 50px;
+            text-align: right;
+            padding-right: 15px;
+            font-size: 1rem;
+        }
+        .commentary-text {
+            flex-grow: 1;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+        .commentary-text p {
+            margin: 0;
+        }
+        .commentary-text strong {
+            color: var(--highlight-color);
+            font-weight: 600;
+        }
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.4rem;
+            }
+            .scorecard-item h2 {
+                font-size: 1.2rem;
+            }
+            .scorecard-item p {
+                font-size: 0.7rem;
+            }
+            .player-info span {
+                font-size: 0.6rem;
+            }
+            .commentary-section h2 {
+                font-size: 1.4rem;
+            }
+            .over-header {
+                font-size: 1.2rem;
+            }
+            .over-info {
+                font-size: 0.8rem;
+                width: 40px;
+            }
+            .commentary-text {
+                font-size: 0.8rem;
+            }
+            .container {
+                padding: 10px;
+            }
+            .scorecard {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
+<div class="container">
     <div class="header">
-      <h1 id="match-title">YoSinTV Cricket Live Commentary</h1>
+        <h1 id="match-title">YoSinTV Cricket Live Commentary</h1>
     </div>
     <div class="scorecard" id="scorecard">
-      <div class="scorecard-item">
-        <h2 id="team-score">--</h2>
-        <p>Score (Overs)</p>
-      </div>
-      <div class="scorecard-item">
-        <h2 id="batsmen-info">--</h2>
-        <p>Batsman</p>
-      </div>
-      <div class="scorecard-item">
-        <h2 id="current-bowler">--</h2>
-        <p>Bowler</p>
-      </div>
+        <div class="scorecard-item">
+            <h2 id="team-score">--</h2>
+            <p>Score (Overs)</p>
+        </div>
+        <div class="scorecard-item">
+            <h2 id="batsmen-info">--</h2>
+            <p>Batsman</p>
+        </div>
+        <div class="scorecard-item">
+            <h2 id="current-bowler">--</h2>
+            <p>Bowler</p>
+        </div>
     </div>
     <div class="commentary-section">
-      <h2>Live Commentary</h2>
-      <div id="commentary-feed">
-        <p style="text-align: center; color: #7f8c8d;">Loading commentary...</p>
-      </div>
+        <h2>Live Commentary</h2>
+        <div id="commentary-feed">
+            <p style="text-align: center; color: #7f8c8d;">Loading commentary...</p>
+        </div>
     </div>
-  </div>
-  <script>
+</div>
+<script>
     document.addEventListener('DOMContentLoaded', () => {
-      const commentaryFeed = document.getElementById('commentary-feed');
-      const teamScoreEl = document.getElementById('team-score');
-      const batsmenInfoEl = document.getElementById('batsmen-info');
-      const currentBowlerEl = document.getElementById('current-bowler');
-      const matchTitleEl = document.getElementById('match-title');
-      const urlParams = new URLSearchParams(window.location.search);
-      const matchId = urlParams.get('id') || '105786';
-      const apiUrl = `https://corsproxy.io/?url=https://www.cricbuzz.com/api/cricket-match/commentary/${matchId}`;
-      let latestTimestamp = 0;
-      let lastFullCommentary = [];
+        const commentaryFeed = document.getElementById('commentary-feed');
+        const teamScoreEl = document.getElementById('team-score');
+        const batsmenInfoEl = document.getElementById('batsmen-info');
+        const currentBowlerEl = document.getElementById('current-bowler');
+        const matchTitleEl = document.getElementById('match-title');
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const matchId = urlParams.get('id') || '105786';
+        const apiUrl = `https://corsproxy.io/?url=https://www.cricbuzz.com/api/cricket-match/commentary/${matchId}`;
+        
+        let latestTimestamp = 0;
+        let lastFullCommentary = [];
 
-      function updateScorecard(data) {
-        if (data.commentaryList && data.commentaryList.length > 0) {
-          const latestItem = data.commentaryList[0];
-          const { batTeamName, batTeamScore, batsmanStriker, batsmanNonStriker, bowlerStriker } = latestItem;
-          let latestWickets = '0';
-          let latestScore = batTeamScore || '0';
-          let latestOver = '0.0';
-          for (let i = 0; i < data.commentaryList.length; i++) {
-            if (data.commentaryList[i].overSeparator) {
-              latestWickets = data.commentaryList[i].overSeparator.wickets || '0';
-              latestScore = data.commentaryList[i].overSeparator.score || latestScore;
-              latestOver = data.commentaryList[i].overSeparator.over || data.commentaryList[i].overNumber || '0.0';
-              break;
-            } else if (data.commentaryList[i].overNumber) {
-              latestOver = data.commentaryList[i].overNumber;
+        function updateScorecard(data) {
+            if (data.commentaryList && data.commentaryList.length > 0) {
+                const latestItem = data.commentaryList[0];
+                const { batTeamName, batTeamScore, batsmanStriker, batsmanNonStriker, bowlerStriker } = latestItem;
+                
+                let latestWickets = '0';
+                let latestScore = batTeamScore || '0';
+                let latestOver = '0.0';
+                for (let i = 0; i < data.commentaryList.length; i++) {
+                    if (data.commentaryList[i].overSeparator) {
+                        latestWickets = data.commentaryList[i].overSeparator.wickets || '0';
+                        latestScore = data.commentaryList[i].overSeparator.score || latestScore;
+                        latestOver = data.commentaryList[i].overSeparator.over || data.commentaryList[i].overNumber || '0.0';
+                        break;
+                    } else if (data.commentaryList[i].overNumber) {
+                        latestOver = data.commentaryList[i].overNumber;
+                    }
+                }
+                
+                matchTitleEl.textContent = 'YoSinTV Cricket Live Commentary';
+                teamScoreEl.textContent = `${batTeamName || 'Team'} ${latestScore}/${latestWickets} (${latestOver})`;
+                const strikerName = batsmanStriker ? `<span class="striker">${batsmanStriker.batName}*</span>` : 'N/A';
+                const nonStrikerName = batsmanNonStriker ? `<span class="non-striker">${batsmanNonStriker.batName}</span>` : '';
+                batsmenInfoEl.innerHTML = `${strikerName}<br>${nonStrikerName}`;
+                currentBowlerEl.textContent = bowlerStriker ? bowlerStriker.bowlName : 'N/A';
             }
-          }
-          matchTitleEl.textContent = 'YoSinTV Cricket Live Commentary';
-          teamScoreEl.textContent = `${batTeamName || 'Team'} ${latestScore}/${latestWickets} (${latestOver})`;
-          const strikerName = batsmanStriker ? `<span class="striker">${batsmanStriker.batName}*</span>` : 'N/A';
-          const nonStrikerName = batsmanNonStriker ? `<span class="non-striker">${batsmanNonStriker.batName}</span>` : '';
-          batsmenInfoEl.innerHTML = `${strikerName}<br>${nonStrikerName}`;
-          currentBowlerEl.textContent = bowlerStriker ? bowlerStriker.bowlName : 'N/A';
         }
-      }
 
-      function renderCommentary(data) {
-        const commentaryList = data.commentaryList.sort((a, b) => b.timestamp - a.timestamp);
-        const hasNewCommentary = commentaryList.length > 0 && commentaryList[0].timestamp > latestTimestamp;
-        if (!hasNewCommentary && lastFullCommentary.length > 0) {
-          return;
-        }
-        lastFullCommentary = commentaryList;
-        const groupedComments = {};
-        commentaryList.forEach(item => {
-          if (!item.commText || item.commText.includes('Match Notes')) {
-            return;
-          }
-          const over = Math.floor(item.overNumber || (item.overSeparator && item.overSeparator.over) || 0);
-          if (!groupedComments[over]) {
-            groupedComments[over] = [];
-          }
-          groupedComments[over].push(item);
-        });
-        commentaryFeed.innerHTML = '';
-        const sortedOvers = Object.keys(groupedComments).sort((a, b) => b - a);
-        sortedOvers.forEach(over => {
-          const overHeader = document.createElement('div');
-          overHeader.classList.add('over-header');
-          overHeader.textContent = `Over ${over}`;
-          commentaryFeed.appendChild(overHeader);
-          const overComments = groupedComments[over].sort((a, b) => b.timestamp - a.timestamp);
-          overComments.forEach(item => {
-            const commentaryItem = document.createElement('div');
-            commentaryItem.classList.add('commentary-item');
-            const overInfo = document.createElement('div');
-            overInfo.classList.add('over-info');
-            let displayOver = item.overNumber || (item.overSeparator && item.overSeparator.over) || 'N/A';
-            overInfo.textContent = displayOver;
-            const commentaryText = document.createElement('div');
-            commentaryText.classList.add('commentary-text');
-            let commHTML = item.commText || 'No commentary available';
-            if (item.commentaryFormats?.bold?.formatId?.length && item.commentaryFormats.bold?.formatValue?.length) {
-              item.commentaryFormats.bold.formatId.forEach((id, index) => {
-                const value = item.commentaryFormats.bold.formatValue[index] || id;
-                commHTML = commHTML.replace(new RegExp(id.replace(/\$/g, '\\$'), 'g'), `<strong>${value}</strong>`);
-              });
+        function renderCommentary(data) {
+            const commentaryList = data.commentaryList.sort((a, b) => b.timestamp - a.timestamp);
+            const hasNewCommentary = commentaryList.length > 0 && commentaryList[0].timestamp > latestTimestamp;
+            if (!hasNewCommentary && lastFullCommentary.length > 0) {
+                return;
             }
-            commentaryText.innerHTML = `<p>${commHTML}</p>`;
-            commentaryItem.appendChild(overInfo);
-            commentaryItem.appendChild(commentaryText);
-            commentaryFeed.appendChild(commentaryItem);
-          });
-        });
-        if (commentaryList.length > 0) {
-          latestTimestamp = commentaryList[0].timestamp;
+            
+            lastFullCommentary = commentaryList;
+            const groupedComments = {};
+            commentaryList.forEach(item => {
+                if (!item.commText || item.commText.includes('Match Notes')) {
+                    return;
+                }
+                const over = Math.floor(item.overNumber || (item.overSeparator && item.overSeparator.over) || 0);
+                if (!groupedComments[over]) {
+                    groupedComments[over] = [];
+                }
+                groupedComments[over].push(item);
+            });
+            commentaryFeed.innerHTML = '';
+            const sortedOvers = Object.keys(groupedComments).sort((a, b) => b - a);
+            sortedOvers.forEach(over => {
+                const overHeader = document.createElement('div');
+                overHeader.classList.add('over-header');
+                overHeader.textContent = `Over ${over}`;
+                commentaryFeed.appendChild(overHeader);
+                const overComments = groupedComments[over].sort((a, b) => b.timestamp - a.timestamp);
+                overComments.forEach(item => {
+                    const commentaryItem = document.createElement('div');
+                    commentaryItem.classList.add('commentary-item');
+                    const overInfo = document.createElement('div');
+                    overInfo.classList.add('over-info');
+                    let displayOver = item.overNumber || (item.overSeparator && item.overSeparator.over) || 'N/A';
+                    overInfo.textContent = displayOver;
+                    const commentaryText = document.createElement('div');
+                    commentaryText.classList.add('commentary-text');
+                    let commHTML = item.commText || 'No commentary available';
+                    if (item.commentaryFormats?.bold?.formatId?.length && item.commentaryFormats.bold?.formatValue?.length) {
+                        item.commentaryFormats.bold.formatId.forEach((id, index) => {
+                            const value = item.commentaryFormats.bold.formatValue[index] || id;
+                            commHTML = commHTML.replace(new RegExp(id.replace(/\$/g, '\\$'), 'g'), `<strong>${value}</strong>`);
+                        });
+                    }
+                    commentaryText.innerHTML = `<p>${commHTML}</p>`;
+                    commentaryItem.appendChild(overInfo);
+                    commentaryItem.appendChild(commentaryText);
+                    commentaryFeed.appendChild(commentaryItem);
+                });
+            });
+            if (commentaryList.length > 0) {
+                latestTimestamp = commentaryList[0].timestamp;
+            }
         }
-      }
 
-      function fetchData() {
-        fetch(apiUrl, {
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36"
-          }
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(data => {
-          updateScorecard(data);
-          renderCommentary(data);
-        })
-        .catch(error => {
-          console.error('Error fetching commentary:', error);
-          if (lastFullCommentary.length === 0) {
-            commentaryFeed.innerHTML = '<p style="text-align: center; color: red;">Failed to load commentary. Please try again later.</p>';
-          }
-        });
-      }
+        function fetchData() {
+            fetch(apiUrl, {
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0 Safari/537.36"
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    updateScorecard(data);
+                    renderCommentary(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching commentary:', error);
+                    if (lastFullCommentary.length === 0) {
+                        commentaryFeed.innerHTML = '<p style="text-align: center; color: red;">Failed to load commentary. Please try again later.</p>';
+                    }
+                });
+        }
 
-      fetchData();
-      setInterval(fetchData, 1000);
+        fetchData();
+        setInterval(fetchData, 1000);
     });
 
     (function() {
-      const allowedDomains = ['www.yosintv.link', 'www.w3schools.com'];
-      const currentDomain = window.location.hostname.toLowerCase().split(':')[0];
-      if (!allowedDomains.includes(currentDomain) && !currentDomain.includes('localhost')) {
-        window.location.replace('https://www.yosin-tv.net/');
-      } else {
-        console.log('Domain allowed:', currentDomain);
-      }
+        const allowedDomains = ['www.yosintv.link', 'www.w3schools.com'];
+        const currentDomain = window.location.hostname.toLowerCase().split(':')[0];
+        if (!allowedDomains.includes(currentDomain) && !currentDomain.includes('localhost')) {
+            window.location.replace('https://www.yosin-tv.net/');
+        } else {
+            console.log('Domain allowed:', currentDomain);
+        }
     })();
-  </script>
+</script>
 </body>
 </html>
