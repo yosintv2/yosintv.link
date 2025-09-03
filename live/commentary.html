@@ -94,7 +94,6 @@
             margin-top: 25px;
             border-left: 5px solid var(--accent-color);
         }
-
         .commentary-list {
             list-style: none;
             padding: 0;
@@ -135,7 +134,6 @@
             color: var(--highlight-color);
             font-weight: 600;
         }
-        /* Mobile-specific styles */
         @media (max-width: 600px) {
             .header h1 {
                 font-size: 1.4rem;
@@ -206,9 +204,8 @@
         const currentBowlerEl = document.getElementById('current-bowler');
         const matchTitleEl = document.getElementById('match-title');
         
-        // Extract matchid from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
-        const matchId = urlParams.get('id') || '105786'; // Default to 105786 if no matchid is provided
+        const matchId = urlParams.get('id') || '105786';
         const apiUrl = `https://corsproxy.io/?url=https://www.cricbuzz.com/api/cricket-match/commentary/${matchId}`;
         
         let latestTimestamp = 0;
@@ -219,7 +216,6 @@
                 const latestItem = data.commentaryList[0];
                 const { batTeamName, batTeamScore, batsmanStriker, batsmanNonStriker, bowlerStriker } = latestItem;
                 
-                // Find the latest overSeparator data
                 let latestWickets = '0';
                 let latestScore = batTeamScore || '0';
                 let latestOver = '0.0';
@@ -234,25 +230,17 @@
                     }
                 }
                 
-                // Update match title (hardcoded)
                 matchTitleEl.textContent = 'YoSinTV Cricket Live Commentary';
-                
-                // Update score with wickets and overs
                 teamScoreEl.textContent = `${batTeamName || 'Team'} ${latestScore}/${latestWickets} (${latestOver})`;
-                
-                // Update batsmen with clear labels
                 const strikerName = batsmanStriker ? `<span class="striker">${batsmanStriker.batName}*</span>` : 'N/A';
                 const nonStrikerName = batsmanNonStriker ? `<span class="non-striker">${batsmanNonStriker.batName}</span>` : '';
                 batsmenInfoEl.innerHTML = `${strikerName}<br>${nonStrikerName}`;
-                
-                // Update bowler
                 currentBowlerEl.textContent = bowlerStriker ? bowlerStriker.bowlName : 'N/A';
             }
         }
 
         function renderCommentary(data) {
             const commentaryList = data.commentaryList.sort((a, b) => b.timestamp - a.timestamp);
-            
             const hasNewCommentary = commentaryList.length > 0 && commentaryList[0].timestamp > latestTimestamp;
             if (!hasNewCommentary && lastFullCommentary.length > 0) {
                 return;
@@ -261,7 +249,6 @@
             lastFullCommentary = commentaryList;
             const groupedComments = {};
             commentaryList.forEach(item => {
-                // Skip non-ball commentary (e.g., Match Notes or invalid items)
                 if (!item.commText || item.commText.includes('Match Notes')) {
                     return;
                 }
@@ -284,16 +271,14 @@
                     commentaryItem.classList.add('commentary-item');
                     const overInfo = document.createElement('div');
                     overInfo.classList.add('over-info');
-                    // Use valid overNumber or fallback
                     let displayOver = item.overNumber || (item.overSeparator && item.overSeparator.over) || 'N/A';
                     overInfo.textContent = displayOver;
                     const commentaryText = document.createElement('div');
                     commentaryText.classList.add('commentary-text');
                     let commHTML = item.commText || 'No commentary available';
-                    // Robust bold format replacement
                     if (item.commentaryFormats?.bold?.formatId?.length && item.commentaryFormats.bold?.formatValue?.length) {
                         item.commentaryFormats.bold.formatId.forEach((id, index) => {
-                            const value = item.commentaryFormats.bold.formatValue[index] || id; // Fallback to id if value is missing
+                            const value = item.commentaryFormats.bold.formatValue[index] || id;
                             commHTML = commHTML.replace(new RegExp(id.replace(/\$/g, '\\$'), 'g'), `<strong>${value}</strong>`);
                         });
                     }
@@ -309,7 +294,11 @@
         }
 
         function fetchData() {
-            fetch(apiUrl)
+            fetch(apiUrl, {
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0 Safari/537.36"
+                }
+            })
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -332,19 +321,15 @@
         setInterval(fetchData, 1000);
     });
 
-// Domain restriction check
-(function() {
-    const allowedDomains = ['www.yosintv.link', 'www.w3schools.com']; // Added 'yosintv.link'
-    const currentDomain = window.location.hostname.toLowerCase().split(':')[0]; // Normalize domain, remove port
-
-    if (!allowedDomains.includes(currentDomain) && !currentDomain.includes('localhost')) {
-        // Redirect to the main allowed domain
-        window.location.replace('https://www.yosin-tv.net/');
-    } else {
-        // Allowed domain - place your code here
-        console.log('Domain allowed:', currentDomain);
-    }
-})();
+    (function() {
+        const allowedDomains = ['www.yosintv.link', 'www.w3schools.com'];
+        const currentDomain = window.location.hostname.toLowerCase().split(':')[0];
+        if (!allowedDomains.includes(currentDomain) && !currentDomain.includes('localhost')) {
+            window.location.replace('https://www.yosin-tv.net/');
+        } else {
+            console.log('Domain allowed:', currentDomain);
+        }
+    })();
 </script>
 </body>
 </html>
