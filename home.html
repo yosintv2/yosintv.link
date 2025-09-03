@@ -29,6 +29,34 @@
       50% { transform: scale(1.1); opacity: 0.85; }
       100% { transform: scale(1); opacity: 1; }
     }
+
+    /* Responsive event container - one event per row */
+    #events-container {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+      #events-container {
+        gap: 1.5rem;
+      }
+    }
+
+    /* Ad container styling to prevent layout shifts */
+    .ad-container {
+      min-height: 100px;
+      margin: 1rem 0;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    @media (min-width: 640px) {
+      .ad-container {
+        min-height: 120px;
+        margin: 1.5rem 0;
+      }
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900">
@@ -37,18 +65,17 @@
     <div class="container mx-auto max-w-4xl px-4 py-4 flex items-center justify-between">
       <div class="flex items-center">
         <a href="https://www.yosin-tv.net/" title="YoSinTV">
-          <img alt="YoSinTV" src="https://web.cricfoot.net/logo.png" class="h-12 w-auto sm:h-16" />
+          <img alt="YoSinTV" src="https://web.cricfoot.net/logo.png" class="h-12 w-auto sm:h-16 object-contain" />
           <h1 class="sr-only">YoSinTV: Cricket | Football Stream Free</h1>
         </a>
       </div>
-<div class="w-full flex justify-end pr-4">
-  <button class="bg-blue-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all duration-200 text-sm sm:text-base"
-    onclick="toggleSideMenu()" 
-    aria-label="Open sports menu">
-    All Sports
-  </button>
-</div>
-
+      <div class="w-full flex justify-end pr-4">
+        <button class="bg-blue-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all duration-200 text-sm sm:text-base"
+          onclick="toggleSideMenu()" 
+          aria-label="Open sports menu">
+          Sports Menu
+        </button>
+      </div>
     </div>
   </header>
 
@@ -63,7 +90,7 @@
       <div class="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-2 border-blue-500 mx-auto"></div>
       <span class="sr-only">Loading...</span>
     </div>
-    <div id="events-container" class="grid gap-4 sm:gap-6"></div>
+    <div id="events-container"></div>
     <div id="error-message" class="hidden text-center p-6 bg-white rounded-lg shadow-sm">
       <p class="text-red-500 font-medium text-sm sm:text-base">Failed to load events.</p>
       <button class="mt-4 bg-blue-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all duration-200 text-sm sm:text-base" onclick="fetchEvents()">Retry</button>
@@ -74,360 +101,388 @@
   <div id="sideMenu" class="side-menu fixed top-0 right-[-100%] w-[80vw] sm:w-80 h-full bg-white z-50 shadow-2xl overflow-y-auto" role="navigation" aria-label="Sports categories">
     <div class="absolute left-[-6px] top-0 w-1.5 h-full bg-blue-500 rounded-r cursor-ew-resize hover:bg-blue-600 transition-colors duration-300"></div>
     <div class="sticky top-0 z-10 bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center">
-      <span class="text-lg sm:text-xl font-semibold text-gray-900">All Sports</span>
+      <span class="text-lg sm:text-xl font-semibold text-gray-900">Sports Categories</span>
       <button class="text-2xl sm:text-3xl text-gray-900 hover:text-red-500 hover:rotate-90 transition-all duration-200" onclick="toggleSideMenu()" aria-label="Close sports menu">&times;</button>
     </div>
     <div id="category-list" class="p-4 space-y-3"></div>
   </div>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
-<script>
-  const container = document.getElementById('events-container');
-  const categoryList = document.getElementById('category-list');
-  const searchInput = document.getElementById('searchInput');
-  const searchSuggestions = document.getElementById('searchSuggestions');
-  const errorMessage = document.getElementById('error-message');
-  const loadingSpinner = document.getElementById('loadingSpinner');
-  const sideMenu = document.getElementById('sideMenu');
-  const backdrop = document.getElementById('backdrop');
-  let allEvents = [];
-  let lastRenderedEvents = [];
-  // Mock icons for sports (replace with actual URLs or SVGs)
-  const sportIcons = {
-    Football: 'https://via.placeholder.com/40?text=F',
-    Cricket: 'https://via.placeholder.com/40?text=C',
-    Basketball: 'https://via.placeholder.com/40?text=B',
-    Tennis: 'https://via.placeholder.com/40?text=T',
-    Live: 'https://via.placeholder.com/40?text=L',
-    default: 'https://via.placeholder.com/40?text=S'
-  };
-  // Swipe functionality
-  let startX, currentX, isDragging = false;
-  const threshold = 100;
-  function toggleSideMenu() {
-    const isShown = sideMenu.classList.toggle('right-0');
-    sideMenu.classList.toggle('right-[-100%]', !isShown);
-    backdrop.classList.toggle('hidden', !isShown);
-    if (isShown) {
-      categoryList.querySelector('.category-item').focus();
-    }
-  }
-  function startSwipe(e) {
-    isDragging = true;
-    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-  }
-  function moveSwipe(e) {
-    if (!isDragging) return;
-    currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-    const diff = startX - currentX;
-    if (diff > 0) {
-      sideMenu.style.right = `-${diff}px`;
-    }
-  }
-  function endSwipe() {
-    if (!isDragging) return;
-    isDragging = false;
-    const diff = startX - currentX;
-    if (diff > threshold) {
-      sideMenu.classList.remove('right-0');
-      sideMenu.classList.add('right-[-100%]');
-      backdrop.classList.add('hidden');
-    } else {
-      sideMenu.style.right = '0';
-    }
-  }
-  sideMenu.querySelector('div[role="navigation"] > div:first-child').addEventListener('mousedown', startSwipe);
-  sideMenu.querySelector('div[role="navigation"] > div:first-child').addEventListener('touchstart', startSwipe);
-  document.addEventListener('mousemove', moveSwipe);
-  document.addEventListener('touchmove', moveSwipe);
-  document.addEventListener('mouseup', endSwipe);
-  document.addEventListener('touchend', endSwipe);
-  backdrop.addEventListener('click', toggleSideMenu);
-  function formatDate(timestamp) {
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleString('en-GB', { timeZone: 'Asia/Tokyo' });
-  }
-  function isLive(timestamp) {
-    const now = Math.floor(Date.now() / 1000);
-    return now >= timestamp && now <= timestamp + 9000;
-  }
-  function isEnded(timestamp) {
-    const now = Math.floor(Date.now() / 1000);
-    return now > timestamp + 9000;
-  }
-  function getCountdown(timestamp) {
-    const now = Math.floor(Date.now() / 1000);
-    let seconds = timestamp - now;
-    if (seconds <= 0) return '';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `Starts in ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-  }
-  function renderCategories(events) {
-    const sports = [...new Set(events.map(e => e.sport))];
-    categoryList.innerHTML = '';
-    // Live Events
-    const liveItem = document.createElement('div');
-    liveItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg bg-red-500 text-white hover:bg-red-600 hover:translate-x-2 hover:shadow-md transition-all duration-300';
-    liveItem.setAttribute('role', 'button');
-    liveItem.setAttribute('tabindex', '0');
-    liveItem.setAttribute('aria-label', 'Show live events');
-    liveItem.innerHTML = `
-      <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.Live}')"></span>
-      Live Events
-    `;
-    liveItem.onclick = () => {
-      renderEvents(allEvents.filter(e => isLive(e.unix_timestamp)));
-      toggleSideMenu();
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
+  <script>
+    const container = document.getElementById('events-container');
+    const categoryList = document.getElementById('category-list');
+    const searchInput = document.getElementById('searchInput');
+    const searchSuggestions = document.getElementById('searchSuggestions');
+    const errorMessage = document.getElementById('error-message');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const sideMenu = document.getElementById('sideMenu');
+    const backdrop = document.getElementById('backdrop');
+    let allEvents = [];
+    let lastRenderedEvents = [];
+    // Mock icons for sports (replace with actual URLs or SVGs)
+    const sportIcons = {
+      Football: 'https://via.placeholder.com/40?text=F',
+      Cricket: 'https://via.placeholder.com/40?text=C',
+      Basketball: 'https://via.placeholder.com/40?text=B',
+      Tennis: 'https://via.placeholder.com/40?text=T',
+      Live: 'https://via.placeholder.com/40?text=L',
+      default: 'https://via.placeholder.com/40?text=S'
     };
-    liveItem.onkeydown = (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+    // Swipe functionality
+    let startX, currentX, isDragging = false;
+    const threshold = 100;
+    function toggleSideMenu() {
+      const isShown = sideMenu.classList.toggle('right-0');
+      sideMenu.classList.toggle('right-[-100%]', !isShown);
+      backdrop.classList.toggle('hidden', !isShown);
+      if (isShown) {
+        categoryList.querySelector('.category-item').focus();
+      }
+    }
+    function startSwipe(e) {
+      isDragging = true;
+      startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+    }
+    function moveSwipe(e) {
+      if (!isDragging) return;
+      currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+      const diff = startX - currentX;
+      if (diff > 0) {
+        sideMenu.style.right = `-${diff}px`;
+      }
+    }
+    function endSwipe() {
+      if (!isDragging) return;
+      isDragging = false;
+      const diff = startX - currentX;
+      if (diff > threshold) {
+        sideMenu.classList.remove('right-0');
+        sideMenu.classList.add('right-[-100%]');
+        backdrop.classList.add('hidden');
+      } else {
+        sideMenu.style.right = '0';
+      }
+    }
+    sideMenu.querySelector('div[role="navigation"] > div:first-child').addEventListener('mousedown', startSwipe);
+    sideMenu.querySelector('div[role="navigation"] > div:first-child').addEventListener('touchstart', startSwipe);
+    document.addEventListener('mousemove', moveSwipe);
+    document.addEventListener('touchmove', moveSwipe);
+    document.addEventListener('mouseup', endSwipe);
+    document.addEventListener('touchend', endSwipe);
+    backdrop.addEventListener('click', toggleSideMenu);
+    function formatDate(timestamp) {
+      const date = new Date(timestamp * 1000);
+      return date.toLocaleString('en-GB', { timeZone: 'Asia/Tokyo' });
+    }
+    function isLive(timestamp) {
+      const now = Math.floor(Date.now() / 1000);
+      return now >= timestamp && now <= timestamp + 9000;
+    }
+    function isEnded(timestamp) {
+      const now = Math.floor(Date.now() / 1000);
+      return now > timestamp + 9000;
+    }
+    function getCountdown(timestamp) {
+      const now = Math.floor(Date.now() / 1000);
+      let seconds = timestamp - now;
+      if (seconds <= 0) return '';
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+      return `Starts in ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+    function renderCategories(events) {
+      const sports = [...new Set(events.map(e => e.sport))];
+      categoryList.innerHTML = '';
+      // Live Events
+      const liveItem = document.createElement('div');
+      liveItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg bg-red-500 text-white hover:bg-red-600 hover:translate-x-2 hover:shadow-md transition-all duration-300';
+      liveItem.setAttribute('role', 'button');
+      liveItem.setAttribute('tabindex', '0');
+      liveItem.setAttribute('aria-label', 'Show live events');
+      liveItem.innerHTML = `
+        <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.Live}')"></span>
+        Live Events
+      `;
+      liveItem.onclick = () => {
+        history.pushState({}, '', '?category=live');
         renderEvents(allEvents.filter(e => isLive(e.unix_timestamp)));
         toggleSideMenu();
-      }
-    };
-    categoryList.appendChild(liveItem);
-    // Cricket
-    const cricketItem = document.createElement('div');
-    cricketItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
-    cricketItem.setAttribute('role', 'button');
-    cricketItem.setAttribute('tabindex', '0');
-    cricketItem.setAttribute('aria-label', 'Filter by Cricket');
-    cricketItem.innerHTML = `
-      <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.Cricket}')"></span>
-      Cricket
-    `;
-    cricketItem.onclick = () => {
-      renderEvents(allEvents.filter(e => e.sport === 'Cricket'));
-      toggleSideMenu();
-    };
-    cricketItem.onkeydown = (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        renderEvents(allEvents.filter(e => e.sport === 'Cricket'));
-        toggleSideMenu();
-      }
-    };
-    categoryList.appendChild(cricketItem);
-    // Football
-    const footballItem = document.createElement('div');
-    footballItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
-    footballItem.setAttribute('role', 'button');
-    footballItem.setAttribute('tabindex', '0');
-    footballItem.setAttribute('aria-label', 'Filter by Football');
-    footballItem.innerHTML = `
-      <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.Football}')"></span>
-      Football
-    `;
-    footballItem.onclick = () => {
-      renderEvents(allEvents.filter(e => e.sport === 'Football'));
-      toggleSideMenu();
-    };
-    footballItem.onkeydown = (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        renderEvents(allEvents.filter(e => e.sport === 'Football'));
-        toggleSideMenu();
-      }
-    };
-    categoryList.appendChild(footballItem);
-    // All Events
-    const allItem = document.createElement('div');
-    allItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
-    allItem.setAttribute('role', 'button');
-    allItem.setAttribute('tabindex', '0');
-    allItem.setAttribute('aria-label', 'Show all events');
-    allItem.innerHTML = `
-      <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.default}')"></span>
-      All Events
-    `;
-    allItem.onclick = () => {
-      renderEvents(allEvents);
-      toggleSideMenu();
-    };
-    allItem.onkeydown = (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        renderEvents(allEvents);
-        toggleSideMenu();
-      }
-    };
-    categoryList.appendChild(allItem);
-    // Other sports
-    sports.filter(sport => sport !== 'Cricket' && sport !== 'Football').forEach(sport => {
-      const item = document.createElement('div');
-      item.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
-      item.setAttribute('role', 'button');
-      item.setAttribute('tabindex', '0');
-      item.setAttribute('aria-label', `Filter by ${sport}`);
-      item.innerHTML = `
-        <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons[sport] || sportIcons.default}')"></span>
-        ${sport}
-      `;
-      item.onclick = () => {
-        renderEvents(allEvents.filter(e => e.sport === sport));
-        toggleSideMenu();
       };
-      item.onkeydown = (e) => {
+      liveItem.onkeydown = (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
-          renderEvents(allEvents.filter(e => e.sport === sport));
+          history.pushState({}, '', '?category=live');
+          renderEvents(allEvents.filter(e => isLive(e.unix_timestamp)));
           toggleSideMenu();
         }
       };
-      categoryList.appendChild(item);
-    });
-  }
-  function renderEvents(events) {
-    if (JSON.stringify(events) === JSON.stringify(lastRenderedEvents)) return;
-    lastRenderedEvents = events;
-    container.innerHTML = '';
-    const sortedEvents = [...events].sort((a, b) => {
-      const prioritySports = ['Cricket', 'Football'];
-      const aPriority = prioritySports.includes(a.sport) ? (a.sport === 'Cricket' ? 0 : 1) : 2;
-      const bPriority = prioritySports.includes(b.sport) ? (b.sport === 'Cricket' ? 0 : 1) : 2;
-      if (aPriority !== bPriority) return aPriority - bPriority;
-      if (a.sport === b.sport) return a.unix_timestamp - b.unix_timestamp;
-      return a.sport.localeCompare(b.sport);
-    });
-    sortedEvents.forEach((event, index) => {
-      const col = document.createElement('div');
-      col.className = 'bg-white rounded-lg shadow-lg p-4 sm:p-6 hover:-translate-y-2 hover:shadow-xl transition-all duration-300';
-      col.innerHTML = `
-        <h5 class="text-base sm:text-lg font-semibold">${event.match.replace(/\s+-\s+/, ' vs ')}</h5>
-        <p class="text-xs sm:text-sm text-gray-600 mb-1"><strong>${event.sport}</strong> - ${event.tournament}</p>
-        <p class="text-xs sm:text-sm text-gray-600">${formatDate(event.unix_timestamp)}</p>
-        <div class="mt-4">
-          <a href="links.html?match=${encodeURIComponent(event.match)}&sport=${encodeURIComponent(event.sport)}&tournament=${encodeURIComponent(event.tournament)}&timestamp=${event.unix_timestamp}" class="inline-block bg-blue-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all duration-200 text-sm sm:text-base" aria-label="View channels for ${event.match}">View Channels</a>
-        </div>
-        <div class="countdown-container mt-4">
-          ${isEnded(event.unix_timestamp)
-            ? '<span class="match-ended inline-block bg-gray-200 text-gray-600 px-3 sm:px-4 py-1 rounded-lg text-xs sm:text-sm font-medium">Match Ended</span>'
-            : isLive(event.unix_timestamp)
-              ? '<span class="live-now inline-block bg-red-500 text-white px-3 sm:px-4 py-1 rounded-lg text-xs sm:text-sm font-medium pulse">Live Now</span>'
-              : `<span class="countdown text-xs sm:text-sm font-medium text-blue-500" data-timestamp="${event.unix_timestamp}"></span>`
-          }
-        </div>
+      categoryList.appendChild(liveItem);
+      // Cricket
+      const cricketItem = document.createElement('div');
+      cricketItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
+      cricketItem.setAttribute('role', 'button');
+      cricketItem.setAttribute('tabindex', '0');
+      cricketItem.setAttribute('aria-label', 'Filter by Cricket');
+      cricketItem.innerHTML = `
+        <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.Cricket}')"></span>
+        Cricket
       `;
-      container.appendChild(col);
-      // Add ad after every 3 events
-      if ((index + 1) % 3 === 0) {
-        const adCol = document.createElement('div');
-        adCol.className = 'my-6 sm:my-8 text-center';
-        adCol.innerHTML = `
-          <ins class="adsbygoogle"
-               style="display:block"
-               data-ad-client="ca-pub-5525538810839147"
-               data-ad-slot="4345862479"
-               data-ad-format="horizontal"
-               data-full-width-responsive="true"></ins>
-        `;
-        container.appendChild(adCol);
-      }
-    });
-    // Push ads after rendering
-    (adsbygoogle = window.adsbygoogle || []).push({});
-  }
-  function filterEvents(query) {
-    query = query.toLowerCase().trim();
-    const filtered = allEvents.filter(event =>
-      event.match.toLowerCase().includes(query) ||
-      event.sport.toLowerCase().includes(query) ||
-      event.tournament.toLowerCase().includes(query)
-    );
-    renderEvents(filtered);
-    renderSearchSuggestions(filtered);
-  }
-  function renderSearchSuggestions(events) {
-    searchSuggestions.innerHTML = '';
-    if (!searchInput.value.trim()) {
-      searchSuggestions.classList.add('hidden');
-      return;
-    }
-    const maxSuggestions = 5;
-    const suggestions = events.slice(0, maxSuggestions);
-    if (suggestions.length === 0) {
-      searchSuggestions.classList.add('hidden');
-      return;
-    }
-    suggestions.forEach(event => {
-      const div = document.createElement('div');
-      div.className = 'search-suggestion px-4 py-2 text-xs sm:text-sm text-gray-900 hover:bg-gray-100 cursor-pointer transition-colors duration-200';
-      div.textContent = `${event.match.replace(/\s+-\s+/, ' vs ')} (${event.sport})`;
-      div.setAttribute('role', 'option');
-      div.setAttribute('aria-label', `Select ${event.match}`);
-      div.onclick = () => {
-        searchInput.value = event.match;
-        renderEvents([event]);
-        searchSuggestions.classList.add('hidden');
+      cricketItem.onclick = () => {
+        history.pushState({}, '', '?category=cricket');
+        renderEvents(allEvents.filter(e => e.sport === 'Cricket'));
+        toggleSideMenu();
       };
-      div.onkeydown = (e) => {
+      cricketItem.onkeydown = (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
+          history.pushState({}, '', '?category=cricket');
+          renderEvents(allEvents.filter(e => e.sport === 'Cricket'));
+          toggleSideMenu();
+        }
+      };
+      categoryList.appendChild(cricketItem);
+      // Football
+      const footballItem = document.createElement('div');
+      footballItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
+      footballItem.setAttribute('role', 'button');
+      footballItem.setAttribute('tabindex', '0');
+      footballItem.setAttribute('aria-label', 'Filter by Football');
+      footballItem.innerHTML = `
+        <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.Football}')"></span>
+        Football
+      `;
+      footballItem.onclick = () => {
+        history.pushState({}, '', '?category=football');
+        renderEvents(allEvents.filter(e => e.sport === 'Football'));
+        toggleSideMenu();
+      };
+      footballItem.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          history.pushState({}, '', '?category=football');
+          renderEvents(allEvents.filter(e => e.sport === 'Football'));
+          toggleSideMenu();
+        }
+      };
+      categoryList.appendChild(footballItem);
+      // All Events
+      const allItem = document.createElement('div');
+      allItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
+      allItem.setAttribute('role', 'button');
+      allItem.setAttribute('tabindex', '0');
+      allItem.setAttribute('aria-label', 'Show all events');
+      allItem.innerHTML = `
+        <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.default}')"></span>
+        All Events
+      `;
+      allItem.onclick = () => {
+        history.pushState({}, '', '?category=all');
+        renderEvents(allEvents);
+        toggleSideMenu();
+      };
+      allItem.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          history.pushState({}, '', '?category=all');
+          renderEvents(allEvents);
+          toggleSideMenu();
+        }
+      };
+      categoryList.appendChild(allItem);
+      // Other sports
+      sports.filter(sport => sport !== 'Cricket' && sport !== 'Football').forEach(sport => {
+        const item = document.createElement('div');
+        item.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-label', `Filter by ${sport}`);
+        item.innerHTML = `
+          <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons[sport] || sportIcons.default}')"></span>
+          ${sport}
+        `;
+        item.onclick = () => {
+          history.pushState({}, '', `?category=${encodeURIComponent(sport.toLowerCase())}`);
+          renderEvents(allEvents.filter(e => e.sport === sport));
+          toggleSideMenu();
+        };
+        item.onkeydown = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            history.pushState({}, '', `?category=${encodeURIComponent(sport.toLowerCase())}`);
+            renderEvents(allEvents.filter(e => e.sport === sport));
+            toggleSideMenu();
+          }
+        };
+        categoryList.appendChild(item);
+      });
+    }
+    function renderEvents(events) {
+      if (JSON.stringify(events) === JSON.stringify(lastRenderedEvents)) return;
+      lastRenderedEvents = events;
+      container.innerHTML = '';
+      const sortedEvents = [...events].sort((a, b) => {
+        const prioritySports = ['Cricket', 'Football'];
+        const aPriority = prioritySports.includes(a.sport) ? (a.sport === 'Cricket' ? 0 : 1) : 2;
+        const bPriority = prioritySports.includes(b.sport) ? (b.sport === 'Cricket' ? 0 : 1) : 2;
+        if (aPriority !== bPriority) return aPriority - bPriority;
+        if (a.sport === b.sport) return a.unix_timestamp - b.unix_timestamp;
+        return a.sport.localeCompare(b.sport);
+      });
+      sortedEvents.forEach((event, index) => {
+        const col = document.createElement('div');
+        col.className = 'bg-white rounded-lg shadow-lg p-4 sm:p-6 hover:-translate-y-2 hover:shadow-xl transition-all duration-300';
+        col.innerHTML = `
+          <h5 class="text-base sm:text-lg font-semibold">${event.match.replace(/\s+-\s+/, ' vs ')}</h5>
+          <p class="text-xs sm:text-sm text-gray-600 mb-1"><strong>${event.sport}</strong> - ${event.tournament}</p>
+          <p class="text-xs sm:text-sm text-gray-600">${formatDate(event.unix_timestamp)}</p>
+          <div class="mt-4">
+            <a href="links.html?match=${encodeURIComponent(event.match)}&sport=${encodeURIComponent(event.sport)}&tournament=${encodeURIComponent(event.tournament)}&timestamp=${event.unix_timestamp}" class="inline-block bg-blue-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all duration-200 text-sm sm:text-base" aria-label="View channels for ${event.match}">View Channels</a>
+          </div>
+          <div class="countdown-container mt-4">
+            ${isEnded(event.unix_timestamp)
+              ? '<span class="match-ended inline-block bg-gray-200 text-gray-600 px-3 sm:px-4 py-1 rounded-lg text-xs sm:text-sm font-medium">Match Ended</span>'
+              : isLive(event.unix_timestamp)
+                ? '<span class="live-now inline-block bg-red-500 text-white px-3 sm:px-4 py-1 rounded-lg text-xs sm:text-sm font-medium pulse">Live Now</span>'
+                : `<span class="countdown text-xs sm:text-sm font-medium text-blue-500" data-timestamp="${event.unix_timestamp}"></span>`
+            }
+          </div>
+        `;
+        container.appendChild(col);
+        // Add ad after every 3 events
+        if ((index + 1) % 3 === 0) {
+          const adCol = document.createElement('div');
+          adCol.className = 'ad-container text-center';
+          adCol.innerHTML = `
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-5525538810839147"
+                 data-ad-slot="4345862479"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+          `;
+          container.appendChild(adCol);
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        }
+      });
+    }
+    function filterEvents(query) {
+      query = query.toLowerCase().trim();
+      const filtered = allEvents.filter(event =>
+        event.match.toLowerCase().includes(query) ||
+        event.sport.toLowerCase().includes(query) ||
+        event.tournament.toLowerCase().includes(query)
+      );
+      renderEvents(filtered);
+      renderSearchSuggestions(filtered);
+    }
+    function renderSearchSuggestions(events) {
+      searchSuggestions.innerHTML = '';
+      if (!searchInput.value.trim()) {
+        searchSuggestions.classList.add('hidden');
+        return;
+      }
+      const maxSuggestions = 5;
+      const suggestions = events.slice(0, maxSuggestions);
+      if (suggestions.length === 0) {
+        searchSuggestions.classList.add('hidden');
+        return;
+      }
+      suggestions.forEach(event => {
+        const div = document.createElement('div');
+        div.className = 'search-suggestion px-4 py-2 text-xs sm:text-sm text-gray-900 hover:bg-gray-100 cursor-pointer transition-colors duration-200';
+        div.textContent = `${event.match.replace(/\s+-\s+/, ' vs ')} (${event.sport})`;
+        div.setAttribute('role', 'option');
+        div.setAttribute('aria-label', `Select ${event.match}`);
+        div.onclick = () => {
           searchInput.value = event.match;
           renderEvents([event]);
           searchSuggestions.classList.add('hidden');
-        }
-      };
-      searchSuggestions.appendChild(div);
-    });
-    searchSuggestions.classList.remove('hidden');
-  }
-  function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }
-  function updateCountdowns() {
-    const spans = document.querySelectorAll('.countdown');
-    let needsRefresh = false;
-    spans.forEach(span => {
-      const timestamp = span.getAttribute('data-timestamp');
-      const countdown = getCountdown(Number(timestamp));
-      span.textContent = countdown;
-      if (!countdown) needsRefresh = true;
-    });
-    if (needsRefresh) renderEvents(allEvents);
-    requestAnimationFrame(updateCountdowns);
-  }
-  async function fetchEvents() {
-    try {
-      loadingSpinner.classList.remove('hidden');
-      errorMessage.classList.add('hidden');
-      const res = await fetch('https://topembed.pw/api.php?format=json');
-      const data = await res.json();
-      let flat = [];
-      for (let date in data.events) {
-        flat.push(...data.events[date]);
-      }
-      allEvents = flat;
-      renderEvents(flat);
-      renderCategories(flat);
-      loadingSpinner.classList.add('hidden');
-    } catch (err) {
-      loadingSpinner.classList.add('hidden');
-      errorMessage.classList.remove('hidden');
+        };
+        div.onkeydown = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            searchInput.value = event.match;
+            renderEvents([event]);
+            searchSuggestions.classList.add('hidden');
+          }
+        };
+        searchSuggestions.appendChild(div);
+      });
+      searchSuggestions.classList.remove('hidden');
     }
-  }
-  // Event Listeners
-  searchInput.addEventListener('input', debounce(e => filterEvents(e.target.value), 300));
-  searchInput.addEventListener('focus', () => {
-    if (searchInput.value.trim()) renderSearchSuggestions(allEvents.filter(event =>
-      event.match.toLowerCase().includes(searchInput.value.toLowerCase().trim()) ||
-      event.sport.toLowerCase().includes(searchInput.value.toLowerCase().trim()) ||
-      event.tournament.toLowerCase().includes(searchInput.value.toLowerCase().trim())
-    ));
-  });
-  searchInput.addEventListener('blur', () => {
-    setTimeout(() => searchSuggestions.classList.add('hidden'), 200);
-  });
-  sideMenu.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') toggleSideMenu();
-  });
-  // Start countdown updates
-  fetchEvents();
-  requestAnimationFrame(updateCountdowns);
-</script>
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+    function updateCountdowns() {
+      const spans = document.querySelectorAll('.countdown');
+      let needsRefresh = false;
+      spans.forEach(span => {
+        const timestamp = span.getAttribute('data-timestamp');
+        const countdown = getCountdown(Number(timestamp));
+        span.textContent = countdown;
+        if (!countdown) needsRefresh = true;
+      });
+      if (needsRefresh) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const category = urlParams.get('category')?.toLowerCase();
+        let filteredEvents = allEvents;
+        if (category === 'live') {
+          filteredEvents = allEvents.filter(e => isLive(e.unix_timestamp));
+        } else if (category && category !== 'all') {
+          filteredEvents = allEvents.filter(e => e.sport.toLowerCase() === category);
+        }
+        renderEvents(filteredEvents);
+      }
+      requestAnimationFrame(updateCountdowns);
+    }
+    async function fetchEvents() {
+      try {
+        loadingSpinner.classList.remove('hidden');
+        errorMessage.classList.add('hidden');
+        const res = await fetch('https://topembed.pw/api.php?format=json');
+        const data = await res.json();
+        let flat = [];
+        for (let date in data.events) {
+          flat.push(...data.events[date]);
+        }
+        allEvents = flat;
+        // Check URL for category parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const category = urlParams.get('category')?.toLowerCase();
+        let filteredEvents = flat;
+        if (category === 'live') {
+          filteredEvents = flat.filter(e => isLive(e.unix_timestamp));
+        } else if (category && category !== 'all') {
+          filteredEvents = flat.filter(e => e.sport.toLowerCase() === category);
+        }
+        renderEvents(filteredEvents);
+        renderCategories(flat);
+        loadingSpinner.classList.add('hidden');
+      } catch (err) {
+        loadingSpinner.classList.add('hidden');
+        errorMessage.classList.remove('hidden');
+      }
+    }
+    // Event Listeners
+    searchInput.addEventListener('input', debounce(e => filterEvents(e.target.value), 300));
+    searchInput.addEventListener('focus', () => {
+      if (searchInput.value.trim()) renderSearchSuggestions(allEvents.filter(event =>
+        event.match.toLowerCase().includes(searchInput.value.toLowerCase().trim()) ||
+        event.sport.toLowerCase().includes(searchInput.value.toLowerCase().trim()) ||
+        event.tournament.toLowerCase().includes(searchInput.value.toLowerCase().trim())
+      ));
+    });
+    searchInput.addEventListener('blur', () => {
+      setTimeout(() => searchSuggestions.classList.add('hidden'), 200);
+    });
+    sideMenu.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') toggleSideMenu();
+    });
+    // Start countdown updates
+    fetchEvents();
+    requestAnimationFrame(updateCountdowns);
+  </script>
 </body>
 </html>
