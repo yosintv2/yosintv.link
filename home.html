@@ -331,7 +331,7 @@
           <p class="text-xs sm:text-sm text-gray-600 mb-1"><strong>${event.sport}</strong> - ${event.tournament}</p>
           <p class="text-xs sm:text-sm text-gray-600">${formatDate(event.unix_timestamp)}</p>
           <div class="mt-4">
-            <a href="links.html?match=${encodeURIComponent(event.match)}&sport=${encodeURIComponent(event.sport)}&tournament=${encodeURIComponent(event.tournament)}&timestamp=${event.unix_timestamp}" class="inline-block bg-blue-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all duration-200 text-sm sm:text-base" aria-label="View channels for ${event.match}">View Channels</a>
+            <a href="links.html?match=${encodeURIComponent(event.match)}&sport=${encodeURIComponent(event.sport)}&tournament=${encodeURIComponent(event.tournament)}&timestamp=${event.unix_timestamp}" class="inline-block bg-blue-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all duration-200 text-sm sm:text-base" aria-label="View channels for ${event.match}">Go to Live Links</a>
           </div>
           <div class="countdown-container mt-4">
             ${isEnded(event.unix_timestamp)
