@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title> YoSinTV - Football Live | Cricket Live | Match Preview </title>
+  <title> YoSinTV - Football Live | Cricket Live | Match Preview </title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
@@ -108,6 +108,40 @@
   </div>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
   <script>
+    // Lazy loading ads with IntersectionObserver
+    function setupLazyLoadingAds() {
+      const adContainers = document.querySelectorAll('.ad-container');
+      const observerOptions = {
+        root: null,
+        rootMargin: '200px 0px', // Load ads 200px before they enter viewport
+        threshold: 0
+      };
+
+      const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const adContainer = entry.target;
+            // Check if ad has already been loaded
+            if (!adContainer.classList.contains('ad-loaded')) {
+              const adScript = document.createElement('script');
+              adScript.text = `(adsbygoogle = window.adsbygoogle || []).push({});`;
+              adContainer.appendChild(adScript);
+              adContainer.classList.add('ad-loaded');
+            }
+            // Stop observing once ad is loaded
+            observer.unobserve(adContainer);
+          }
+        });
+      }, observerOptions);
+
+      adContainers.forEach(container => {
+        observer.observe(container);
+      });
+    }
+
+    // Ensure ads are set up after DOM is loaded
+    document.addEventListener('DOMContentLoaded', setupLazyLoadingAds);
+
     const container = document.getElementById('events-container');
     const categoryList = document.getElementById('category-list');
     const searchInput = document.getElementById('searchInput');
@@ -343,7 +377,7 @@
           </div>
         `;
         container.appendChild(col);
-        // Add ad after every 3 events
+        // Add ad after every 2 events
         if ((index + 1) % 2 === 0) {
           const adCol = document.createElement('div');
           adCol.className = 'ad-container text-center';
@@ -356,9 +390,10 @@
                  data-full-width-responsive="true"></ins>
           `;
           container.appendChild(adCol);
-          (adsbygoogle = window.adsbygoogle || []).push({});
         }
       });
+      // Re-setup lazy loading for newly added ad containers
+      setupLazyLoadingAds();
     }
     function filterEvents(query) {
       query = query.toLowerCase().trim();
