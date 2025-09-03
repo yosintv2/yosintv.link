@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Highlights Post Extractor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ensure long URLs wrap properly */
+        .break-all {
+            word-break: break-all;
+        }
+        /* Smooth fade-in animation for cards */
+        .card {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center p-6">
+    <div class="w-full max-w-4xl">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-8 text-center">Cricket Highlights Post Extractor</h1>
+        <input type="text" id="blogUrl" value="https://www.crichighlightsvidz.com" placeholder="Enter Blogger URL (e.g., https://www.crichighlightsvidz.com)" class="w-full p-4 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-700 mb-6">
+        <ul id="postList" class="space-y-6"></ul>
+        <p id="error" class="text-red-500 text-center mt-6 text-lg"></p>
+    </div>
+
+    <script>
+        async function fetchPosts() {
+            const blogUrl = document.getElementById('blogUrl').value.trim();
+            const errorElement = document.getElementById('error');
+            const postListElement = document.getElementById('postList');
+            const CORS_PROXY = "https://corsproxy.io/?url=";
+            const feedUrl = `${CORS_PROXY}https://${new URL(blogUrl).hostname}/feeds/posts/default?alt=json&max-results=150`;
+
+            // Clear previous results and errors
+            postListElement.innerHTML = '';
+            errorElement.textContent = '';
+
+            // Validate URL
+            if (!blogUrl) {
+                errorElement.textContent = 'Please enter a valid Blogger URL';
+                return;
+            }
+
+            try {
+                // Fetch JSON feed via proxy
+                const response = await fetch(feedUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+                }
+                const data = await response.json();
+                const entries = data.feed?.entry || [];
+                if (entries.length === 0) {
+                    errorElement.textContent = 'No posts found or feed is empty';
+                    return;
+                }
+
+                // Process each post
+                entries.forEach((entry, index) => {
+                    const title = entry.title?.$t || 'No title';
+                    const publishedDate = entry.published?.$t ? new Date(entry.published.$t).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }) : 'No date available';
+
+                    // Extract iframe URL from content
+                    let iframeUrl = 'No iframe found';
+                    const content = entry.content?.$t || '';
+                    const iframeMatch = content.match(/<iframe[^>]+src=["'](.*?)["']/i);
+                    if (iframeMatch && iframeMatch[1]) {
+                        let url = iframeMatch[1];
+                        // Remove ?rel=0 from YouTube URLs
+                        url = url.replace(/\?rel=0/, '');
+                        // Transform YouTube embed URLs to hlsplayers format
+                        const youtubeMatch = url.match(/https:\/\/www\.youtube\.com\/embed\/([^\/?]+)/i);
+                        if (youtubeMatch && youtubeMatch[1]) {
+                            iframeUrl = `https://hlsplayers.pages.dev/yt?url=${youtubeMatch[1]}`;
+                        } else {
+                            iframeUrl = url;
+                        }
+                    }
+
+                    // Create list item
+                    const li = document.createElement('li');
+                    li.className = 'card bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300';
+                    li.innerHTML = `
+                        <div class="flex items-center justify-between mb-3">
+                            <h2 class="text-xl font-semibold text-gray-800">${title}</h2>
+                            <button class="copy-button bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200" onclick="copyToClipboard('${title.replace(/'/g, "\\'")}', 'title-${index}')">Copy</button>
+                        </div>
+                        <div class="text-sm text-gray-500 mb-3">Published: ${publishedDate}</div>
+                        <div class="text-sm">
+                            Iframe URL: <a href="${iframeUrl}" target="_blank" class="text-blue-600 hover:underline break-all">${iframeUrl}</a>
+                            <button class="copy-button bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 ml-2" onclick="copyToClipboard('${iframeUrl.replace(/'/g, "\\'")}', 'iframe-url-${index}')">Copy</button>
+                        </div>
+                    `;
+                    postListElement.appendChild(li);
+                });
+            } catch (error) {
+                errorElement.textContent = `Error fetching posts: ${error.message}. Ensure the CORS proxy is working or try a server-side solution. Serve the page over HTTPS or localhost to avoid JavaScript execution errors.`;
+                console.error('Fetch error:', error);
+            }
+        }
+
+        function copyToClipboard(text, buttonId) {
+            navigator.clipboard.writeText(text).then(() => {
+                const button = document.querySelector(`button[onclick*="${buttonId}"]`);
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy text to clipboard. Ensure the page is served over HTTPS or localhost.');
+            });
+        }
+
+        // Automatically fetch posts on page load
+        document.addEventListener('DOMContentLoaded', fetchPosts);
+    </script>
+</body>
+</html>
