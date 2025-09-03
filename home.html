@@ -2,83 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
   <title>YoSinTV All Sports Events</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root {
-      --primary-color: #007bff;
-      --secondary-color: #6c757d;
-      --background-color: #f5f7fa;
-      --card-bg: #ffffff;
-      --text-color: #333333;
-      --accent-color: #00aaff;
-      --live-color: #ff4d4d;
-      --ended-color: #d1d5db;
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-      --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.15);
-      --border-radius: 16px;
-      --font-family: 'Poppins', sans-serif;
-    }
-
-    body {
-      background: linear-gradient(135deg, #f5f7fa 0%, #e2e8f0 100%);
-      color: var(--text-color);
-      font-family: var(--font-family);
-      overflow-x: hidden;
-      position: relative;
-      line-height: 1.6;
-    }
-
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
-    .container {
-      padding-top: 2rem;
-      padding-bottom: 4rem;
+    body {
+      font-family: 'Poppins', sans-serif;
     }
 
-    .card {
-      background-color: var(--card-bg);
-      border: none;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow-md);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      overflow: hidden;
-      position: relative;
+    .side-menu {
+      transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .card:hover {
-      transform: translateY(-10px);
-      box-shadow: var(--shadow-md), 0 10px 20px rgba(0, 0, 0, 0.2);
+    .category-item:hover .category-icon {
+      transform: scale(1.1);
     }
 
-    .card-body {
-      padding: 1.5rem;
-    }
-
-    .countdown {
-      font-weight: 500;
-      color: var(--accent-color);
-      font-size: 0.9rem;
-    }
-
-    .live-now {
-      background-color: var(--live-color);
-      color: white;
-      border-radius: 50px;
-      padding: 6px 14px;
-      font-size: 0.85rem;
-      font-weight: 600;
+    .pulse {
       animation: pulse 1.5s infinite;
-    }
-
-    .match-ended {
-      background-color: var(--ended-color);
-      color: var(--text-color);
-      border-radius: 50px;
-      padding: 6px 14px;
-      font-size: 0.85rem;
-      font-weight: 600;
     }
 
     @keyframes pulse {
@@ -86,301 +29,84 @@
       50% { transform: scale(1.1); opacity: 0.85; }
       100% { transform: scale(1); opacity: 1; }
     }
-
-    .side-menu {
-      position: fixed;
-      top: 0;
-      right: -320px;
-      width: 320px;
-      height: 100%;
-      background-color: var(--card-bg);
-      z-index: 1050;
-      transition: right 0.3s ease-in-out;
-      box-shadow: -6px 0 16px rgba(0,0,0,0.2);
-      overflow-y: auto;
-      touch-action: none;
-    }
-
-    @media (max-width: 576px) {
-      .side-menu {
-        width: 280px;
-      }
-    }
-
-    .side-menu.show {
-      right: 0;
-    }
-
-    .side-menu-header {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      padding: 1.2rem 1.5rem;
-      border-bottom: 1px solid #e2e8f0;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: #f8fafc;
-      font-size: 1.4rem;
-      color: var(--text-color);
-    }
-
-    .side-menu-close {
-      font-size: 2rem;
-      cursor: pointer;
-      padding: 5px 10px;
-      border: none;
-      background: none;
-      color: var(--text-color);
-      transition: color 0.2s;
-    }
-
-    .side-menu-close:hover {
-      color: var(--live-color);
-    }
-
-    .category-item {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 14px 20px;
-      cursor: pointer;
-      transition: background-color 0.2s, transform 0.2s;
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: var(--text-color);
-    }
-
-    .category-item:hover {
-      background-color: #edf2f7;
-      transform: translateX(6px);
-    }
-
-    .category-item.live-now {
-      background-color: var(--live-color);
-      color: white;
-    }
-
-    .category-item.live-now:hover {
-      background-color: #ff3333;
-    }
-
-    .category-icon {
-      width: 36px;
-      height: 36px;
-      display: inline-block;
-      background-size: cover;
-      border-radius: 10px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .drag-handle {
-      position: absolute;
-      left: -6px;
-      top: 0;
-      width: 6px;
-      height: 100%;
-      background-color: var(--accent-color);
-      cursor: ew-resize;
-      border-radius: 0 4px 4px 0;
-    }
-
-    .backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.3);
-      backdrop-filter: blur(3px);
-      z-index: 1040;
-      display: none;
-      transition: opacity 0.3s;
-    }
-
-    .backdrop.show {
-      display: block;
-      opacity: 1;
-    }
-
-    .search-container {
-      position: relative;
-      max-width: 350px;
-      width: 100%;
-    }
-
-    .search-bar {
-      width: 100%;
-      border-radius: 50px;
-      padding: 12px 24px;
-      border: 1px solid #e2e8f0;
-      background-color: #ffffff;
-      color: var(--text-color);
-      transition: box-shadow 0.2s, border-color 0.2s;
-    }
-
-    .search-bar:focus {
-      box-shadow: 0 0 0 4px rgba(0, 170, 255, 0.2);
-      border-color: var(--accent-color);
-    }
-
-    .search-suggestions {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background-color: var(--card-bg);
-      border: 1px solid #e2e8f0;
-      border-radius: var(--border-radius);
-      max-height: 260px;
-      overflow-y: auto;
-      z-index: 1000;
-      display: none;
-      box-shadow: var(--shadow-md);
-    }
-
-    .search-suggestions.show {
-      display: block;
-    }
-
-    .search-suggestion {
-      padding: 12px 16px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      font-size: 0.95rem;
-      color: var(--text-color);
-    }
-
-    .search-suggestion:hover {
-      background-color: #edf2f7;
-    }
-
-    .loading-spinner {
-      display: none;
-      text-align: center;
-      padding: 2rem;
-    }
-
-    .loading-spinner.active {
-      display: block;
-    }
-
-    .error-message {
-      text-align: center;
-      padding: 2rem;
-      background-color: var(--card-bg);
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow-sm);
-    }
-
-    h2 {
-      font-weight: 700;
-      font-size: 2rem;
-      color: var(--primary-color);
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-primary {
-      border-radius: 50px;
-      padding: 10px 24px;
-      font-weight: 600;
-      background-color: var(--accent-color);
-      border: none;
-      transition: background-color 0.2s, transform 0.2s;
-    }
-
-    .btn-primary:hover {
-      background-color: #0088cc;
-      transform: scale(1.05);
-    }
-
-    .btn-links {
-      border-radius: 50px;
-      padding: 8px 20px;
-      font-weight: 500;
-      background-color: var(--primary-color);
-      color: white;
-      transition: background-color 0.2s, transform 0.2s;
-    }
-
-    .btn-links:hover {
-      background-color: #0056b3;
-      transform: scale(1.05);
-    }
-
-    .card-title {
-      font-weight: 600;
-      font-size: 1.3rem;
-      color: var(--text-color);
-    }
-
-    .card-text {
-      font-size: 0.95rem;
-      color: var(--secondary-color);
-    }
   </style>
 </head>
-<body>
-  <div class="container">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5 gap-3">
-      <h2>YoSinTV All Sports Events</h2>
-      <div class="d-flex gap-3 align-items-center">
-        <div class="search-container">
-          <input type="text" id="searchInput" class="form-control search-bar" placeholder="Search events..." aria-label="Search events">
-          <div id="searchSuggestions" class="search-suggestions"></div>
-        </div>
-        <button class="btn btn-primary" onclick="toggleSideMenu()" aria-label="Open sports menu">All Sports</button>
+<body class="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-900">
+  <!-- Header -->
+  <header class="bg-white shadow-sm">
+    <div class="container mx-auto max-w-4xl px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center">
+        <a href="https://www.yosin-tv.net/" title="YoSinTV">
+          <img alt="YoSinTV" src="https://web.cricfoot.net/logo.png" class="h-12 w-auto sm:h-16" />
+          <h1 class="sr-only">YoSinTV: Cricket | Football Stream Free</h1>
+        </a>
+      </div>
+<div class="w-full flex justify-end pr-4">
+  <button class="bg-blue-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all duration-200 text-sm sm:text-base"
+    onclick="toggleSideMenu()" 
+    aria-label="Open sports menu">
+    Sports Menu
+  </button>
+</div>
+
+    </div>
+  </header>
+
+  <div class="container mx-auto max-w-4xl px-4 py-6">
+    <div class="mb-6">
+      <div class="relative w-full">
+        <input type="text" id="searchInput" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm sm:text-base text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200" placeholder="Search events..." aria-label="Search events">
+        <div id="searchSuggestions" class="absolute left-0 right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden z-10"></div>
       </div>
     </div>
-    <div class="loading-spinner active">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
+    <div class="loading-spinner hidden text-center py-6" id="loadingSpinner">
+      <div class="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-2 border-blue-500 mx-auto"></div>
+      <span class="sr-only">Loading...</span>
     </div>
-    <div id="events-container" class="row g-4"></div>
-    <div id="error-message" class="error-message d-none">
-      <p class="text-danger">Failed to load events.</p>
-      <button class="btn btn-primary" onclick="fetchEvents()">Retry</button>
+    <div id="events-container" class="grid gap-4 sm:gap-6"></div>
+    <div id="error-message" class="hidden text-center p-6 bg-white rounded-lg shadow-sm">
+      <p class="text-red-500 font-medium text-sm sm:text-base">Failed to load events.</p>
+      <button class="mt-4 bg-blue-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all duration-200 text-sm sm:text-base" onclick="fetchEvents()">Retry</button>
     </div>
   </div>
   <!-- Swipeable Side Menu -->
-  <div id="backdrop" class="backdrop"></div>
-  <div id="sideMenu" class="side-menu" role="navigation" aria-label="Sports categories">
-    <div class="drag-handle"></div>
-    <div class="side-menu-header">
-      <span>All Sports</span>
-      <button class="side-menu-close" onclick="toggleSideMenu()" aria-label="Close sports menu">&times;</button>
+  <div id="backdrop" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 hidden transition-opacity duration-400"></div>
+  <div id="sideMenu" class="side-menu fixed top-0 right-[-100%] w-[80vw] sm:w-80 h-full bg-white z-50 shadow-2xl overflow-y-auto" role="navigation" aria-label="Sports categories">
+    <div class="absolute left-[-6px] top-0 w-1.5 h-full bg-blue-500 rounded-r cursor-ew-resize hover:bg-blue-600 transition-colors duration-300"></div>
+    <div class="sticky top-0 z-10 bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center">
+      <span class="text-lg sm:text-xl font-semibold text-gray-900">Sports Categories</span>
+      <button class="text-2xl sm:text-3xl text-gray-900 hover:text-red-500 hover:rotate-90 transition-all duration-200" onclick="toggleSideMenu()" aria-label="Close sports menu">&times;</button>
     </div>
-    <div id="category-list" class="p-3"></div>
+    <div id="category-list" class="p-4 space-y-3"></div>
   </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
 <script>
   const container = document.getElementById('events-container');
   const categoryList = document.getElementById('category-list');
   const searchInput = document.getElementById('searchInput');
   const searchSuggestions = document.getElementById('searchSuggestions');
   const errorMessage = document.getElementById('error-message');
-  const loadingSpinner = document.querySelector('.loading-spinner');
+  const loadingSpinner = document.getElementById('loadingSpinner');
   const sideMenu = document.getElementById('sideMenu');
   const backdrop = document.getElementById('backdrop');
   let allEvents = [];
   let lastRenderedEvents = [];
   // Mock icons for sports (replace with actual URLs or SVGs)
   const sportIcons = {
-    Football: 'https://via.placeholder.com/36?text=F',
-    Cricket: 'https://via.placeholder.com/36?text=C',
-    Basketball: 'https://via.placeholder.com/36?text=B',
-    Tennis: 'https://via.placeholder.com/36?text=T',
-    Live: 'https://via.placeholder.com/36?text=L',
-    default: 'https://via.placeholder.com/36?text=S'
+    Football: 'https://via.placeholder.com/40?text=F',
+    Cricket: 'https://via.placeholder.com/40?text=C',
+    Basketball: 'https://via.placeholder.com/40?text=B',
+    Tennis: 'https://via.placeholder.com/40?text=T',
+    Live: 'https://via.placeholder.com/40?text=L',
+    default: 'https://via.placeholder.com/40?text=S'
   };
   // Swipe functionality
   let startX, currentX, isDragging = false;
   const threshold = 100;
   function toggleSideMenu() {
-    const isShown = sideMenu.classList.toggle('show');
-    backdrop.classList.toggle('show', isShown);
+    const isShown = sideMenu.classList.toggle('right-0');
+    sideMenu.classList.toggle('right-[-100%]', !isShown);
+    backdrop.classList.toggle('hidden', !isShown);
     if (isShown) {
       categoryList.querySelector('.category-item').focus();
     }
@@ -402,15 +128,15 @@
     isDragging = false;
     const diff = startX - currentX;
     if (diff > threshold) {
-      sideMenu.classList.remove('show');
-      backdrop.classList.remove('show');
-      sideMenu.style.right = '-320px';
+      sideMenu.classList.remove('right-0');
+      sideMenu.classList.add('right-[-100%]');
+      backdrop.classList.add('hidden');
     } else {
       sideMenu.style.right = '0';
     }
   }
-  sideMenu.querySelector('.drag-handle').addEventListener('mousedown', startSwipe);
-  sideMenu.querySelector('.drag-handle').addEventListener('touchstart', startSwipe);
+  sideMenu.querySelector('div[role="navigation"] > div:first-child').addEventListener('mousedown', startSwipe);
+  sideMenu.querySelector('div[role="navigation"] > div:first-child').addEventListener('touchstart', startSwipe);
   document.addEventListener('mousemove', moveSwipe);
   document.addEventListener('touchmove', moveSwipe);
   document.addEventListener('mouseup', endSwipe);
@@ -440,14 +166,15 @@
   function renderCategories(events) {
     const sports = [...new Set(events.map(e => e.sport))];
     categoryList.innerHTML = '';
+    // Live Events
     const liveItem = document.createElement('div');
-    liveItem.className = 'category-item live-now';
+    liveItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg bg-red-500 text-white hover:bg-red-600 hover:translate-x-2 hover:shadow-md transition-all duration-300';
     liveItem.setAttribute('role', 'button');
     liveItem.setAttribute('tabindex', '0');
     liveItem.setAttribute('aria-label', 'Show live events');
     liveItem.innerHTML = `
-      <span class="category-icon" style="background-image: url('${sportIcons.Live}')"></span>
-      Live Now
+      <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.Live}')"></span>
+      Live Events
     `;
     liveItem.onclick = () => {
       renderEvents(allEvents.filter(e => isLive(e.unix_timestamp)));
@@ -460,14 +187,57 @@
       }
     };
     categoryList.appendChild(liveItem);
+    // Cricket
+    const cricketItem = document.createElement('div');
+    cricketItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
+    cricketItem.setAttribute('role', 'button');
+    cricketItem.setAttribute('tabindex', '0');
+    cricketItem.setAttribute('aria-label', 'Filter by Cricket');
+    cricketItem.innerHTML = `
+      <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.Cricket}')"></span>
+      Cricket
+    `;
+    cricketItem.onclick = () => {
+      renderEvents(allEvents.filter(e => e.sport === 'Cricket'));
+      toggleSideMenu();
+    };
+    cricketItem.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        renderEvents(allEvents.filter(e => e.sport === 'Cricket'));
+        toggleSideMenu();
+      }
+    };
+    categoryList.appendChild(cricketItem);
+    // Football
+    const footballItem = document.createElement('div');
+    footballItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
+    footballItem.setAttribute('role', 'button');
+    footballItem.setAttribute('tabindex', '0');
+    footballItem.setAttribute('aria-label', 'Filter by Football');
+    footballItem.innerHTML = `
+      <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.Football}')"></span>
+      Football
+    `;
+    footballItem.onclick = () => {
+      renderEvents(allEvents.filter(e => e.sport === 'Football'));
+      toggleSideMenu();
+    };
+    footballItem.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        renderEvents(allEvents.filter(e => e.sport === 'Football'));
+        toggleSideMenu();
+      }
+    };
+    categoryList.appendChild(footballItem);
+    // All Events
     const allItem = document.createElement('div');
-    allItem.className = 'category-item';
+    allItem.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
     allItem.setAttribute('role', 'button');
     allItem.setAttribute('tabindex', '0');
-    allItem.setAttribute('aria-label', 'Show all sports');
+    allItem.setAttribute('aria-label', 'Show all events');
     allItem.innerHTML = `
-      <span class="category-icon" style="background-image: url('${sportIcons.default}')"></span>
-      All
+      <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons.default}')"></span>
+      All Events
     `;
     allItem.onclick = () => {
       renderEvents(allEvents);
@@ -480,14 +250,15 @@
       }
     };
     categoryList.appendChild(allItem);
-    sports.forEach(sport => {
+    // Other sports
+    sports.filter(sport => sport !== 'Cricket' && sport !== 'Football').forEach(sport => {
       const item = document.createElement('div');
-      item.className = 'category-item';
+      item.className = 'category-item flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 hover:translate-x-2 hover:shadow-md transition-all duration-300';
       item.setAttribute('role', 'button');
       item.setAttribute('tabindex', '0');
       item.setAttribute('aria-label', `Filter by ${sport}`);
       item.innerHTML = `
-        <span class="category-icon" style="background-image: url('${sportIcons[sport] || sportIcons.default}')"></span>
+        <span class="category-icon w-8 h-8 sm:w-10 sm:h-10 bg-cover bg-center rounded-md shadow-sm" style="background-image: url('${sportIcons[sport] || sportIcons.default}')"></span>
         ${sport}
       `;
       item.onclick = () => {
@@ -515,55 +286,43 @@
       if (a.sport === b.sport) return a.unix_timestamp - b.unix_timestamp;
       return a.sport.localeCompare(b.sport);
     });
-    const fragment = document.createDocumentFragment();
-    sortedEvents.forEach(event => {
+    sortedEvents.forEach((event, index) => {
       const col = document.createElement('div');
-      col.className = 'col-12';
-      const card = document.createElement('div');
-      card.className = 'card shadow-sm h-100';
-      const cardBody = document.createElement('div');
-      cardBody.className = 'card-body d-flex flex-column';
-      const title = document.createElement('h5');
-      title.className = 'card-title';
-      title.textContent = event.match;
-      const tour = document.createElement('p');
-      tour.className = 'card-text mb-1';
-      tour.innerHTML = `<strong>${event.sport}</strong> - ${event.tournament}`;
-      const time = document.createElement('p');
-      time.className = 'card-text';
-      time.textContent = formatDate(event.unix_timestamp);
-      const links = document.createElement('div');
-      links.className = 'mt-auto';
-      const linkBtn = document.createElement('a');
-      linkBtn.href = `links.html?match=${encodeURIComponent(event.match)}&sport=${encodeURIComponent(event.sport)}&tournament=${encodeURIComponent(event.tournament)}&timestamp=${event.unix_timestamp}`;
-      linkBtn.className = 'btn btn-links';
-      linkBtn.textContent = 'Go to Live Links';
-      linkBtn.setAttribute('aria-label', `View channels for ${event.match}`);
-      links.appendChild(linkBtn);
-      const countdown = document.createElement('div');
-      countdown.className = 'countdown-container mt-3';
-      if (isEnded(event.unix_timestamp)) {
-        const endedBtn = document.createElement('span');
-        endedBtn.className = 'match-ended';
-        endedBtn.textContent = 'Match Ended';
-        countdown.appendChild(endedBtn);
-      } else if (isLive(event.unix_timestamp)) {
-        const liveBtn = document.createElement('span');
-        liveBtn.className = 'live-now';
-        liveBtn.textContent = 'Live Now';
-        countdown.appendChild(liveBtn);
-      } else {
-        const span = document.createElement('span');
-        span.className = 'countdown';
-        span.setAttribute('data-timestamp', event.unix_timestamp);
-        countdown.appendChild(span);
+      col.className = 'bg-white rounded-lg shadow-lg p-4 sm:p-6 hover:-translate-y-2 hover:shadow-xl transition-all duration-300';
+      col.innerHTML = `
+        <h5 class="text-base sm:text-lg font-semibold">${event.match.replace(/\s+-\s+/, ' vs ')}</h5>
+        <p class="text-xs sm:text-sm text-gray-600 mb-1"><strong>${event.sport}</strong> - ${event.tournament}</p>
+        <p class="text-xs sm:text-sm text-gray-600">${formatDate(event.unix_timestamp)}</p>
+        <div class="mt-4">
+          <a href="links.html?match=${encodeURIComponent(event.match)}&sport=${encodeURIComponent(event.sport)}&tournament=${encodeURIComponent(event.tournament)}&timestamp=${event.unix_timestamp}" class="inline-block bg-blue-500 text-white font-medium px-4 py-2 rounded-lg hover:bg-blue-600 hover:scale-105 transition-all duration-200 text-sm sm:text-base" aria-label="View channels for ${event.match}">View Channels</a>
+        </div>
+        <div class="countdown-container mt-4">
+          ${isEnded(event.unix_timestamp)
+            ? '<span class="match-ended inline-block bg-gray-200 text-gray-600 px-3 sm:px-4 py-1 rounded-lg text-xs sm:text-sm font-medium">Match Ended</span>'
+            : isLive(event.unix_timestamp)
+              ? '<span class="live-now inline-block bg-red-500 text-white px-3 sm:px-4 py-1 rounded-lg text-xs sm:text-sm font-medium pulse">Live Now</span>'
+              : `<span class="countdown text-xs sm:text-sm font-medium text-blue-500" data-timestamp="${event.unix_timestamp}"></span>`
+          }
+        </div>
+      `;
+      container.appendChild(col);
+      // Add ad after every 3 events
+      if ((index + 1) % 3 === 0) {
+        const adCol = document.createElement('div');
+        adCol.className = 'my-6 sm:my-8 text-center';
+        adCol.innerHTML = `
+          <ins class="adsbygoogle"
+               style="display:block"
+               data-ad-client="ca-pub-5525538810839147"
+               data-ad-slot="4345862479"
+               data-ad-format="horizontal"
+               data-full-width-responsive="true"></ins>
+        `;
+        container.appendChild(adCol);
       }
-      cardBody.append(title, tour, time, links, countdown);
-      card.appendChild(cardBody);
-      col.appendChild(card);
-      fragment.appendChild(col);
     });
-    container.appendChild(fragment);
+    // Push ads after rendering
+    (adsbygoogle = window.adsbygoogle || []).push({});
   }
   function filterEvents(query) {
     query = query.toLowerCase().trim();
@@ -578,36 +337,36 @@
   function renderSearchSuggestions(events) {
     searchSuggestions.innerHTML = '';
     if (!searchInput.value.trim()) {
-      searchSuggestions.classList.remove('show');
+      searchSuggestions.classList.add('hidden');
       return;
     }
     const maxSuggestions = 5;
     const suggestions = events.slice(0, maxSuggestions);
     if (suggestions.length === 0) {
-      searchSuggestions.classList.remove('show');
+      searchSuggestions.classList.add('hidden');
       return;
     }
     suggestions.forEach(event => {
       const div = document.createElement('div');
-      div.className = 'search-suggestion';
-      div.textContent = `${event.match} (${event.sport})`;
+      div.className = 'search-suggestion px-4 py-2 text-xs sm:text-sm text-gray-900 hover:bg-gray-100 cursor-pointer transition-colors duration-200';
+      div.textContent = `${event.match.replace(/\s+-\s+/, ' vs ')} (${event.sport})`;
       div.setAttribute('role', 'option');
       div.setAttribute('aria-label', `Select ${event.match}`);
       div.onclick = () => {
         searchInput.value = event.match;
         renderEvents([event]);
-        searchSuggestions.classList.remove('show');
+        searchSuggestions.classList.add('hidden');
       };
       div.onkeydown = (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           searchInput.value = event.match;
           renderEvents([event]);
-          searchSuggestions.classList.remove('show');
+          searchSuggestions.classList.add('hidden');
         }
       };
       searchSuggestions.appendChild(div);
     });
-    searchSuggestions.classList.add('show');
+    searchSuggestions.classList.remove('hidden');
   }
   function debounce(func, wait) {
     let timeout;
@@ -634,8 +393,8 @@
   }
   async function fetchEvents() {
     try {
-      loadingSpinner.classList.add('active');
-      errorMessage.classList.add('d-none');
+      loadingSpinner.classList.remove('hidden');
+      errorMessage.classList.add('hidden');
       const res = await fetch('https://topembed.pw/api.php?format=json');
       const data = await res.json();
       let flat = [];
@@ -645,10 +404,10 @@
       allEvents = flat;
       renderEvents(flat);
       renderCategories(flat);
-      loadingSpinner.classList.remove('active');
+      loadingSpinner.classList.add('hidden');
     } catch (err) {
-      loadingSpinner.classList.remove('active');
-      errorMessage.classList.remove('d-none');
+      loadingSpinner.classList.add('hidden');
+      errorMessage.classList.remove('hidden');
     }
   }
   // Event Listeners
@@ -661,7 +420,7 @@
     ));
   });
   searchInput.addEventListener('blur', () => {
-    setTimeout(() => searchSuggestions.classList.remove('show'), 200);
+    setTimeout(() => searchSuggestions.classList.add('hidden'), 200);
   });
   sideMenu.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') toggleSideMenu();
