@@ -22,13 +22,16 @@
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col items-center p-6">
     <div class="w-full max-w-4xl">
-        <h1 class="text-4xl font-extrabold text-gray-900 mb-8 text-center">Cricket Highlights Post Extractor</h1>
-        <input type="text" id="blogUrl" value="https://www.crichighlightsvidz.com" placeholder="Enter Blogger URL (e.g., https://www.crichighlightsvidz.com)" class="w-full p-4 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-700 mb-6">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-6 text-center">Cricket Highlights Post Extractor</h1>
+        <input type="text" id="blogUrl" value="https://www.crichighlightsvidz.com" placeholder="Enter Blogger URL (e.g., https://www.crichighlightsvidz.com)" class="w-full p-4 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-700 mb-4">
+        <input type="text" id="searchBar" placeholder="Search posts by title..." class="w-full p-4 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-700 mb-6">
         <ul id="postList" class="space-y-6"></ul>
         <p id="error" class="text-red-500 text-center mt-6 text-lg"></p>
     </div>
 
     <script>
+        let allPosts = []; // Store all posts for filtering
+
         async function fetchPosts() {
             const blogUrl = document.getElementById('blogUrl').value.trim();
             const errorElement = document.getElementById('error');
@@ -39,6 +42,7 @@
             // Clear previous results and errors
             postListElement.innerHTML = '';
             errorElement.textContent = '';
+            allPosts = [];
 
             // Validate URL
             if (!blogUrl) {
@@ -64,8 +68,8 @@
                     return;
                 }
 
-                // Process each post
-                entries.forEach((entry, index) => {
+                // Process and store posts
+                allPosts = entries.map((entry, index) => {
                     const title = entry.title?.$t || 'No title';
                     const publishedDate = entry.published?.$t ? new Date(entry.published.$t).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -86,30 +90,41 @@
                         if (youtubeMatch && youtubeMatch[1]) {
                             iframeUrl = `https://hlsplayers.pages.dev/yt?url=${youtubeMatch[1]}`;
                         } else {
-                            iframeUrl = url;
+                            iframeUrl = url; // Use any iframe URL as-is if not YouTube
                         }
                     }
 
-                    // Create list item
-                    const li = document.createElement('li');
-                    li.className = 'card bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300';
-                    li.innerHTML = `
-                        <div class="flex items-center justify-between mb-3">
-                            <h2 class="text-xl font-semibold text-gray-800">${title}</h2>
-                            <button class="copy-button bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200" onclick="copyToClipboard('${title.replace(/'/g, "\\'")}', 'title-${index}')">Copy</button>
-                        </div>
-                        <div class="text-sm text-gray-500 mb-3">Published: ${publishedDate}</div>
-                        <div class="text-sm">
-                            Iframe URL: <a href="${iframeUrl}" target="_blank" class="text-blue-600 hover:underline break-all">${iframeUrl}</a>
-                            <button class="copy-button bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 ml-2" onclick="copyToClipboard('${iframeUrl.replace(/'/g, "\\'")}', 'iframe-url-${index}')">Copy</button>
-                        </div>
-                    `;
-                    postListElement.appendChild(li);
+                    return { title, publishedDate, iframeUrl, index };
                 });
+
+                // Render posts
+                renderPosts(allPosts);
             } catch (error) {
                 errorElement.textContent = `Error fetching posts: ${error.message}. Ensure the CORS proxy is working or try a server-side solution. Serve the page over HTTPS or localhost to avoid JavaScript execution errors.`;
                 console.error('Fetch error:', error);
             }
+        }
+
+        function renderPosts(posts) {
+            const postListElement = document.getElementById('postList');
+            postListElement.innerHTML = '';
+
+            posts.forEach(post => {
+                const li = document.createElement('li');
+                li.className = 'card bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300';
+                li.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-xl font-semibold text-gray-800">${post.title}</h2>
+                        <button class="copy-button bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200" onclick="copyToClipboard('${post.title.replace(/'/g, "\\'")}', 'title-${post.index}')">Copy</button>
+                    </div>
+                    <div class="text-sm text-gray-500 mb-3">Published: ${post.publishedDate}</div>
+                    <div class="text-sm">
+                        Iframe URL: <a href="${post.iframeUrl}" target="_blank" class="text-blue-600 hover:underline break-all">${post.iframeUrl}</a>
+                        <button class="copy-button bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 ml-2" onclick="copyToClipboard('${post.iframeUrl.replace(/'/g, "\\'")}', 'iframe-url-${post.index}')">Copy</button>
+                    </div>
+                `;
+                postListElement.appendChild(li);
+            });
         }
 
         function copyToClipboard(text, buttonId) {
@@ -124,6 +139,13 @@
                 alert('Failed to copy text to clipboard. Ensure the page is served over HTTPS or localhost.');
             });
         }
+
+        // Search bar functionality
+        document.getElementById('searchBar').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredPosts = allPosts.filter(post => post.title.toLowerCase().includes(searchTerm));
+            renderPosts(filteredPosts);
+        });
 
         // Automatically fetch posts on page load
         document.addEventListener('DOMContentLoaded', fetchPosts);
