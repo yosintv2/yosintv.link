@@ -1,0 +1,431 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Live Cricket Schedule & Scores</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: 'Roboto', sans-serif;
+      }
+      .header {
+        background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      }
+      .match-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .filter-item {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        border-left: 3px solid transparent;
+      }
+      .filter-item:hover {
+        background-color: #f3f4f6;
+      }
+      .filter-item.active {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+        font-weight: 600;
+        border-left-color: #1d4ed8;
+      }
+      .loading {
+        background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzgiIGhlaWdodD0iMzgiIHZpZXdCb3g9IjAgMCAzOCAzOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBzdHJva2U9IiMxZTRlZWEiPgogICAgPGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj4KICAgICAgPGcgZmlybWw9IiMxZTRlZWEiPgogICAgICAgIDxwYXRoIGQ9Ik0zMy42MDcgMy40MTlMMjcuMzIgMTkuMEwyMC4yNDEgMTEuOTI4TDMzLjYwNyAzLjQxOXoiPgogICAgICAgICAgPGFuaW1hdGUgdHJhbnNmb3JtPSJyb3RhdGUoMzYwIDE5IDE5KSIgYXR0cmlidXRlTmFtZT0idHJhbnNmb3JtIiBkdXI9IjEuNnMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CiAgICAgICAgPC9wYXRoPgogICAgICAgIDxwYXRoIGQ9Ik0yMS4yMDYgNC4xODVMMTMuMjYgMjAuNThMNi4xNzIgMTMuNDk3TDIxLjIwNiA0LjE4NXoiPgogICAgICAgICAgPGFuaW1hdGUgdHJhbnNmb3JtPSJyb3RhdGUoMzYwIDE5IDE5KSIgYXR0cmlidXRlTmFtZT0idHJhbnNmb3JtIiBkdXI9IjEuNnMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CiAgICAgICAgPC9wYXRoPgogICAgICAgIDxwYXRoIGQ9Ik0xMy4wNjggNC44NzVMMTQuMjc2IDE5LjE5TDE4Ljk1NCA1Ljk1TDEzLjA2OCA0Ljg3NXoiPgogICAgICAgICAgPGFuaW1hdGUgdHJhbnNmb3JtPSJyb3RhdGUoMzYwIDE5IDE5KSIgYXR0cmlidXRlTmFtZT0idHJhbnNmb3JtIiBkdXI9IjEuNnMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+CiAgICAgICAgPC9wYXRoPgogICAgICAgIDxwYXRoIGQ9Ik0yNS4wMTggNC41NTVMMTkuMjIgMjAuMDVMMTQuNzQgOC41NjNMMjUuMDE4IDQuNTU1eiI+CiAgICAgICAgICA8YW5pbWF0ZSB0cmFuc2Zvcm09InJvdGF0ZSgzNjAgMTkgMTkpIiBh dHRyaWJ1dGVOYW1lPSJ0cmFuc2Zvcm0iIGR1cj0iMS42cyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiLz4KICAgICAgICA8L3BhdGg+CiAgICAgIDwvZz4KCiAgICA8L2c+CiAgPC9zdmc+');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 38px;
+        padding-top: 40px;
+      }
+      .match-table th, .match-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+      }
+      .match-table th {
+        background-color: #f9fafb;
+        font-weight: 500;
+        color: #6b7280;
+      }
+      .match-table tr:last-child td {
+        border-bottom: none;
+      }
+      .today-match {
+        border-left: 4px solid #1d4ed8;
+        background-color: #eff6ff;
+      }
+      .live-match {
+        border-left: 4px solid #dc2626;
+        background-color: #fef2f2;
+      }
+      .live-badge {
+        background-color: #dc2626;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-left: 8px;
+      }
+      @media (max-width: 640px) {
+        .match-table th, .match-table td {
+          font-size: 0.875rem; /* 14px for mobile */
+          padding: 6px 8px;
+        }
+        .match-table th:first-child, .match-table td:first-child {
+          width: 40%;
+        }
+        .match-table th:last-child, .match-table td:last-child {
+          width: 60%;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 min-h-screen text-gray-800">
+    <header class="header text-white py-4 shadow-xl">
+      <div class="container mx-auto px-4 sm:px-6 flex justify-between items-center">
+        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold">Live Cricket Schedule</h1>
+        <nav class="hidden md:flex space-x-6">
+          <a href="#" class="hover:text-gray-200 font-medium transition-colors text-sm md:text-base">Home</a>
+          <a href="#" class="hover:text-gray-200 font-medium transition-colors text-sm md:text-base">Live</a>
+          <a href="#" class="hover:text-gray-200 font-medium transition-colors text-sm md:text-base">Series</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="container mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col lg:flex-row gap-6 lg:gap-12">
+      <main class="flex-1">
+        <div class="mb-6">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search teams..."
+            class="w-full p-3 sm:p-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm sm:text-base"
+            aria-label="Search matches by team name"
+          />
+        </div>
+        <div
+          class="loading text-center text-blue-600 font-medium pt-8 hidden text-sm sm:text-base"
+          id="loading"
+          role="status"
+        >
+          Loading matches...
+        </div>
+        <div
+          class="error text-center text-red-600 text-sm sm:text-lg font-medium p-6 bg-red-100 rounded-lg hidden"
+          id="error"
+          role="alert"
+        ></div>
+        <div id="matchesContainer"></div>
+      </main>
+
+      <aside class="w-full lg:w-80 bg-white rounded-xl shadow-lg p-4 sm:p-6">
+        <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4 flex items-center">
+          <span class="mr-2">🏏</span>Filter by Series
+        </h2>
+        <div class="mb-4">
+          <input
+            type="text"
+            id="seriesSearch"
+            placeholder="Search series..."
+            class="w-full p-2 sm:p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+            aria-label="Search series"
+          />
+        </div>
+        <ul id="seriesList" class="space-y-1"></ul>
+      </aside>
+    </div>
+
+    <script>
+      let allMatches = [];
+      let selectedSeries = null;
+      let countdownIntervals = [];
+
+      async function fetchMatchData() {
+        try {
+          document.getElementById('loading').classList.remove('hidden');
+          document.getElementById('error').classList.add('hidden');
+
+          const response = await fetch(
+            'https://corsproxy.io/?url=https://sports.ndtv.com/multisportsapi/?methodtype=3&client=2656770267&sport=1&league=0&timezone=0530&language=en&gamestate=2&widget=sidefiltercricketSports'
+          );
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          const now = new Date();
+          allMatches = data.matches.filter((match) => {
+            const endDate = new Date(match.end_date);
+            return endDate > now;
+          });
+
+          displaySeries();
+          filterAndDisplayMatches();
+        } catch (error) {
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('error').classList.remove('hidden');
+          document.getElementById('error').textContent =
+            'Oops! Failed to load match data. Please check your network or try again later. ⚠️';
+        }
+      }
+
+      function convertToLocal(utcDateTime) {
+        const date = new Date(utcDateTime);
+        const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        
+        const timeZoneName = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
+                                  .formatToParts(date)
+                                  .find(part => part.type === 'timeZoneName').value;
+
+        return `${date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        })} ${timeZoneName}`;
+      }
+
+      function getCountdown(startDate, elementId) {
+        const start = new Date(startDate);
+        const now = new Date();
+        const timeDiff = start - now;
+
+        if (timeDiff <= 0) {
+          return 'Match Started';
+        }
+
+        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+        return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      }
+
+      function startCountdown(startDate, elementId) {
+        const updateCountdown = () => {
+          const countdownText = getCountdown(startDate, elementId);
+          const element = document.getElementById(elementId);
+          if (element) {
+            element.textContent = countdownText;
+            if (countdownText === 'Match Started') {
+              clearInterval(countdownIntervals[elementId]);
+              delete countdownIntervals[elementId];
+              filterAndDisplayMatches(); // Refresh to show live status
+            }
+          }
+        };
+        updateCountdown();
+        const intervalId = setInterval(updateCountdown, 1000);
+        countdownIntervals[elementId] = intervalId;
+      }
+
+      function isMatchLive(match) {
+        const now = new Date();
+        const start = new Date(match.start_date);
+        const end = new Date(match.end_date);
+        return now >= start && now <= end || match.event_status.toLowerCase().includes('in progress');
+      }
+
+      function groupMatchesByDate(matches) {
+        const grouped = {};
+        const today = new Date().toDateString(); // Use toDateString for exact date comparison
+
+        matches.forEach((match) => {
+          const matchDate = new Date(match.start_date).toDateString();
+          const displayDate = new Date(match.start_date).toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+          });
+          if (!grouped[matchDate]) {
+            grouped[matchDate] = { displayDate, matches: [] };
+          }
+          grouped[matchDate].matches.push(match);
+        });
+
+        return grouped;
+      }
+
+      function displayMatches(matches) {
+        // Clear existing countdown intervals
+        Object.values(countdownIntervals).forEach(clearInterval);
+        countdownIntervals = [];
+
+        document.getElementById('loading').classList.add('hidden');
+        const matchesContainer = document.getElementById('matchesContainer');
+        matchesContainer.innerHTML = '';
+
+        if (matches.length === 0) {
+          matchesContainer.innerHTML =
+            '<div class="text-center text-gray-500 p-6 sm:p-8 bg-white rounded-lg shadow-md text-sm sm:text-base">No matches found for your search. 😔</div>';
+          return;
+        }
+
+        const groupedMatches = groupMatchesByDate(matches);
+        const today = new Date().toDateString();
+        const todayDisplay = new Date().toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        });
+
+        // Sort dates chronologically
+        const sortedDates = Object.keys(groupedMatches).sort((a, b) => new Date(a) - new Date(b));
+
+        sortedDates.forEach((dateKey, dateIndex) => {
+          const { displayDate, matches } = groupedMatches[dateKey];
+          const isToday = dateKey === today;
+          const dateSection = document.createElement('div');
+          dateSection.innerHTML = `
+            <div class="bg-blue-100 text-blue-800 py-3 px-4 rounded-lg shadow-inner mb-4 mt-6 font-semibold text-sm sm:text-base">
+              <h2>${isToday ? `Today's Matches - ${displayDate}` : displayDate}</h2>
+            </div>
+          `;
+          matchesContainer.appendChild(dateSection);
+
+          matches.forEach((match, matchIndex) => {
+            const matchDiv = document.createElement('div');
+            const isLive = isMatchLive(match);
+            matchDiv.className = `match-card bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 ${isLive ? 'live-match' : isToday ? 'today-match' : ''}`;
+            const localFullDateTime = convertToLocal(match.start_date);
+            const team1 = match.participants[0];
+            const team2 = match.participants[1];
+            const matchStatus = match.event_status;
+            const countdownId = `countdown-${dateKey.replace(/\s/g, '-')}-${matchIndex}`;
+
+            matchDiv.innerHTML = `
+              <div class="flex flex-col items-center justify-center text-center pb-4 mb-4 border-b border-gray-200">
+                <h3 class="text-lg sm:text-2xl font-bold text-gray-900">
+                  ${team1.name_eng} <span class="text-gray-400 font-normal">vs</span> ${team2.name_eng}
+                  ${isLive ? '<span class="live-badge">Live Now</span>' : ''}
+                </h3>
+                <p class="text-sm sm:text-md text-gray-500 font-medium mt-1">${match.series_name || 'Match'}</p>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="match-table w-full text-xs sm:text-sm" role="grid">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="w-[40%]">Detail</th>
+                      <th scope="col" class="w-[60%]">Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="font-medium">Date & Time</td>
+                      <td>${localFullDateTime}</td>
+                    </tr>
+                    <tr>
+                      <td class="font-medium">Venue</td>
+                      <td>${match.venue_name || 'Venue TBD'}</td>
+                    </tr>
+                    <tr>
+                      <td class="font-medium">Format</td>
+                      <td>${match.event_format.toUpperCase() || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td class="font-medium">Status</td>
+                      <td>${matchStatus}${isLive ? ' (Live)' : ''}</td>
+                    </tr>
+                    <tr>
+                      <td class="font-medium">Coverage</td>
+                      <td>${match.event_coverage_level || 'N/A'}</td>
+                    </tr>
+                    ${!isLive ? `
+                    <tr>
+                      <td class="font-medium">Countdown</td>
+                      <td id="${countdownId}">${getCountdown(match.start_date, countdownId)}</td>
+                    </tr>` : ''}
+                  </tbody>
+                </table>
+              </div>
+            `;
+            matchesContainer.appendChild(matchDiv);
+            if (!isLive) {
+              startCountdown(match.start_date, countdownId);
+            }
+          });
+        });
+      }
+
+      function displaySeries() {
+        const seriesList = document.getElementById('seriesList');
+        const series = [...new Set(allMatches.map((match) => match.series_name))].filter(Boolean);
+        series.sort();
+        seriesList.innerHTML = `<li class="filter-item p-2 rounded-lg active text-sm sm:text-base" data-series="all">All Series</li>`;
+        series.forEach((seriesName) => {
+          const li = document.createElement('li');
+          li.className = `filter-item p-2 rounded-lg ${selectedSeries === seriesName ? 'active' : ''} text-sm sm:text-base`;
+          li.dataset.series = seriesName;
+          li.textContent = seriesName;
+          li.addEventListener('click', () => {
+            selectedSeries = seriesName === 'all' ? null : seriesName;
+            document
+              .querySelectorAll('.filter-item')
+              .forEach((item) => item.classList.remove('active'));
+            li.classList.add('active');
+            filterAndDisplayMatches();
+          });
+          seriesList.appendChild(li);
+        });
+      }
+
+      function filterAndDisplayMatches() {
+        const teamSearchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const seriesSearchTerm = document.getElementById('seriesSearch').value.toLowerCase();
+
+        let filteredMatches = allMatches;
+
+        if (selectedSeries) {
+          filteredMatches = filteredMatches.filter((match) => match.series_name === selectedSeries);
+        }
+
+        filteredMatches = filteredMatches.filter((match) => {
+          const team1 = match.participants[0].name_eng.toLowerCase();
+          const team2 = match.participants[1].name_eng.toLowerCase();
+          return team1.includes(teamSearchTerm) || team2.includes(teamSearchTerm);
+        });
+
+        const seriesList = document.getElementById('seriesList');
+        const allUniqueSeries = [...new Set(allMatches.map((match) => match.series_name))].filter(Boolean);
+        const filteredSeries = allUniqueSeries.filter((series) =>
+          series.toLowerCase().includes(seriesSearchTerm)
+        ).sort();
+
+        seriesList.innerHTML = `<li class="filter-item p-2 rounded-lg ${selectedSeries === null ? 'active' : ''} text-sm sm:text-base" data-series="all">All Series</li>`;
+        filteredSeries.forEach((seriesName) => {
+          const li = document.createElement('li');
+          li.className = `filter-item p-2 rounded-lg ${selectedSeries === seriesName ? 'active' : ''} text-sm sm:text-base`;
+          li.dataset.series = seriesName;
+          li.textContent = seriesName;
+          li.addEventListener('click', () => {
+            selectedSeries = seriesName === 'all' ? null : seriesName;
+            document
+              .querySelectorAll('.filter-item')
+              .forEach((item) => item.classList.remove('active'));
+            li.classList.add('active');
+            filterAndDisplayMatches();
+          });
+          seriesList.appendChild(li);
+        });
+
+        displayMatches(filteredMatches);
+      }
+
+      document.getElementById('searchInput').addEventListener('input', filterAndDisplayMatches);
+      document.getElementById('seriesSearch').addEventListener('input', filterAndDisplayMatches);
+      window.onload = fetchMatchData;
+    </script>
+  </body>
+</html>
