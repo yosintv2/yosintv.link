@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,22 +6,27 @@
   <title>Cricket Match Schedule</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .match-row {
-      transition: background-color 0.2s ease;
-    }
-    .match-row:hover {
-      background-color: #f1f5f9;
-    }
-    .tournament-item:hover {
-      background-color: #f1f5f9;
-      cursor: pointer;
-    }
+    .match-row { transition: background-color 0.2s ease; }
+    .match-row:hover { background-color: #f1f5f9; }
+    .tournament-item { cursor: pointer; transition: background-color 0.2s ease; }
+    .tournament-item:hover { background-color: #f1f5f9; }
+    .tournament-item.active { background-color: #bfdbfe; font-weight: bold; }
+    .container { display: flex; justify-content: center; max-width: 1200px; margin: 0 auto; align-items: flex-start; padding: 1rem; }
+    .tab { cursor: pointer; padding: 0.5rem 1rem; border-radius: 0.375rem; }
+    .tab:hover { background-color: #e5e7eb; }
+    .tab.active { background-color: #3b82f6; color: white; font-weight: bold; }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
   <div class="container mx-auto flex max-w-5xl">
     <div class="flex-1">
-      <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Cricket Match Schedule (Local Time)</h1>
+      <h1 class="text-3xl font-bold text-center text-gray-800 mb-2" id="scheduleHeader"></h1>
+      <div class="flex space-x-4 mb-4 justify-center">
+        <div class="tab" data-day="yesterday">Yesterday</div>
+        <div class="tab active" data-day="today">Today</div>
+        <div class="tab" data-day="tomorrow">Tomorrow</div>
+        <div class="tab" data-day="all">All</div>
+      </div>
       <div class="mb-6">
         <input type="text" id="searchInput" placeholder="Search by team name..." class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
@@ -39,37 +43,23 @@
   <script>
     let allMatches = [];
     let allTournaments = [];
-    const currentDateTime = new Date(); // Use current system time
+    let selectedTournament = null;
+    let selectedDay = 'today';
+    const currentDateTime = new Date('2025-09-05T15:47:00+09:00'); // Fixed to Sep 05, 2025, 03:47 PM JST
+    const matchCache = new Map(); // Cache for local time conversions
 
-    async function fetchMatchData() {
-      try {
-        const response = await fetch('https://corsproxy.io/?url=https://sports.ndtv.com/multisportsapi/?methodtype=3&client=2656770267&sport=1&league=0&timezone=0530&language=en&gamestate=2&widget=sidefiltercricketSports');
-        if (!response.ok) {
-          throw new Error('Failed to fetch match data');
-        }
-        const data = await response.json();
-        allMatches = data.matches.filter(match => {
-          const endDate = new Date(match.end_date);
-          return endDate > currentDateTime; // Only include matches that haven't ended
-        });
-        // Extract unique tournament names with event_format
-        allTournaments = [...new Set(allMatches.map(match => ({
-          name: match.tour_name,
-          format: match.event_format || 'Unknown' // Fallback if event_format is missing
-        })))];
-        displayMatches(allMatches);
-        displayTournaments(allTournaments);
-      } catch (error) {
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('error').classList.remove('hidden');
-        document.getElementById('error').textContent = 'Error: ' + error.message;
-      }
+    function setScheduleHeader() {
+      const date = new Date(currentDateTime);
+      const month = date.toLocaleString('en-US', { month: 'short' });
+      const day = date.toLocaleString('en-US', { day: '2-digit' });
     }
 
     function convertToLocalTime(istDateTime) {
+      if (matchCache.has(istDateTime)) return matchCache.get(istDateTime);
       const date = new Date(istDateTime);
+      if (isNaN(date.getTime())) return 'Invalid Date';
       const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      return new Intl.DateTimeFormat('en-US', {
+      const formatted = new Intl.DateTimeFormat('en-US', {
         timeZone: userTimeZone,
         year: 'numeric',
         month: 'short',
@@ -78,13 +68,40 @@
         minute: '2-digit',
         hour12: false
       }).format(date).replace(',', '');
+      matchCache.set(istDateTime, formatted);
+      return formatted;
+    }
+
+    async function fetchMatchData() {
+      try {
+        const response = await fetch('https://corsproxy.io/?url=https://sports.ndtv.com/multisportsapi/?methodtype=3&client=2656770267&sport=1&league=0&timezone=0530&language=en&gamestate=2&widget=sidefiltercricketSports');
+        if (!response.ok) {
+          throw new Error('Failed to fetch match data');
+        }
+        const data = await response.json();
+        allMatches = data.matches
+          .filter(match => match.start_date && !isNaN(new Date(match.start_date).getTime()))
+          .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+        allTournaments = [...new Set(allMatches.map(match => ({
+          name: match.tour_name,
+          format: match.event_format || 'Unknown'
+        })))];
+        setScheduleHeader();
+        displayTournaments(allTournaments);
+        filterMatches();
+      } catch (error) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error').classList.remove('hidden');
+        document.getElementById('error').textContent = 'Error: ' + error.message;
+      }
     }
 
     function groupMatchesByDate(matches) {
       const grouped = {};
       matches.forEach(match => {
         const localTime = convertToLocalTime(match.start_date);
-        const date = localTime.match(/(\w+ \d{2})/)[0]; // Show only month and day
+        if (localTime === 'Invalid Date') return;
+        const date = localTime.match(/(\w+ \d{2})/)?.[0] || 'Unknown Date';
         if (!grouped[date]) {
           grouped[date] = [];
         }
@@ -96,74 +113,119 @@
     function displayMatches(matches) {
       document.getElementById('loading').classList.add('hidden');
       const matchesContainer = document.getElementById('matchesContainer');
-      matchesContainer.innerHTML = ''; // Clear previous content
       if (matches.length === 0) {
-        matchesContainer.innerHTML = '<div class="text-center text-gray-600 p-4">No upcoming matches found.</div>';
+        matchesContainer.innerHTML = '<div class="text-center text-gray-600 p-4">No matches found.</div>';
         return;
       }
+
+      let html = '';
       const groupedMatches = groupMatchesByDate(matches);
-      Object.keys(groupedMatches).forEach(date => {
-        const dateDiv = document.createElement('div');
-        dateDiv.innerHTML = `
-          <div class="bg-gray-200 p-4 font-semibold text-gray-700 text-lg">${date}</div>
-        `;
-        matchesContainer.appendChild(dateDiv);
+      Object.keys(groupedMatches).sort((a, b) => {
+        const dateA = new Date(matches.find(m => convertToLocalTime(m.start_date).includes(a))?.start_date || 0);
+        const dateB = new Date(matches.find(m => convertToLocalTime(m.start_date).includes(b))?.start_date || 0);
+        return dateA - dateB;
+      }).forEach(date => {
+        html += `<div class="bg-gray-200 p-4 font-semibold text-gray-700 text-lg">${date}</div>`;
         groupedMatches[date].forEach(match => {
-          const matchDiv = document.createElement('div');
-          matchDiv.className = 'match-row grid grid-cols-2 gap-4 p-4 border-b border-gray-200 text-gray-600';
           const localTime = convertToLocalTime(match.start_date);
-          const timeParts = localTime.match(/(\d{2}:\d{2})/)[0];
-          const matchName = `${match.participants[0].name_eng} vs ${match.participants[1].name_eng}, ${match.event_name}`;
-          matchDiv.innerHTML = `
-            <div>${timeParts}</div>
-            <div>${matchName}</div>
-          `;
-          dateDiv.appendChild(matchDiv);
+          const timeParts = localTime.match(/(\d{2}:\d{2})/)?.[0] || 'Unknown Time';
+          const matchName = `${match.participants[0]?.name_eng || 'TBD'} vs ${match.participants[1]?.name_eng || 'TBD'}, ${match.event_name || 'Unknown Event'}`;
+          html += `<div class="match-row grid grid-cols-2 gap-4 p-4 border-b border-gray-200 text-gray-600"><div>${timeParts}</div><div>${matchName}</div></div>`;
         });
       });
+      matchesContainer.innerHTML = html;
     }
 
     function displayTournaments(tournaments) {
       const tournamentList = document.getElementById('tournamentList');
-      tournamentList.innerHTML = ''; // Clear previous content
-      if (tournaments.length === 0) {
-        tournamentList.innerHTML = '<li class="text-gray-600">No tournaments found.</li>';
-        return;
-      }
-      tournaments.forEach(tournament => {
-        const li = document.createElement('li');
-        li.className = 'tournament-item p-2 rounded text-gray-600';
-        li.textContent = `${tournament.name} (${tournament.format})`;
-        li.addEventListener('click', () => {
-          document.getElementById('searchInput').value = ''; // Clear team search
-          const filteredMatches = allMatches.filter(match => match.tour_name === tournament.name);
-          displayMatches(filteredMatches);
+      tournamentList.innerHTML = '<li class="tournament-item p-2 rounded-lg" data-tournament="all">All Tournaments</li>' +
+        tournaments.map(tournament => 
+          `<li class="tournament-item p-2 rounded-lg ${selectedTournament === tournament.name ? 'active' : ''}" data-tournament="${tournament.name}">${tournament.name} (${tournament.format})</li>`
+        ).join('');
+      
+      document.querySelectorAll('.tournament-item').forEach(item => {
+        item.addEventListener('click', () => {
+          selectedTournament = item.dataset.tournament === 'all' ? null : item.dataset.tournament;
+          document.querySelectorAll('.tournament-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          document.getElementById('searchInput').value = '';
+          filterMatches();
         });
-        tournamentList.appendChild(li);
       });
+    }
+
+    // Debounce function to limit rapid input events
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
     }
 
     function filterMatches() {
-      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-      const filteredMatches = allMatches.filter(match => {
-        const team1 = match.participants[0].name_eng.toLowerCase();
-        const team2 = match.participants[1].name_eng.toLowerCase();
-        return team1.includes(searchTerm) || team2.includes(searchTerm);
+      let filteredMatches = allMatches;
+
+      // Filter by selected day
+      if (selectedDay !== 'all') {
+        const today = new Date(currentDateTime);
+        today.setHours(0, 0, 0, 0);
+        let targetDate;
+        if (selectedDay === 'yesterday') {
+          targetDate = new Date(today);
+          targetDate.setDate(today.getDate() - 1);
+        } else if (selectedDay === 'today') {
+          targetDate = new Date(today);
+        } else if (selectedDay === 'tomorrow') {
+          targetDate = new Date(today);
+          targetDate.setDate(today.getDate() + 1);
+        }
+        filteredMatches = filteredMatches.filter(match => {
+          const matchDate = new Date(match.start_date);
+          if (isNaN(matchDate.getTime())) return false;
+          matchDate.setHours(0, 0, 0, 0);
+          return matchDate.getTime() === targetDate.getTime();
+        });
+      }
+
+      // Filter by tournament
+      if (selectedTournament) {
+        filteredMatches = filteredMatches.filter(match => match.tour_name === selectedTournament);
+      }
+
+      // Filter by team search
+      const teamSearchTerm = document.getElementById('searchInput').value.toLowerCase();
+      filteredMatches = filteredMatches.filter(match => {
+        const team1 = match.participants[0]?.name_eng?.toLowerCase() || '';
+        const team2 = match.participants[1]?.name_eng?.toLowerCase() || '';
+        return team1.includes(teamSearchTerm) || team2.includes(teamSearchTerm);
       });
+
+      // Filter tournaments by search term
+      const tournamentSearchTerm = document.getElementById('tournamentSearch').value.toLowerCase();
+      const filteredTournaments = allTournaments.filter(tournament =>
+        `${tournament.name} (${tournament.format})`.toLowerCase().includes(tournamentSearchTerm)
+      );
+      displayTournaments(filteredTournaments);
       displayMatches(filteredMatches);
     }
 
-    function filterTournaments() {
-      const searchTerm = document.getElementById('tournamentSearch').value.toLowerCase();
-      const filteredTournaments = allTournaments.filter(tournament =>
-        `${tournament.name} (${tournament.format})`.toLowerCase().includes(searchTerm)
-      );
-      displayTournaments(filteredTournaments);
-    }
+    // Add event listeners for tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        if (selectedDay !== tab.dataset.day) {
+          selectedDay = tab.dataset.day;
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          filterMatches();
+        }
+      });
+    });
 
-    // Attach event listeners
-    document.getElementById('searchInput').addEventListener('input', filterMatches);
-    document.getElementById('tournamentSearch').addEventListener('input', filterTournaments);
+    // Debounced input handlers
+    const debouncedFilterMatches = debounce(filterMatches, 300);
+    document.getElementById('searchInput').addEventListener('input', debouncedFilterMatches);
+    document.getElementById('tournamentSearch').addEventListener('input', debouncedFilterMatches);
 
     window.onload = fetchMatchData;
   </script>
