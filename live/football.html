@@ -13,12 +13,21 @@
     .tournament-item:hover { background-color: #e5e7eb; }
     .tournament-item.active { background-color: #bfdbfe; font-weight: bold; }
     .container { display: flex; justify-content: center; max-width: 1200px; margin: 0 auto; align-items: flex-start; padding: 1rem; }
+    .tab { cursor: pointer; padding: 0.5rem 1rem; border-radius: 0.375rem; }
+    .tab:hover { background-color: #e5e7eb; }
+    .tab.active { background-color: #3b82f6; color: white; font-weight: bold; }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
   <div class="container">
     <div class="flex-1 max-w-2xl">
       <div id="scheduleHeader" class="text-3xl font-bold text-center text-gray-800 mb-2"></div>
+      <div class="flex space-x-4 mb-4 justify-center">
+        <div class="tab" data-day="yesterday">Yesterday</div>
+        <div class="tab active" data-day="today">Today</div>
+        <div class="tab" data-day="tomorrow">Tomorrow</div>
+        <div class="tab" data-day="all">All</div>
+      </div>
       <div class="mb-6">
         <input type="text" id="searchInput" placeholder="Search by team name..." class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
@@ -35,13 +44,14 @@
   <script>
     let allMatches = [];
     let selectedTournament = null;
+    let selectedDay = 'today';
     const currentDateTime = new Date();
 
     function setScheduleHeader() {
       const date = new Date(currentDateTime);
       const month = date.toLocaleString('en-US', { month: 'long' });
       const day = date.toLocaleString('en-US', { day: '2-digit' });
-      document.getElementById('scheduleHeader').textContent = `F.Schedule - ${month}, ${day}`;
+      document.getElementById('scheduleHeader').textContent = `Football Schedule - ${month}, ${day}`;
     }
 
     async function fetchMatchData() {
@@ -51,15 +61,10 @@
           throw new Error('Failed to fetch match data');
         }
         const data = await response.json();
-        const startOfCurrentDay = new Date(currentDateTime);
-        startOfCurrentDay.setHours(0, 0, 0, 0); // Set to 00:00 AM of current date
-        allMatches = data.events.filter(match => {
-          const matchDate = new Date(match.startTimestamp * 1000);
-          return matchDate.getTime() >= startOfCurrentDay.getTime();
-        });
+        allMatches = data.events; // No date restriction
         setScheduleHeader();
         displayTournaments();
-        displayMatches(allMatches);
+        filterMatches();
       } catch (error) {
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('error').classList.remove('hidden');
@@ -83,7 +88,7 @@
       const grouped = {};
       matches.forEach(match => {
         const localTime = convertToLocalTime(match.startTimestamp);
-        const date = localTime.match(/(\w+ \d{2})/)[0];
+        const date = localTime.match(/(\w+ \d{2} \d{4})/)[0];
         if (!grouped[date]) {
           grouped[date] = [];
         }
@@ -136,18 +141,44 @@
       const teamSearchTerm = document.getElementById('searchInput').value.toLowerCase();
       const tournamentSearchTerm = document.getElementById('tournamentSearch').value.toLowerCase();
       let filteredMatches = allMatches;
+
+      // Filter by selected day
+      if (selectedDay !== 'all') {
+        const today = new Date(currentDateTime);
+        today.setHours(0, 0, 0, 0);
+        let targetDate;
+        if (selectedDay === 'yesterday') {
+          targetDate = new Date(today);
+          targetDate.setDate(today.getDate() - 1);
+        } else if (selectedDay === 'today') {
+          targetDate = new Date(today);
+        } else if (selectedDay === 'tomorrow') {
+          targetDate = new Date(today);
+          targetDate.setDate(today.getDate() + 1);
+        }
+        filteredMatches = filteredMatches.filter(match => {
+          const matchDate = new Date(match.startTimestamp * 1000);
+          matchDate.setHours(0, 0, 0, 0);
+          return matchDate.getTime() === targetDate.getTime();
+        });
+      }
+
+      // Filter by tournament
       if (selectedTournament) {
         filteredMatches = filteredMatches.filter(match => match.tournament.uniqueTournament.name === selectedTournament);
       }
+
+      // Filter by team search
       filteredMatches = filteredMatches.filter(match => {
         const team1 = match.homeTeam.name.toLowerCase();
         const team2 = match.awayTeam.name.toLowerCase();
         return team1.includes(teamSearchTerm) || team2.includes(teamSearchTerm);
       });
+
+      // Filter tournaments by search term
       const tournamentList = document.getElementById('tournamentList');
-      const tournaments = [...new Set(allMatches.map(match => match.tournament.uniqueTournament.name))].filter(tournament =>
-        tournament.toLowerCase().includes(tournamentSearchTerm)
-      );
+      const tournaments = [...new Set(allMatches.map(match => match.tournament.uniqueTournament.name))]
+        .filter(tournament => tournament.toLowerCase().includes(tournamentSearchTerm));
       tournamentList.innerHTML = `<li class="tournament-item p-2 rounded-lg ${selectedTournament === null ? 'active' : ''}" data-tournament="all">All Tournaments</li>`;
       tournaments.forEach(tournament => {
         const li = document.createElement('li');
@@ -162,11 +193,23 @@
         });
         tournamentList.appendChild(li);
       });
+
       displayMatches(filteredMatches);
     }
 
+    // Add event listeners for tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        selectedDay = tab.dataset.day;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        filterMatches();
+      });
+    });
+
     document.getElementById('searchInput').addEventListener('input', filterMatches);
     document.getElementById('tournamentSearch').addEventListener('input', filterMatches);
+
     window.onload = fetchMatchData;
   </script>
 </body>
