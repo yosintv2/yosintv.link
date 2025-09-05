@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> Highlights JSON Generator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body.dark-mode { background-color: #121212; color: white; }
+    .json-box { white-space: pre-wrap; font-family: monospace; background: #f8f9fa; padding: 1rem; border-radius: 0.5rem; min-height: 150px; overflow-x: auto; }
+    body.dark-mode .json-box { background: #1e1e1e; color: #eee; }
+    .floating-buttons { position: fixed; top: 50%; right: 20px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 1000; }
+    .container { max-width: 800px; margin: auto; }
+    .popup-alert { position: fixed; bottom: 20px; right: 20px; background: #0d6efd; color: white; padding: 10px 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s ease-in-out; z-index: 2000; }
+    .popup-alert.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Match Highlights JSON Generator</h2>
+      <button id="themeToggle" class="btn btn-secondary">Dark Theme</button>
+    </div>
+    <div class="mb-3">
+      <label for="dateInput" class="form-label">Select Date (defaults to today):</label>
+      <input type="date" id="dateInput" class="form-control mb-3">
+    </div>
+    <div class="mb-3">
+      <label for="matchInput" class="form-label">Enter Match Data (format: Team1 vs Team2, Category, URL):</label>
+      <textarea id="matchInput" class="form-control" rows="10" placeholder="Barcelona vs Como, Friendly, https://highlight.api-football.xyz/2025/08/13/1754864825724/index.m3u8"></textarea>
+    </div>
+    <div class="mb-4">
+      <h5>Generated JSON</h5>
+      <div id="jsonOutput" class="json-box"></div>
+    </div>
+  </div>
+  <div class="floating-buttons">
+    <button id="generateBtn" class="btn btn-primary">Generate JSON</button>
+    <button id="copyBtn" class="btn btn-outline-secondary">Copy JSON</button>
+  </div>
+  <div id="popupAlert" class="popup-alert"></div>
+  <script>
+    const inputEl = document.getElementById("matchInput");
+    const dateInputEl = document.getElementById("dateInput");
+    const jsonOutput = document.getElementById("jsonOutput");
+    const generateBtn = document.getElementById("generateBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const popupAlert = document.getElementById("popupAlert");
+
+    // Set today's date as default value (fixed for local time zone)
+    const today = new Date();
+    dateInputEl.value = today.getFullYear() + '-' + 
+                        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(today.getDate()).padStart(2, '0');
+
+    function generateRandomId(usedIds) {
+      const letters = 'abcdefghijklmnopqrstuvwxyz';
+      let id;
+      do {
+        const randomLetter1 = letters[Math.floor(Math.random() * letters.length)];
+        const randomLetter2 = letters[Math.floor(Math.random() * letters.length)];
+        const randomLetter3 = letters[Math.floor(Math.random() * letters.length)];
+        const randomNumber = Math.floor(1000000 + Math.random() * 9000000).toString();
+        id = randomLetter1 + randomLetter2 + randomLetter3 + randomNumber;
+      } while (usedIds.has(id));
+      usedIds.add(id);
+      return id;
+    }
+
+    function parseInput(text, selectedDate) {
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      const matches = [];
+      const usedIds = new Set();
+      const today = selectedDate || new Date().toISOString().split('T')[0];
+      for (const line of lines) {
+        const parts = line.split(",").map(p => p.trim());
+        if (parts.length !== 3) continue;
+        const [teamLine, category, url] = parts;
+        const [team1, team2] = teamLine.split(" vs ").map(t => t.trim());
+        if (!team1 || !team2 || !category || !url) continue;
+        const id = generateRandomId(usedIds);
+        const match = { id, team1, team2, category, date: today, link: `video?src=${url}` };
+        matches.push(match);
+      }
+      return matches;
+    }
+
+    function showJSON(element, data) {
+      if (data.length === 0) {
+        element.textContent = "";
+        return;
+      }
+      const jsonString = data
+        .map(item => JSON.stringify(item, null, 2) + ',')
+        .join("\n\n");
+      element.textContent = jsonString;
+      localStorage.setItem("lastJsonOutput", jsonString);
+      showPopup("✅ JSON Generated!");
+    }
+
+    function copyJSON() {
+      const jsonText = jsonOutput.textContent;
+      if (!jsonText.trim()) {
+        showPopup("⚠️ No JSON to copy!");
+        return;
+      }
+      navigator.clipboard.writeText(jsonText).then(() => {
+        showPopup("📋 Copied to clipboard!");
+      }).catch(() => {
+        showPopup("❌ Failed to copy.");
+      });
+    }
+
+    function showPopup(message) {
+      popupAlert.textContent = message;
+      popupAlert.classList.add("show");
+      setTimeout(() => {
+        popupAlert.classList.remove("show");
+      }, 2000);
+    }
+
+    generateBtn.addEventListener("click", () => {
+      const input = inputEl.value;
+      const selectedDate = dateInputEl.value;
+      const matches = parseInput(input, selectedDate);
+      showJSON(jsonOutput, matches);
+      localStorage.setItem("lastMatchInput", input);
+    });
+
+    copyBtn.addEventListener("click", copyJSON);
+
+    window.addEventListener("load", () => {
+      const savedInput = localStorage.getItem("lastMatchInput");
+      const savedJson = localStorage.getItem("lastJsonOutput");
+      if (savedInput) inputEl.value = savedInput;
+      if (savedJson) jsonOutput.textContent = savedJson;
+    });
+
+    const themeToggle = document.getElementById("themeToggle");
+    themeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+      themeToggle.textContent = document.body.classList.contains("dark-mode") ? "Light Theme" : "Dark Theme";
+    });
+
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
+      themeToggle.textContent = "Light Theme";
+    } else {
+      themeToggle.textContent = "Dark Theme";
+    }
+  </script>
+</body>
+</html>
