@@ -105,7 +105,17 @@
         const dateDiv = document.createElement('div');
         dateDiv.innerHTML = `<div class="bg-gray-200 p-4 font-semibold text-gray-700 text-lg">${date}</div>`;
         matchesContainer.appendChild(dateDiv);
-        groupedMatches[date].forEach(match => {
+
+        // Sort matches by time if a tournament is selected
+        const matchesForDate = selectedTournament
+          ? groupedMatches[date].sort((a, b) => {
+              const timeA = convertToLocalTime(a.startTimestamp).match(/(\d{2}:\d{2})/)[0];
+              const timeB = convertToLocalTime(b.startTimestamp).match(/(\d{2}:\d{2})/)[0];
+              return timeA.localeCompare(timeB);
+            })
+          : groupedMatches[date];
+
+        matchesForDate.forEach(match => {
           const matchDiv = document.createElement('div');
           matchDiv.className = 'match-row grid grid-cols-2 gap-4 p-4 border-b border-gray-200 text-gray-600';
           const localTime = convertToLocalTime(match.startTimestamp);
