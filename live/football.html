@@ -6,58 +6,27 @@
   <title>Football Match Schedule</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .match-row {
-      transition: background-color 0.2s ease;
-    }
-    .match-row:hover {
-      background-color: #f1f5f9;
-    }
-    .sidebar {
-      transition: all 0.3s ease;
-    }
-    .tournament-item {
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-    .tournament-item:hover {
-      background-color: #e5e7eb;
-    }
-    .tournament-item.active {
-      background-color: #bfdbfe;
-      font-weight: bold;
-    }
-    .container {
-      display: flex;
-      justify-content: center;
-      max-width: 1200px;
-      margin: 0 auto;
-      align-items: flex-start;
-      padding: 1rem;
-    }
-    .tab {
-      cursor: pointer;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-    }
-    .tab:hover {
-      background-color: #e5e7eb;
-    }
-    .tab.active {
-      background-color: #3b82f6;
-      color: white;
-      font-weight: bold;
-    }
+    .match-row { transition: background-color 0.2s ease; }
+    .match-row:hover { background-color: #f1f5f9; }
+    .sidebar { transition: all 0.3s ease; }
+    .tournament-item { cursor: pointer; transition: background-color 0.2s ease; }
+    .tournament-item:hover { background-color: #e5e7eb; }
+    .tournament-item.active { background-color: #bfdbfe; font-weight: bold; }
+    .container { display: flex; justify-content: center; max-width: 1200px; margin: 0 auto; align-items: flex-start; padding: 1rem; }
+    .tab { cursor: pointer; padding: 0.5rem 1rem; border-radius: 0.375rem; }
+    .tab:hover { background-color: #e5e7eb; }
+    .tab.active { background-color: #3b82f6; color: white; font-weight: bold; }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
   <div class="container">
     <div class="flex-1 max-w-2xl">
-      <div id="scheduleHeader" class="text-3xl font-bold text-center text-gray-800 mb-2"></div>
+      <div id="scheduleHeader" class="text-3xl font-bold text-center text-gray-800 mb-2 hidden"></div>
       <div class="flex space-x-4 mb-4 justify-center">
         <div class="tab" data-day="yesterday">Yesterday</div>
-        <div class="tab active" data-day="today">Today</div>
+        <div class="tab" data-day="today">Today</div>
         <div class="tab" data-day="tomorrow">Tomorrow</div>
-        <div class="tab" data-day="all">All</div>
+        <div class="tab active" data-day="all">All</div>
       </div>
       <div class="mb-6">
         <input type="text" id="searchInput" placeholder="Search by team name..." class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -75,23 +44,43 @@
   <script>
     let allMatches = [];
     let selectedTournament = null;
-    let selectedDay = 'today';
+    let selectedDay = 'all';
     const currentDateTime = new Date();
 
     function setScheduleHeader() {
-      const date = new Date(currentDateTime);
-      const month = date.toLocaleString('en-US', { month: 'long' });
-      const day = date.toLocaleString('en-US', { day: '2-digit' });
+      // Header is hidden, no content set
     }
 
     async function fetchMatchData() {
       try {
-        const response = await fetch('https://ytvlive.pages.dev/football.json');
-        if (!response.ok) {
-          throw new Error('Failed to fetch match data');
+        // Fetch from first JSON
+        const response1 = await fetch('https://ytvlive.pages.dev/football.json');
+        if (!response1.ok) {
+          throw new Error('Failed to fetch first match data');
         }
-        const data = await response.json();
-        allMatches = data.events;
+        const data1 = await response1.json();
+        let matches1 = data1.events || [];
+
+        // Fetch from second JSON
+        const response2 = await fetch('https://ytvlive.pages.dev/football1.json');
+        let matches2 = [];
+        if (response2.ok) {
+          const data2 = await response2.json();
+          matches2 = data2.events || [];
+        } else {
+          console.warn('Failed to fetch second match data, proceeding with first only');
+        }
+
+        // Combine matches and remove duplicates based on match ID
+        const matchIds = new Set();
+        allMatches = [...matches1, ...matches2].filter(match => {
+          if (matchIds.has(match.id)) {
+            return false; // Skip duplicates
+          }
+          matchIds.add(match.id);
+          return true;
+        });
+
         setScheduleHeader();
         displayTournaments();
         filterMatches();
@@ -104,13 +93,7 @@
 
     function convertToLocalTime(timestamp) {
       const date = new Date(timestamp * 1000);
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).format(date).replace(',', '');
+      return new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(date).replace(',', '');
     }
 
     function groupMatchesByDate(matches) {
@@ -135,13 +118,11 @@
         const dateDiv = document.createElement('div');
         dateDiv.innerHTML = `<div class="bg-gray-200 p-4 font-semibold text-gray-700 text-lg">${date}</div>`;
         matchesContainer.appendChild(dateDiv);
-        const matchesForDate = selectedTournament
-          ? groupedMatches[date].sort((a, b) => {
-              const timeA = convertToLocalTime(a.startTimestamp).match(/(\d{2}:\d{2})/)[0];
-              const timeB = convertToLocalTime(b.startTimestamp).match(/(\d{2}:\d{2})/)[0];
-              return timeA.localeCompare(timeB);
-            })
-          : groupedMatches[date];
+        const matchesForDate = selectedTournament ? groupedMatches[date].sort((a, b) => {
+          const timeA = convertToLocalTime(a.startTimestamp).match(/(\d{2}:\d{2})/)[0];
+          const timeB = convertToLocalTime(b.startTimestamp).match(/(\d{2}:\d{2})/)[0];
+          return timeA.localeCompare(timeB);
+        }) : groupedMatches[date];
         matchesForDate.forEach(match => {
           const matchDiv = document.createElement('div');
           matchDiv.className = 'match-row grid grid-cols-2 gap-4 p-4 border-b border-gray-200 text-gray-600';
@@ -177,7 +158,6 @@
       const teamSearchTerm = document.getElementById('searchInput').value.toLowerCase();
       const tournamentSearchTerm = document.getElementById('tournamentSearch').value.toLowerCase();
       let filteredMatches = allMatches;
-
       if (selectedDay !== 'all') {
         const today = new Date(currentDateTime);
         today.setHours(0, 0, 0, 0);
@@ -197,17 +177,14 @@
           return matchDate.getTime() === targetDate.getTime();
         });
       }
-
       if (selectedTournament) {
         filteredMatches = filteredMatches.filter(match => match.tournament.uniqueTournament.name === selectedTournament);
       }
-
       filteredMatches = filteredMatches.filter(match => {
         const team1 = match.homeTeam.name.toLowerCase();
         const team2 = match.awayTeam.name.toLowerCase();
         return team1.includes(teamSearchTerm) || team2.includes(teamSearchTerm);
       });
-
       const tournamentList = document.getElementById('tournamentList');
       const tournaments = [...new Set(allMatches.map(match => match.tournament.uniqueTournament.name))]
         .filter(tournament => tournament.toLowerCase().includes(tournamentSearchTerm));
@@ -225,7 +202,6 @@
         });
         tournamentList.appendChild(li);
       });
-
       displayMatches(filteredMatches);
     }
 
