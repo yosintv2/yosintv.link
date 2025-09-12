@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Match Schedule</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .match-row { transition: background-color 0.2s ease; }
+    .match-row:hover { background-color: #f1f5f9; }
+    .sidebar { transition: all 0.3s ease; }
+    .tournament-item { cursor: pointer; transition: background-color 0.2s ease; }
+    .tournament-item:hover { background-color: #e5e7eb; }
+    .tournament-item.active { background-color: #bfdbfe; font-weight: bold; }
+    .tournament-item.featured { background-color: #d4edda; font-weight: bold; }
+    .container { display: flex; justify-content: center; max-width: 1200px; margin: 0 auto; align-items: flex-start; padding: 1rem; }
+    .tab { cursor: pointer; padding: 0.5rem 1rem; border-radius: 0.375rem; }
+    .tab:hover { background-color: #e5e7eb; }
+    .tab.active { background-color: #3b82f6; color: white; font-weight: bold; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container">
+    <div class="flex-1 max-w-2xl">
+      <div class="flex space-x-4 mb-4 justify-center">
+        <div class="tab" data-day="yesterday">Yesterday</div>
+        <div class="tab" data-day="today">Today</div>
+        <div class="tab" data-day="tomorrow">Tomorrow</div>
+        <div class="tab active" data-day="all">All</div>
+      </div>
+      <div class="mb-6">
+        <input type="text" id="searchInput" placeholder="Search by team name..." class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div class="loading text-center text-blue-600 text-lg font-medium" id="loading">Loading match details...</div>
+      <div class="error text-center text-red-600 text-lg font-medium hidden" id="error"></div>
+      <div class="bg-white rounded-lg shadow-md overflow-hidden" id="matchesContainer"></div>
+    </div>
+    <div class="sidebar w-64 ml-4 bg-white rounded-lg shadow-md p-4">
+      <h2 class="text-lg font-semibold text-gray-700 mb-4">Tournaments</h2>
+      <input type="text" id="tournamentSearch" placeholder="Search tournaments..." class="w-full p-2 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <ul id="tournamentList" class="space-y-2"></ul>
+    </div>
+  </div>
+  <script>
+    let allMatches = [];
+    let selectedTournament = null;
+    let selectedDay = 'all';
+    const currentDateTime = new Date(); // Current date/time: 2025-09-12T15:22:00+09:00
+    const excludedLeagues = ['Japan - J1 League', 'Japan - J2 League', 'Japan - J3 League'];
+    function formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    function parseDvToSeconds(dv) {
+      if (!dv) return null;
+      const s = String(dv).trim();
+      if (!/^\d+$/.test(s)) return null;
+      let n = parseInt(s, 10);
+      if (n > 1e12) n = Math.floor(n / 1000);
+      return n;
+    }
+    async function fetchMatchData(days = [formatDate(currentDateTime)]) {
+      const loading = document.getElementById('loading');
+      const error = document.getElementById('error');
+      const matchesContainer = document.getElementById('matchesContainer');
+      loading.classList.remove('hidden');
+      error.classList.add('hidden');
+      matchesContainer.innerHTML = '';
+      allMatches = [];
+      try {
+        // Fetch from daily schedule URLs
+        for (const date of days) {
+          const url = `https://corsproxy.io/?url=https://www.livesoccertv.com/schedules/${date}/`;
+          const response = await fetch(url);
+          if (!response.ok) {
+            console.warn(`HTTP error for ${date}! Status: ${response.status}`);
+            continue;
+          }
+          const html = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const [year, month, day] = date.split('-').map(Number);
+          const compRows = doc.querySelectorAll('tr.sortable_comp');
+          const clickableComps = doc.querySelectorAll('div.competition_row.clickable');
+          compRows.forEach(compRow => {
+            const compName = compRow.querySelector('span[class*="flag"]')?.textContent || 'Unknown Competition';
+            const matches = [];
+            let currentRow = compRow.nextElementSibling;
+            while (currentRow && !currentRow.classList.contains('sortable_comp')) {
+              const timeCell = currentRow.querySelector('.timecell .ts');
+              const matchLink = currentRow.querySelector('#match a');
+              if (timeCell && matchLink) {
+                const dvAttr = timeCell.getAttribute('dv') || timeCell.getAttribute('data-dv') || timeCell.dataset?.dv || null;
+                const timestamp = parseDvToSeconds(dvAttr);
+                const match = matchLink.textContent || 'No Match';
+                const matchUrl = matchLink.href || '#';
+                if (timestamp) {
+                  const [homeTeam, awayTeam] = match.split(' vs ');
+                  matches.push({
+                    homeTeam: { name: homeTeam || 'Unknown Team' },
+                    awayTeam: { name: awayTeam || 'Unknown Team' },
+                    tournament: { uniqueTournament: { name: compName } },
+                    startTimestamp: timestamp,
+                    matchUrl,
+                    date
+                  });
+                } else {
+                  const timeCellText = timeCell.textContent && timeCell.textContent.trim();
+                  if (timeCellText && /^\d{1,2}:\d{2}$/.test(timeCellText)) {
+                    try {
+                      const [hours, minutes] = timeCellText.split(':').map(Number);
+                      const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+                      const fallbackTimestamp = Math.floor(utcDate.getTime() / 1000);
+                      const [homeTeam, awayTeam] = match.split(' vs ');
+                      matches.push({
+                        homeTeam: { name: homeTeam || 'Unknown Team' },
+                        awayTeam: { name: awayTeam || 'Unknown Team' },
+                        tournament: { uniqueTournament: { name: compName } },
+                        startTimestamp: fallbackTimestamp,
+                        matchUrl,
+                        date
+                      });
+                    } catch (e) {
+                      console.error('Fallback time parse failed:', e);
+                    }
+                  }
+                }
+              }
+              currentRow = currentRow.nextElementSibling;
+            }
+            if (matches.length > 0) {
+              allMatches.push(...matches);
+            }
+          });
+          clickableComps.forEach(compDiv => {
+            const compName = compDiv.querySelector('span[class*="flag"][class*="r_compname"]')?.textContent || 'Unknown Competition';
+            const onclickAttr = compDiv.getAttribute('onclick') || '';
+            const compIdMatch = onclickAttr.match(/'c(\d+)'/);
+            const compId = compIdMatch ? compIdMatch[1] : null;
+            const matchContainer = compId ? doc.getElementById(`c${compId}`) : null;
+            if (matchContainer) {
+              const matchRows = matchContainer.querySelectorAll('tr');
+              matchRows.forEach(row => {
+                const timeCell = row.querySelector('.timecell .ts');
+                const matchLink = row.querySelector('#match a');
+                if (timeCell && matchLink) {
+                  const dvAttr = timeCell.getAttribute('dv') || timeCell.getAttribute('data-dv') || timeCell.dataset?.dv || null;
+                  const timestamp = parseDvToSeconds(dvAttr);
+                  const match = matchLink.textContent || 'No Match';
+                  const matchUrl = matchLink.href || '#';
+                  if (timestamp) {
+                    const [homeTeam, awayTeam] = match.split(' vs ');
+                    allMatches.push({
+                      homeTeam: { name: homeTeam || 'Unknown Team' },
+                      awayTeam: { name: awayTeam || 'Unknown Team' },
+                      tournament: { uniqueTournament: { name: compName } },
+                      startTimestamp: timestamp,
+                      matchUrl,
+                      date
+                    });
+                  } else {
+                    const timeCellText = timeCell.textContent && timeCell.textContent.trim();
+                    if (timeCellText && /^\d{1,2}:\d{2}$/.test(timeCellText)) {
+                      try {
+                        const [hours, minutes] = timeCellText.split(':').map(Number);
+                        const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+                        const fallbackTimestamp = Math.floor(utcDate.getTime() / 1000);
+                        const [homeTeam, awayTeam] = match.split(' vs ');
+                        allMatches.push({
+                          homeTeam: { name: homeTeam || 'Unknown Team' },
+                          awayTeam: { name: awayTeam || 'Unknown Team' },
+                          tournament: { uniqueTournament: { name: compName } },
+                          startTimestamp: fallbackTimestamp,
+                          matchUrl,
+                          date
+                        });
+                      } catch (e) {
+                        console.error('Fallback time parse failed:', e);
+                      }
+                    }
+                  }
+                }
+              });
+            }
+          });
+        }
+        // Fetch from Saudi Pro League URL
+        const saudiUrl = 'https://corsproxy.io/?url=https://www.livesoccertv.com/competitions/saudi-arabia/pro-league/';
+        const saudiResponse = await fetch(saudiUrl);
+        if (saudiResponse.ok) {
+          const html = await saudiResponse.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const matchRows = doc.querySelectorAll('tr.match_row');
+          matchRows.forEach(row => {
+            const timeCell = row.querySelector('.timecell .ts');
+            const matchLink = row.querySelector('#match a');
+            if (timeCell && matchLink) {
+              const dvAttr = timeCell.getAttribute('dv') || timeCell.getAttribute('data-dv') || timeCell.dataset?.dv || null;
+              const timestamp = parseDvToSeconds(dvAttr);
+              const match = matchLink.textContent || 'No Match';
+              const matchUrl = matchLink.href || '#';
+              const dateMatch = matchLink.href.match(/\/schedules\/(\d{4}-\d{2}-\d{2})\//);
+              const date = dateMatch ? dateMatch[1] : formatDate(currentDateTime);
+              const [year, month, day] = date.split('-').map(Number);
+              if (timestamp) {
+                const [homeTeam, awayTeam] = match.split(' vs ');
+                allMatches.push({
+                  homeTeam: { name: homeTeam || 'Unknown Team' },
+                  awayTeam: { name: awayTeam || 'Unknown Team' },
+                  tournament: { uniqueTournament: { name: 'Saudi Pro League' } },
+                  startTimestamp: timestamp,
+                  matchUrl,
+                  date
+                });
+              } else {
+                const timeCellText = timeCell.textContent && timeCell.textContent.trim();
+                if (timeCellText && /^\d{1,2}:\d{2}$/.test(timeCellText)) {
+                  try {
+                    const [hours, minutes] = timeCellText.split(':').map(Number);
+                    const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+                    const fallbackTimestamp = Math.floor(utcDate.getTime() / 1000);
+                    const [homeTeam, awayTeam] = match.split(' vs ');
+                    allMatches.push({
+                      homeTeam: { name: homeTeam || 'Unknown Team' },
+                      awayTeam: { name: awayTeam || 'Unknown Team' },
+                      tournament: { uniqueTournament: { name: 'Saudi Pro League' } },
+                      startTimestamp: fallbackTimestamp,
+                      matchUrl,
+                      date
+                    });
+                  } catch (e) {
+                    console.error('Fallback time parse failed for Saudi Pro League:', e);
+                  }
+                }
+              }
+            }
+          });
+        } else {
+          console.warn(`HTTP error for Saudi Pro League! Status: ${saudiResponse.status}`);
+        }
+        // Remove duplicates (same homeTeam, awayTeam, timestamp)
+        allMatches = [...new Map(allMatches.map(m => [`${m.homeTeam.name}-${m.awayTeam.name}-${m.startTimestamp}`, m])).values()];
+        displayTournaments();
+        filterMatches();
+        if (allMatches.length === 0) {
+          throw new Error('No match data found for the selected date(s). Check the page structure or selectors.');
+        }
+      } catch (error) {
+        loading.classList.add('hidden');
+        error.classList.remove('hidden');
+        error.textContent = 'Error: ' + error.message;
+      }
+    }
+    function convertToLocalTime(timestamp) {
+      const date = new Date(timestamp * 1000);
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).format(date).replace(',', '');
+    }
+    function groupMatchesByDate(matches) {
+      const grouped = {};
+      matches.forEach(match => {
+        const d = new Date(match.startTimestamp * 1000);
+        const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const label = new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit' }).format(d);
+        if (!grouped[iso]) grouped[iso] = { label, items: [] };
+        grouped[iso].items.push(match);
+      });
+      return grouped;
+    }
+    function displayMatches(matches) {
+      document.getElementById('loading').classList.add('hidden');
+      const matchesContainer = document.getElementById('matchesContainer');
+      matchesContainer.innerHTML = '';
+      const groupedMatches = groupMatchesByDate(matches);
+      Object.keys(groupedMatches).sort().forEach(iso => {
+        const dateDiv = document.createElement('div');
+        dateDiv.innerHTML = `<div class="bg-gray-200 p-4 font-semibold text-gray-700 text-lg">${groupedMatches[iso].label}</div>`;
+        matchesContainer.appendChild(dateDiv);
+        groupedMatches[iso].items.sort((a,b) => a.startTimestamp - b.startTimestamp).forEach(match => {
+          const matchDiv = document.createElement('div');
+          matchDiv.className = 'match-row grid grid-cols-2 gap-4 p-4 border-b border-gray-200 text-gray-600';
+          const localTime = convertToLocalTime(match.startTimestamp);
+          const timeParts = localTime.match(/(\d{2}:\d{2})/)[0];
+          const matchName = `<a href="${match.matchUrl}" class="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">${match.homeTeam.name} vs ${match.awayTeam.name}</a>`;
+          matchDiv.innerHTML = `<div>${timeParts}</div><div>${matchName}</div>`;
+          dateDiv.appendChild(matchDiv);
+        });
+      });
+    }
+    function displayTournaments() {
+      const tournamentList = document.getElementById('tournamentList');
+      const tournaments = [...new Set(allMatches.map(match => match.tournament.uniqueTournament.name))]
+        .filter(tournament => !excludedLeagues.includes(tournament));
+      tournamentList.innerHTML = '';
+      const allLi = document.createElement('li');
+      allLi.className = `tournament-item p-2 rounded-lg ${selectedTournament === null ? 'active' : ''}`;
+      allLi.dataset.tournament = 'all';
+      allLi.textContent = 'All Tournaments';
+      allLi.addEventListener('click', () => {
+        selectedTournament = null;
+        document.querySelectorAll('.tournament-item').forEach(item => item.classList.remove('active'));
+        allLi.classList.add('active');
+        filterMatches();
+      });
+      tournamentList.appendChild(allLi);
+      tournaments.forEach(tournament => {
+        const li = document.createElement('li');
+        const isFeatured = tournament === 'Saudi Pro League';
+        li.className = `tournament-item ${isFeatured ? 'featured' : ''} p-2 rounded-lg ${selectedTournament === tournament ? 'active' : ''}`;
+        li.dataset.tournament = tournament;
+        li.textContent = tournament;
+        li.addEventListener('click', () => {
+          selectedTournament = tournament;
+          document.querySelectorAll('.tournament-item').forEach(item => item.classList.remove('active'));
+          li.classList.add('active');
+          filterMatches();
+        });
+        tournamentList.appendChild(li);
+      });
+    }
+    function filterMatches() {
+      const teamSearchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const tournamentSearchTerm = document.getElementById('tournamentSearch').value.toLowerCase();
+      let filteredMatches = allMatches;
+      if (!selectedTournament && selectedDay !== 'all') {
+        const today = new Date(currentDateTime);
+        today.setHours(0, 0, 0, 0);
+        let targetDate;
+        if (selectedDay === 'yesterday') {
+          targetDate = new Date(today);
+          targetDate.setDate(today.getDate() - 1);
+        } else if (selectedDay === 'today') {
+          targetDate = new Date(today);
+        } else if (selectedDay === 'tomorrow') {
+          targetDate = new Date(today);
+          targetDate.setDate(today.getDate() + 1);
+        }
+        filteredMatches = filteredMatches.filter(match => {
+          const matchDate = new Date(match.startTimestamp * 1000);
+          matchDate.setHours(0, 0, 0, 0);
+          return matchDate.getTime() === targetDate.getTime();
+        });
+      }
+      if (selectedTournament) {
+        filteredMatches = filteredMatches.filter(match => match.tournament.uniqueTournament.name === selectedTournament);
+      }
+      filteredMatches = filteredMatches.filter(match => {
+        const team1 = match.homeTeam.name.toLowerCase();
+        const team2 = match.awayTeam.name.toLowerCase();
+        return team1.includes(teamSearchTerm) || team2.includes(teamSearchTerm);
+      });
+      const tournaments = [...new Set(allMatches.map(match => match.tournament.uniqueTournament.name))]
+        .filter(tournament => !excludedLeagues.includes(tournament) && tournament.toLowerCase().includes(tournamentSearchTerm));
+      const tournamentList = document.getElementById('tournamentList');
+      tournamentList.innerHTML = '';
+      const allLi = document.createElement('li');
+      allLi.className = `tournament-item p-2 rounded-lg ${selectedTournament === null ? 'active' : ''}`;
+      allLi.dataset.tournament = 'all';
+      allLi.textContent = 'All Tournaments';
+      allLi.addEventListener('click', () => {
+        selectedTournament = null;
+        document.querySelectorAll('.tournament-item').forEach(item => item.classList.remove('active'));
+        allLi.classList.add('active');
+        filterMatches();
+      });
+      tournamentList.appendChild(allLi);
+      tournaments.forEach(tournament => {
+        const li = document.createElement('li');
+        const isFeatured = tournament === 'Saudi Pro League';
+        li.className = `tournament-item ${isFeatured ? 'featured' : ''} p-2 rounded-lg ${selectedTournament === tournament ? 'active' : ''}`;
+        li.dataset.tournament = tournament;
+        li.textContent = tournament;
+        li.addEventListener('click', () => {
+          selectedTournament = tournament;
+          document.querySelectorAll('.tournament-item').forEach(item => item.classList.remove('active'));
+          li.classList.add('active');
+          filterMatches();
+        });
+        tournamentList.appendChild(li);
+      });
+      displayMatches(filteredMatches);
+    }
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        selectedDay = tab.dataset.day;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        let targetDate = new Date(currentDateTime);
+        if (selectedDay === 'yesterday') {
+          targetDate.setDate(targetDate.getDate() - 1);
+          fetchMatchData([formatDate(targetDate)]);
+        } else if (selectedDay === 'today') {
+          targetDate = new Date(currentDateTime);
+          fetchMatchData([formatDate(targetDate)]);
+        } else if (selectedDay === 'tomorrow') {
+          targetDate = new Date(currentDateTime);
+          targetDate.setDate(targetDate.getDate() + 1);
+          fetchMatchData([formatDate(targetDate)]);
+        } else if (selectedDay === 'all') {
+          const days = [];
+          const today = new Date(currentDateTime);
+          for (let i = 0; i <= 10; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            days.push(formatDate(date));
+          }
+          fetchMatchData(days);
+        }
+      });
+    });
+    document.getElementById('searchInput').addEventListener('input', filterMatches);
+    document.getElementById('tournamentSearch').addEventListener('input', filterMatches);
+    window.onload = () => {
+      const days = [];
+      const today = new Date(currentDateTime);
+      for (let i = 0; i <= 10; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        days.push(formatDate(date));
+      }
+      fetchMatchData(days);
+    };
+  </script>
+</body>
+</html>
