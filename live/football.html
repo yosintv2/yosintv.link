@@ -62,7 +62,7 @@
         let matches1 = data1.events || [];
 
         // Fetch from second JSON
-        const response2 = await fetch('https://ytvlive.pages.dev/football1.json');
+        const response2 = await fetch('https://ytvlive.pages.dev/tomorrow.json');
         let matches2 = [];
         if (response2.ok) {
           const data2 = await response2.json();
