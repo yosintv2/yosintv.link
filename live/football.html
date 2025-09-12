@@ -45,7 +45,20 @@
     let allMatches = [];
     let selectedTournament = null;
     let selectedDay = 'all';
-    const currentDateTime = new Date();
+    const currentDateTime = new Date('2025-09-12T00:17:00+09:00');
+
+    // Priority tournaments to show at the top if they have matches
+    const priorityTournaments = [
+      'Premier League',
+      'LaLiga',
+      'Bundesliga',
+      'Ligue 1',
+      'Serie A',
+      'MLS',
+      'Saudi Pro League',
+      'Liga Portugal Betclic'
+
+    ];
 
     function setScheduleHeader() {
       // Header is hidden, no content set
@@ -137,26 +150,39 @@
 
     function displayTournaments() {
       const tournamentList = document.getElementById('tournamentList');
-      const tournaments = [...new Set(allMatches.map(match => match.tournament.uniqueTournament.name))];
-      tournamentList.innerHTML = '<li class="tournament-item p-2 rounded-lg" data-tournament="all">All Tournaments</li>';
-      tournaments.forEach(tournament => {
-        const li = document.createElement('li');
-        li.className = `tournament-item p-2 rounded-lg ${selectedTournament === tournament ? 'active' : ''}`;
-        li.dataset.tournament = tournament;
-        li.textContent = tournament;
-        li.addEventListener('click', () => {
-          selectedTournament = tournament === 'all' ? null : tournament;
-          document.querySelectorAll('.tournament-item').forEach(item => item.classList.remove('active'));
-          li.classList.add('active');
+      const allTournamentsSet = [...new Set(allMatches.map(match => match.tournament.uniqueTournament.name))];
+      const tournamentSearchTerm = document.getElementById('tournamentSearch').value.toLowerCase();
+      const allTournaments = allTournamentsSet.filter(t => t.toLowerCase().includes(tournamentSearchTerm));
+
+      // Filter priority tournaments to only those with matches
+      const availablePriorityTournaments = priorityTournaments.filter(tournament => 
+        allTournaments.includes(tournament)
+      );
+      const otherTournaments = allTournaments.filter(t => !priorityTournaments.includes(t)).sort();
+
+      // Build tournament list HTML
+      let html = '<li class="tournament-item p-2 rounded-lg ' + (selectedTournament === null ? 'active' : '') + '" data-tournament="all">All Tournaments</li>';
+      availablePriorityTournaments.forEach(tournament => {
+        html += `<li class="tournament-item p-2 rounded-lg ${selectedTournament === tournament ? 'active' : ''}" data-tournament="${tournament}">${tournament}</li>`;
+      });
+      otherTournaments.forEach(tournament => {
+        html += `<li class="tournament-item p-2 rounded-lg ${selectedTournament === tournament ? 'active' : ''}" data-tournament="${tournament}">${tournament}</li>`;
+      });
+      tournamentList.innerHTML = html;
+
+      // Add event listeners
+      document.querySelectorAll('.tournament-item').forEach(item => {
+        item.addEventListener('click', () => {
+          selectedTournament = item.dataset.tournament === 'all' ? null : item.dataset.tournament;
+          document.querySelectorAll('.tournament-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
           filterMatches();
         });
-        tournamentList.appendChild(li);
       });
     }
 
     function filterMatches() {
       const teamSearchTerm = document.getElementById('searchInput').value.toLowerCase();
-      const tournamentSearchTerm = document.getElementById('tournamentSearch').value.toLowerCase();
       let filteredMatches = allMatches;
       if (selectedDay !== 'all') {
         const today = new Date(currentDateTime);
@@ -185,23 +211,7 @@
         const team2 = match.awayTeam.name.toLowerCase();
         return team1.includes(teamSearchTerm) || team2.includes(teamSearchTerm);
       });
-      const tournamentList = document.getElementById('tournamentList');
-      const tournaments = [...new Set(allMatches.map(match => match.tournament.uniqueTournament.name))]
-        .filter(tournament => tournament.toLowerCase().includes(tournamentSearchTerm));
-      tournamentList.innerHTML = `<li class="tournament-item p-2 rounded-lg ${selectedTournament === null ? 'active' : ''}" data-tournament="all">All Tournaments</li>`;
-      tournaments.forEach(tournament => {
-        const li = document.createElement('li');
-        li.className = `tournament-item p-2 rounded-lg ${selectedTournament === tournament ? 'active' : ''}`;
-        li.dataset.tournament = tournament;
-        li.textContent = tournament;
-        li.addEventListener('click', () => {
-          selectedTournament = tournament === 'all' ? null : tournament;
-          document.querySelectorAll('.tournament-item').forEach(item => item.classList.remove('active'));
-          li.classList.add('active');
-          filterMatches();
-        });
-        tournamentList.appendChild(li);
-      });
+      displayTournaments();
       displayMatches(filteredMatches);
     }
 
