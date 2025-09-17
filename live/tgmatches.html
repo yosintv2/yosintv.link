@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Team Matchup Generator</title>
+  <title>TG Match Generator</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -51,8 +51,8 @@
   <div class="container">
     <h1 class="text-center text-dark mb-4 h3">Team Matchup Generator</h1>
     <div class="mb-4">
-      <label for="matchups" class="form-label fw-medium">Enter Matchups:</label>
-      <textarea id="matchups" rows="8" class="form-control" placeholder=" "></textarea>
+      <label for="matchups" class="form-label fw-medium">Enter Matchups (e.g., Al Nassr vs Istiklol):</label>
+      <textarea id="matchups" rows="8" class="form-control" placeholder="Al Nassr vs Istiklol\n0d 1h 51m\nAjax vs Inter Milan\n0d 2h 36m"></textarea>
     </div>
     <button onclick="generateTxt()" class="btn btn-primary w-100 w-sm-auto mb-4">Generate Matchup Text</button>
     <div id="output">
@@ -60,39 +60,33 @@
       <div id="outputText"></div>
     </div>
   </div>
-
   <script>
     function generateTxt() {
       const input = document.getElementById('matchups').value.trim();
       const outputText = document.getElementById('outputText');
-      outputText.innerHTML = ''; 
+      outputText.innerHTML = '';
 
       if (!input) {
         outputText.innerHTML = '<p class="text-danger fw-medium">Please enter at least one matchup.</p>';
         return;
       }
 
-      const blocks = input.split('\n\n').filter(block => block.trim() !== '');
+      // Split by newlines and filter out empty lines
+      const lines = input.split('\n').filter(line => line.trim() !== '');
       const uniqueMatches = new Set();
       let output = '';
+      const regex = /(.+?)\s+vs\s+(.+)/i; // Case-insensitive, flexible spacing
 
-      const regex = /(.+?)\s+vs\s+(.+)/i;
+      // Header
+      output += `\u26A0\uFE0F Today's Matches | Live \u203C\uFE0F\n\n`;
 
-      // Header at top with reliable emojis
-      output += `\u26A0\uFE0F Today's Matches | Live \u203C\uFE0F\n\n`; // ⚠️ Today's Matches | Live ‼️
-
-      blocks.forEach((block, index) => {
-        const lines = block.split('\n').filter(line => line.trim() !== '');
-        if (lines.length < 2) {
-          output += `<p class="text-danger fw-medium">Invalid format in block ${index + 1}: ${block.replace(/\n/g, ' ')}</p>\n`;
-          return;
-        }
-
-        const matchLine = lines[1];
-        const match = matchLine.match(regex);
+      // Process every odd-numbered line (0-based index) as a matchup
+      for (let i = 0; i < lines.length; i += 2) {
+        const line = lines[i];
+        const match = line.match(regex);
         if (!match || !match[1] || !match[2]) {
-          output += `<p class="text-danger fw-medium">Invalid format in block ${index + 1}: ${matchLine}</p>\n`;
-          return;
+          output += `<p class="text-danger fw-medium">Invalid format in line ${i + 1}: ${line}</p>\n`;
+          continue;
         }
 
         const team1 = match[1].trim();
@@ -100,25 +94,25 @@
         const matchKey = `${team1} vs ${team2}`;
 
         if (uniqueMatches.has(matchKey)) {
-          return;
+          continue; // Skip duplicates
         }
         uniqueMatches.add(matchKey);
 
-        // ⛳ Team A 🆚 Team B
-        const matchupText = `\u26F3 ${team1} \uD83C\uDD9A ${team2}\n` +
-                           `\uD83D\uDC49 https://www.yosin-tv.net/\n` +
-                           `\uD83D\uDC49 https://www.yosintv.link/football.html\n\n`;
-        output += matchupText;
-      });
+        // Generate matchup text with emojis and links
+        output += `\u26F3 ${team1} \uD83C\uDD9A ${team2}\n` +
+                 `\uD83D\uDC49 https://www.yosin-tv.net/\n` +
+                 `\uD83D\uDC49 https://www.yosintv.link/football.html\n\n`;
+      }
 
       if (uniqueMatches.size === 0) {
         output = '<p class="text-danger fw-medium">No valid matchups found.</p>';
       } else {
         // Footer with highlights
         output += `\uD83D\uDCF1 Watch Football/Cricket Highlights👇\n` +
-                  `\uD83D\uDC49 https://www.cricfoot.net/`;
+                 `\uD83D\uDC49 https://www.cricfoot.net/`;
       }
 
+      // Create pre element for output
       const preElement = document.createElement('pre');
       preElement.textContent = output;
       preElement.ondblclick = function() {
