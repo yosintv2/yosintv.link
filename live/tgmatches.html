@@ -78,7 +78,7 @@
       const regex = /(.+?)\s+vs\s+(.+)/i; // Case-insensitive, flexible spacing
 
       // Header
-      output += `\u26A0\uFE0F Today's Matches | Live \u203C\uFE0F\n\n`;
+      output += `\u26A0\uFE0F Today's Football Matches | Live \u203C\uFE0F\n\n`;
 
       // Process every odd-numbered line (0-based index) as a matchup
       for (let i = 0; i < lines.length; i += 2) {
@@ -108,7 +108,7 @@
         output = '<p class="text-danger fw-medium">No valid matchups found.</p>';
       } else {
         // Footer with highlights
-        output += `\uD83D\uDCF1 Watch Football/Cricket Highlights👇\n` +
+        output += `\uD83D\uDCF1 Watch Football/Cricket Highlights⬇️\n` +
                  `\uD83D\uDC49 https://www.cricfoot.net/`;
       }
 
