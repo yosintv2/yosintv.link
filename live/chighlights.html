@@ -27,8 +27,8 @@
       margin-top: 0.5rem;
       font-size: 0.875rem;
       color: #64748b;
-      font-weight: 700; /* made bold */
-      font-style: normal; /* removed italic */
+      font-weight: 700;
+      font-style: normal;
     }
     a {
       color: #2563eb;
@@ -80,44 +80,39 @@
       placeholder="Search posts by title..."
       class="w-full p-4 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 text-gray-700 mb-6"
     />
-
     <table id="postTable" class="bg-white rounded-lg shadow-md">
       <tbody></tbody>
     </table>
-
     <p id="error" class="text-red-500 text-center mt-6 text-lg"></p>
   </div>
-
   <script>
     let allPosts = [];
 
     function trimTitle(title) {
-      let stopIndex = title.search(/\b(\d|ODI|Test|T20|Highlights|20\d{2})\b/i);
+      // Keep the full title until "vs" or specific cricket terms, but preserve team names
+      let stopIndex = title.search(/\b(ODI|Test|T20|Highlights|20\d{2})\b/i);
       if (stopIndex === -1) return title.trim();
-      return title.slice(0, stopIndex).trim();
+      // Ensure the title includes team names by checking for "vs"
+      const vsIndex = title.toLowerCase().indexOf('vs');
+      if (vsIndex !== -1 && vsIndex < stopIndex) {
+        return title.slice(0, stopIndex).trim();
+      }
+      return title.trim();
     }
 
     function formatDateWithRelative(dateStr) {
       const date = new Date(dateStr);
       if (isNaN(date)) return "No date available";
-
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       const formattedDate = date.toLocaleDateString('en-US', options);
-
       const now = new Date();
       const utcDate = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
       const utcNow = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-
       const diffDays = Math.floor((utcNow - utcDate) / (1000 * 60 * 60 * 24));
-
       let relativeText = "";
-      if (diffDays === 0) {
-        relativeText = " - Today";
-      } else if (diffDays === 1) {
-        relativeText = " - Yesterday";
-      } else if (diffDays > 1) {
-        relativeText = ` - ${diffDays} days ago`;
-      }
+      if (diffDays === 0) { relativeText = " - Today"; }
+      else if (diffDays === 1) { relativeText = " - Yesterday"; }
+      else if (diffDays > 1) { relativeText = ` - ${diffDays} days ago`; }
       return formattedDate + relativeText;
     }
 
@@ -125,7 +120,6 @@
       const blogUrl = document.getElementById('blogUrl').value.trim();
       const errorElement = document.getElementById('error');
       const postTableBody = document.querySelector('#postTable tbody');
-
       postTableBody.innerHTML = '';
       errorElement.textContent = '';
       allPosts = [];
@@ -138,10 +132,7 @@
       try {
         const CORS_PROXY = "https://corsproxy.io/?url=";
         const feedUrl = `${CORS_PROXY}https://${new URL(blogUrl).hostname}/feeds/posts/default?alt=json&max-results=150`;
-        const response = await fetch(feedUrl, {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' }
-        });
+        const response = await fetch(feedUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
         }
@@ -154,27 +145,28 @@
 
         allPosts = entries
           .map(entry => {
-            // If category array exists, check for "tour of" term - skip if found
+            // Skip posts with "tour of" in category
             if (entry.category && Array.isArray(entry.category)) {
-              const hasTourOf = entry.category.some(cat =>
-                cat.term && cat.term.toLowerCase().includes("tour of")
-              );
-              if (hasTourOf) {
-                return null; // skip this post entirely
+              const hasTourOf = entry.category.some(cat => cat.term && cat.term.toLowerCase().includes("tour of"));
+              if (hasTourOf) return null;
+            }
+
+            // Prioritize full title, but check if it contains team names (e.g., "vs")
+            let matchTitle = 'No title';
+            const rawTitle = entry.title?.$t || 'No title';
+            if (rawTitle.toLowerCase().includes('vs')) {
+              matchTitle = trimTitle(rawTitle);
+            } else if (entry.category && Array.isArray(entry.category) && entry.category.length > 0) {
+              // Use category only if it contains "vs" to ensure it’s a match name
+              const categoryTitle = entry.category[0].term || 'No title';
+              if (categoryTitle.toLowerCase().includes('vs')) {
+                matchTitle = categoryTitle;
+              } else {
+                matchTitle = trimTitle(rawTitle);
               }
             }
 
-            // Get trimmed title from category term if exists, else fallback to trimmed full title
-            let matchTitle = 'No title';
-            if (entry.category && Array.isArray(entry.category) && entry.category.length > 0) {
-              matchTitle = entry.category[0].term || 'No title';
-            } else {
-              const rawTitle = entry.title?.$t || 'No title';
-              matchTitle = trimTitle(rawTitle);
-            }
-
             const publishedDate = entry.published?.$t ? formatDateWithRelative(entry.published.$t) : 'No date available';
-
             let iframeUrl = 'No iframe found';
             const content = entry.content?.$t || '';
             const iframeMatch = content.match(/<iframe[^>]+src=["'](.*?)["']/i);
@@ -191,7 +183,7 @@
 
             return { title: matchTitle, publishedDate, iframeUrl };
           })
-          .filter(post => post !== null); // Remove null entries filtered above
+          .filter(post => post !== null);
 
         renderPosts(allPosts);
       } catch (error) {
@@ -203,22 +195,20 @@
     function renderPosts(posts) {
       const postTableBody = document.querySelector('#postTable tbody');
       postTableBody.innerHTML = '';
-
       posts.forEach((post) => {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
-
-        const textToCopy = ` ${post.title}, Cricket, ${post.iframeUrl} `;
-
+        const textToCopy = `${post.title}, Cricket, ${post.iframeUrl}`;
         const iframeLink = `<a href="${post.iframeUrl}" target="_blank" rel="noopener noreferrer">${post.iframeUrl}</a>`;
-
         td.innerHTML = `
           <div class="row-content">
-            <div class="text-container"> ${post.title}, Cricket, ${iframeLink} <span class="date">${post.publishedDate}</span></div>
+            <div class="text-container">
+              ${post.title}, Cricket, ${iframeLink}
+              <span class="date">${post.publishedDate}</span>
+            </div>
             <button class="copy-button" data-copy-text="${textToCopy}" aria-label="Copy to clipboard">Copy</button>
           </div>
         `;
-
         tr.appendChild(td);
         postTableBody.appendChild(tr);
       });
@@ -229,9 +219,7 @@
           navigator.clipboard.writeText(text).then(() => {
             const originalText = button.textContent;
             button.textContent = 'Copied!';
-            setTimeout(() => {
-              button.textContent = originalText;
-            }, 2000);
+            setTimeout(() => { button.textContent = originalText; }, 2000);
           }).catch(err => {
             alert('Failed to copy text to clipboard.');
             console.error('Copy error:', err);
