@@ -68,7 +68,7 @@
     async function fetchMatchData() {
       try {
         // Fetch from first JSON
-        const response1 = await fetch('https://ytvlive.pages.dev/football.json');
+        const response1 = await fetch('https://ytvlive.pages.dev/today.json');
         if (!response1.ok) {
           throw new Error('Failed to fetch first match data');
         }
