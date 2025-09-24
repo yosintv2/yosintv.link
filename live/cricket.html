@@ -58,7 +58,26 @@
         allMatches = data.matches
           .filter(match => match.start_date && !isNaN(new Date(match.start_date).getTime()))
           .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
-        allTournaments = [...new Set(allMatches.map(match => ({ name: match.tour_name, format: match.event_format || 'Unknown' })))];
+
+        // Deduplicate tournaments and enforce strict capitalization for formats
+        const formatMap = {
+          't20': 'T20',
+          'odi': 'ODI',
+          'test': 'Test',
+          't10': 'T10',
+          '100': '100' // Add other formats as needed
+        };
+        const tournamentMap = new Map();
+        allMatches.forEach(match => {
+          const rawFormat = match.event_format ? match.event_format.toLowerCase() : 'unknown';
+          const format = formatMap[rawFormat] || rawFormat.charAt(0).toUpperCase() + rawFormat.slice(1);
+          const key = `${match.tour_name}|${format}`;
+          if (!tournamentMap.has(key)) {
+            tournamentMap.set(key, { name: match.tour_name, format });
+          }
+        });
+        allTournaments = Array.from(tournamentMap.values());
+
         displayTournaments(allTournaments);
         filterMatches();
       } catch (error) {
@@ -92,7 +111,6 @@
         const localTime = convertToLocalTime(match.start_date);
         if (localTime === 'Invalid Date') return;
         const matchDate = new Date(match.start_date);
-        // Include year in the date key to separate matches from different years
         const date = new Intl.DateTimeFormat('en-US', {
           year: 'numeric',
           month: 'short',
@@ -156,9 +174,8 @@
 
     function filterMatches() {
       let filteredMatches = allMatches;
-      const currentYear = currentDateTime.getFullYear(); // Get current year (2025)
+      const currentYear = currentDateTime.getFullYear();
 
-      // Filter matches to only include those from the current year
       filteredMatches = filteredMatches.filter(match => {
         const matchDate = new Date(match.start_date);
         return !isNaN(matchDate.getTime()) && matchDate.getFullYear() === currentYear;
