@@ -73,7 +73,15 @@
       const date = new Date(istDateTime);
       if (isNaN(date.getTime())) return 'Invalid Date';
       const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const formatted = new Intl.DateTimeFormat('en-US', { timeZone: userTimeZone, year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(date).replace(',', '');
+      const formatted = new Intl.DateTimeFormat('en-US', {
+        timeZone: userTimeZone,
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).format(date).replace(',', '');
       matchCache.set(istDateTime, formatted);
       return formatted;
     }
@@ -83,7 +91,13 @@
       matches.forEach(match => {
         const localTime = convertToLocalTime(match.start_date);
         if (localTime === 'Invalid Date') return;
-        const date = localTime.match(/(\w+ \d{2})/)?.[0] || 'Unknown Date';
+        const matchDate = new Date(match.start_date);
+        // Include year in the date key to separate matches from different years
+        const date = new Intl.DateTimeFormat('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit'
+        }).format(matchDate).replace(',', '');
         if (!grouped[date]) {
           grouped[date] = [];
         }
@@ -102,8 +116,8 @@
       let html = '';
       const groupedMatches = groupMatchesByDate(matches);
       Object.keys(groupedMatches).sort((a, b) => {
-        const dateA = new Date(matches.find(m => convertToLocalTime(m.start_date).includes(a))?.start_date || 0);
-        const dateB = new Date(matches.find(m => convertToLocalTime(m.start_date).includes(b))?.start_date || 0);
+        const dateA = new Date(matches.find(m => convertToLocalTime(m.start_date).includes(a.split(' ')[0]))?.start_date || 0);
+        const dateB = new Date(matches.find(m => convertToLocalTime(m.start_date).includes(b.split(' ')[0]))?.start_date || 0);
         return dateA - dateB;
       }).forEach(date => {
         html += `<div class="bg-gray-200 p-4 font-semibold text-gray-700 text-lg">${date}</div>`;
@@ -119,7 +133,7 @@
 
     function displayTournaments(tournaments) {
       const tournamentList = document.getElementById('tournamentList');
-      tournamentList.innerHTML = '<li class="tournament-item p-2 rounded-lg" data-tournament="all">All Tournaments</li>' + 
+      tournamentList.innerHTML = '<li class="tournament-item p-2 rounded-lg" data-tournament="all">All Tournaments</li>' +
         tournaments.map(tournament => `<li class="tournament-item p-2 rounded-lg ${selectedTournament === tournament.name ? 'active' : ''}" data-tournament="${tournament.name}">${tournament.name} (${tournament.format})</li>`).join('');
       document.querySelectorAll('.tournament-item').forEach(item => {
         item.addEventListener('click', () => {
@@ -142,6 +156,14 @@
 
     function filterMatches() {
       let filteredMatches = allMatches;
+      const currentYear = currentDateTime.getFullYear(); // Get current year (2025)
+
+      // Filter matches to only include those from the current year
+      filteredMatches = filteredMatches.filter(match => {
+        const matchDate = new Date(match.start_date);
+        return !isNaN(matchDate.getTime()) && matchDate.getFullYear() === currentYear;
+      });
+
       if (selectedDay !== 'all') {
         const today = new Date(currentDateTime);
         today.setHours(0, 0, 0, 0);
@@ -158,23 +180,29 @@
         filteredMatches = filteredMatches.filter(match => {
           const matchDate = new Date(match.start_date);
           if (isNaN(matchDate.getTime())) return false;
-          matchDate.setHours(0, 0, 0, 0);
-          return matchDate.getTime() === targetDate.getTime();
+          return (
+            matchDate.getDate() === targetDate.getDate() &&
+            matchDate.getMonth() === targetDate.getMonth()
+          );
         });
       }
+
       if (selectedTournament) {
         filteredMatches = filteredMatches.filter(match => match.tour_name === selectedTournament);
       }
+
       const teamSearchTerm = document.getElementById('searchInput').value.toLowerCase();
       filteredMatches = filteredMatches.filter(match => {
         const team1 = match.participants[0]?.name_eng?.toLowerCase() || '';
         const team2 = match.participants[1]?.name_eng?.toLowerCase() || '';
         return team1.includes(teamSearchTerm) || team2.includes(teamSearchTerm);
       });
+
       const tournamentSearchTerm = document.getElementById('tournamentSearch').value.toLowerCase();
-      const filteredTournaments = allTournaments.filter(tournament => 
+      const filteredTournaments = allTournaments.filter(tournament =>
         `${tournament.name} (${tournament.format})`.toLowerCase().includes(tournamentSearchTerm)
       );
+
       displayTournaments(filteredTournaments);
       displayMatches(filteredMatches);
     }
