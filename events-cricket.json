@@ -9,17 +9,39 @@
     },
     
     {
-      "name": "Asia Cup 2025 - T20I",
+      "name": "Asia Cup 2025 Final ",
       "image": "https://images.seeklogo.com/logo-png/49/1/asia-cup-logo-png_seeklogo-497917.png",
       "link": "https://data.yosintv.link/cricket.html"
     },
     
     
     {
-      "name": "Nepal vs West Indies -  T20",
-      "image": "https://cdn.yosintv.link/tour/nep-windies.png",
+      "name": "Nepal vs West Indies - T20",
+      "image": "https://cdn.yosintv.link/cricket.png",
+      "link": "https://data.yosintv.link/cricket.html"
+    },
+
+    
+    {
+      "name": "Australia vs New Zealand 2025",
+      "image": "https://cdn.yosintv.link/cricket.png",
+      "link": "https://data.yosintv.link/cricket.html"
+    },
+
+    
+    {
+      "name": "West Indies vs India 2025",
+      "image": "https://cdn.yosintv.link/cricket.png",
+      "link": "https://data.yosintv.link/cricket.html"
+    },
+
+
+    {
+      "name": "Afghanistan vs Bangladesh 2025",
+      "image": "https://cdn.yosintv.link/cricket.png",
       "link": "https://data.yosintv.link/cricket.html"
     }
+    
     
   ]
 }
