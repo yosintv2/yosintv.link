@@ -30,12 +30,16 @@
     <label for="img1Input" class="block text-sm font-medium text-gray-700">Team 1 Name:</label>
     <input type="text" id="img1Input" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter Team 1 Name">
     <div id="img1Suggestions" class="suggestions"></div>
+    <label for="img1Url" class="block text-sm font-medium text-gray-700 mt-2">Team 1 Custom Logo URL:</label>
+    <input type="text" id="img1Url" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter Team 1 Custom Logo URL">
     <div id="error1" class="error hidden"></div>
   </div>
   <div class="input-group mt-2 relative">
     <label for="img2Input" class="block text-sm font-medium text-gray-700">Team 2 Name:</label>
     <input type="text" id="img2Input" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter Team 2 Name">
     <div id="img2Suggestions" class="suggestions"></div>
+    <label for="img2Url" class="block text-sm font-medium text-gray-700 mt-2">Team 2 Custom Logo URL:</label>
+    <input type="text" id="img2Url" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="Enter Team 2 Custom Logo URL">
     <div id="error2" class="error hidden"></div>
   </div>
   <div class="input-group mt-2">
@@ -327,6 +331,8 @@
     const ctx = canvas.getContext('2d');
     const img1Input = document.getElementById('img1Input');
     const img2Input = document.getElementById('img2Input');
+    const img1Url = document.getElementById('img1Url');
+    const img2Url = document.getElementById('img2Url');
     const img1Suggestions = document.getElementById('img1Suggestions');
     const img2Suggestions = document.getElementById('img2Suggestions');
     const error1 = document.getElementById('error1');
@@ -369,8 +375,8 @@
     function loadImages() {
       const team1Name = img1Input.value.trim();
       const team2Name = img2Input.value.trim();
-      const url1 = getTeamUrl(team1Name);
-      const url2 = getTeamUrl(team2Name);
+      const url1 = img1Url.value.trim() || getTeamUrl(team1Name);
+      const url2 = img2Url.value.trim() || getTeamUrl(team2Name);
 
       if (!url1 && !url2) return;
 
@@ -385,7 +391,7 @@
           checkImagesLoaded();
         };
         img1.onerror = function() {
-          showError(error1, 'Failed to load Team 1 image. Check the team name.');
+          showError(error1, 'Failed to load Team 1 image. Check the team name or URL.');
           checkImagesLoaded();
         };
         img1.src = url1;
@@ -399,7 +405,7 @@
           checkImagesLoaded();
         };
         img2.onerror = function() {
-          showError(error2, 'Failed to load Team 2 image. Check the team name.');
+          showError(error2, 'Failed to load Team 2 image. Check the team name or URL.');
           checkImagesLoaded();
         };
         img2.src = url2;
@@ -446,6 +452,8 @@
       showSuggestions(img2Input, img2Suggestions, img2Input.value);
       loadImages();
     });
+    img1Url.addEventListener('input', loadImages);
+    img2Url.addEventListener('input', loadImages);
 
     // Hide suggestions when clicking outside
     document.addEventListener('click', (e) => {
