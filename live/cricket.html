@@ -59,13 +59,12 @@
           .filter(match => match.start_date && !isNaN(new Date(match.start_date).getTime()))
           .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
 
-        // Deduplicate tournaments and enforce strict capitalization for formats
         const formatMap = {
           't20': 'T20',
           'odi': 'ODI',
           'test': 'Test',
           't10': 'T10',
-          '100': '100' // Add other formats as needed
+          '100': '100'
         };
         const tournamentMap = new Map();
         allMatches.forEach(match => {
@@ -77,7 +76,6 @@
           }
         });
         allTournaments = Array.from(tournamentMap.values());
-
         displayTournaments(allTournaments);
         filterMatches();
       } catch (error) {
@@ -112,6 +110,7 @@
         if (localTime === 'Invalid Date') return;
         const matchDate = new Date(match.start_date);
         const date = new Intl.DateTimeFormat('en-US', {
+          weekday: 'short',
           year: 'numeric',
           month: 'short',
           day: '2-digit'
@@ -134,8 +133,8 @@
       let html = '';
       const groupedMatches = groupMatchesByDate(matches);
       Object.keys(groupedMatches).sort((a, b) => {
-        const dateA = new Date(matches.find(m => convertToLocalTime(m.start_date).includes(a.split(' ')[0]))?.start_date || 0);
-        const dateB = new Date(matches.find(m => convertToLocalTime(m.start_date).includes(b.split(' ')[0]))?.start_date || 0);
+        const dateA = new Date(matches.find(m => convertToLocalTime(m.start_date).includes(a.split(' ')[1]))?.start_date || 0);
+        const dateB = new Date(matches.find(m => convertToLocalTime(m.start_date).includes(b.split(' ')[1]))?.start_date || 0);
         return dateA - dateB;
       }).forEach(date => {
         html += `<div class="bg-gray-200 p-4 font-semibold text-gray-700 text-lg">${date}</div>`;
@@ -175,7 +174,6 @@
     function filterMatches() {
       let filteredMatches = allMatches;
       const currentYear = currentDateTime.getFullYear();
-
       filteredMatches = filteredMatches.filter(match => {
         const matchDate = new Date(match.start_date);
         return !isNaN(matchDate.getTime()) && matchDate.getFullYear() === currentYear;
@@ -219,7 +217,6 @@
       const filteredTournaments = allTournaments.filter(tournament =>
         `${tournament.name} (${tournament.format})`.toLowerCase().includes(tournamentSearchTerm)
       );
-
       displayTournaments(filteredTournaments);
       displayMatches(filteredMatches);
     }
