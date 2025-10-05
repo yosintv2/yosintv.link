@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title> blv Match List </title>
+  <title>blv Match List</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f9fafb;
@@ -30,6 +28,14 @@
       font-weight: 700;
       font-size: 1.9rem;
       color: #222;
+      user-select: none;
+    }
+    #updateTime {
+      margin-top: 5px;
+      margin-bottom: 20px;
+      color: #555;
+      font-size: 1rem;
+      line-height: 1.4;
       user-select: none;
     }
     p {
@@ -75,7 +81,6 @@
       background: #357ABD;
       box-shadow: 0 6px 18px rgba(53,122,189,0.7);
     }
-
     #searchBar {
       width: 100%;
       padding: 12px 16px;
@@ -92,7 +97,6 @@
       outline: none;
       box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
     }
-
     #results {
       font-size: 1rem;
       color: #222;
@@ -106,7 +110,6 @@
       padding-bottom: 6px;
       user-select: text;
     }
-
     .blv-container {
       margin-bottom: 20px;
     }
@@ -125,7 +128,6 @@
       position: relative;
       display: inline-flex;
       align-items: center;
-      /* to keep space for tick top-right */
       padding-right: 30px;
     }
     .blv-container button:hover {
@@ -133,8 +135,6 @@
       box-shadow: 0 4px 10px rgba(74,144,226,0.5);
       color: #154a96;
     }
-
-    /* Copy tick SVG style */
     .copy-tick {
       position: absolute;
       top: 4px;
@@ -150,11 +150,8 @@
     .copy-tick.show {
       opacity: 1;
     }
-
     @media (max-width: 480px) {
-      main {
-        padding: 20px 15px;
-      }
+      main { padding: 20px 15px; }
       .blv-container button {
         margin: 5px 5px 5px 0;
         padding: 7px 12px;
@@ -172,24 +169,48 @@
 </head>
 <body>
   <main>
+    <h1>blv Match List</h1>
+    <div id="updateTime"></div>
     <textarea id="linksInput" placeholder="Paste your links here..."></textarea>
     <button class="extract-btn" onclick="extractBroadcasts()">Extract Broadcasts</button>
-
     <input type="text" id="searchBar" placeholder="Search matches or broadcast numbers..." oninput="filterResults()" />
-
     <div id="results"></div>
   </main>
-
   <script>
     const STORAGE_KEY = 'broadcastExtractorData';
     const STORAGE_TIME_KEY = 'broadcastExtractorTimestamp';
     const ONE_DAY_MS = 40 * 60 * 60 * 1000;
-
     let currentTickButton = null;
+
+    function formatTimeAgo(timestamp) {
+      const now = Date.now();
+      const diffMs = now - timestamp;
+      const seconds = Math.floor(diffMs / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (seconds < 60) return `Updated just now`;
+      if (minutes < 60) return `Updated ${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+      if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago`;
+      if (days < 7) return `Updated ${days} day${days === 1 ? '' : 's'} ago`;
+      return `Updated on ${new Date(timestamp).toLocaleString()}`;
+    }
+
+    function updateTimeDisplay() {
+      const savedTime = localStorage.getItem(STORAGE_TIME_KEY);
+      const updateTimeDiv = document.getElementById('updateTime');
+      if (savedTime) {
+        updateTimeDiv.textContent = formatTimeAgo(parseInt(savedTime));
+      } else {
+        updateTimeDiv.textContent = '';
+      }
+    }
 
     window.onload = function() {
       clearExpiredData();
       const savedData = localStorage.getItem(STORAGE_KEY);
+      updateTimeDisplay();
       if (savedData) {
         const parsed = JSON.parse(savedData);
         if (parsed && typeof parsed === 'object') {
@@ -197,6 +218,8 @@
           document.getElementById('searchBar').style.display = 'block';
         }
       }
+      // Update time display every minute
+      setInterval(updateTimeDisplay, 60 * 1000);
     };
 
     function clearExpiredData() {
@@ -212,62 +235,50 @@
       const resultsDiv = document.getElementById('results');
       const searchBar = document.getElementById('searchBar');
       resultsDiv.innerHTML = '';
-
       if (!input) {
         alert('Please paste some links first.');
         return;
       }
-
       const lines = input.split('\n').map(line => line.trim()).filter(line => line);
       const urlPattern = /\/truc-tiep\/([^\/\?]+).*blv=(\d+)/i;
-
       const matches = {};
-
       lines.forEach(link => {
         const match = link.match(urlPattern);
         if (match) {
           const matchName = match[1];
           const blv = match[2];
-
           if (!matches[matchName]) {
             matches[matchName] = new Set();
           }
           matches[matchName].add(blv);
         }
       });
-
       if (Object.keys(matches).length === 0) {
         alert('No valid links with broadcast numbers found.');
         return;
       }
-
       const matchesForStorage = {};
       for (const key in matches) {
         matchesForStorage[key] = Array.from(matches[key]);
       }
-
       localStorage.setItem(STORAGE_KEY, JSON.stringify(matchesForStorage));
       localStorage.setItem(STORAGE_TIME_KEY, Date.now().toString());
-
       displayResults(matchesForStorage);
       searchBar.style.display = 'block';
       searchBar.value = '';
-      // Clear tick on new extract
+      updateTimeDisplay();
       removeCurrentTick();
     }
 
     function displayResults(matches) {
       const resultsDiv = document.getElementById('results');
       resultsDiv.innerHTML = '';
-
       for (const matchName in matches) {
         const heading = document.createElement('h2');
         heading.textContent = matchName;
         resultsDiv.appendChild(heading);
-
         const container = document.createElement('div');
         container.className = 'blv-container';
-
         matches[matchName].forEach(blv => {
           const btn = document.createElement('button');
           btn.textContent = blv;
@@ -275,7 +286,6 @@
           btn.onclick = () => copyToClipboard(blv, btn);
           container.appendChild(btn);
         });
-
         resultsDiv.appendChild(container);
       }
     }
@@ -289,19 +299,14 @@
     }
 
     function showCopyTick(button) {
-      // Remove tick from old button
       removeCurrentTick();
-
-      // Create SVG tick element
       const svgns = "http://www.w3.org/2000/svg";
       const svg = document.createElementNS(svgns, "svg");
       svg.setAttribute("viewBox", "0 0 24 24");
       svg.classList.add('copy-tick', 'show');
-
       const path = document.createElementNS(svgns, "path");
       path.setAttribute("d", "M20.285 6.708l-11.4 11.4-5.37-5.37 1.414-1.414 3.957 3.956 9.986-9.985z");
       svg.appendChild(path);
-
       button.appendChild(svg);
       currentTickButton = button;
     }
@@ -325,12 +330,10 @@
         });
         return;
       }
-
       for (let i = 0; i < resultsDiv.children.length; i += 2) {
         const heading = resultsDiv.children[i];
         const blvContainer = resultsDiv.children[i + 1];
         const matchName = heading.textContent.toLowerCase();
-
         let anyBlvMatch = false;
         [...blvContainer.children].forEach(btn => {
           const blvText = btn.textContent.toLowerCase();
@@ -341,7 +344,6 @@
             btn.style.display = 'none';
           }
         });
-
         if (anyBlvMatch) {
           heading.style.display = '';
           blvContainer.style.display = '';
