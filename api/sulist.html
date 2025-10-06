@@ -9,9 +9,13 @@
 <body class="bg-gray-100 font-sans min-h-screen">
   <div class="container mx-auto p-6">
     <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Today's Matches</h1>
-    <!-- Search Bar -->
-    <div class="mb-6">
-      <input type="text" id="search" placeholder="Search matches..." class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
+    <!-- Search Bar and Toggle -->
+    <div class="mb-6 flex flex-col sm:flex-row gap-4">
+      <input type="text" id="search" placeholder="Search matches..." class="w-full sm:flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
+      <label class="flex items-center">
+        <input type="checkbox" id="showCompleted" class="mr-2" />
+        <span class="text-sm text-gray-700">Show completed matches</span>
+      </label>
     </div>
     <!-- Status Messages -->
     <div id="loading" class="text-center text-gray-500">Loading matches...</div>
@@ -53,12 +57,13 @@
 
     function filterMatches() {
       const query = document.getElementById('search').value.toLowerCase();
+      const showCompleted = document.getElementById('showCompleted').checked;
       const now = Date.now();
       return allMatches.filter(match => {
         if (!match.date) return false;
         const startTime = new Date(match.date).getTime();
         if (isNaN(startTime)) return false;
-        if (now > startTime + MATCH_DURATION_MS) return false;
+        if (!showCompleted && now > startTime + MATCH_DURATION_MS) return false;
         return match.title.toLowerCase().includes(query);
       });
     }
@@ -73,7 +78,6 @@
       matches.forEach(match => {
         const card = document.createElement('div');
         card.className = 'bg-white p-4 rounded-lg shadow';
-
         // Title row
         const titleRow = document.createElement('div');
         titleRow.className = 'flex items-center justify-between mb-1';
@@ -86,17 +90,14 @@
         copyNameBtn.onclick = () => copyLink(match.title);
         titleRow.appendChild(title);
         titleRow.appendChild(copyNameBtn);
-
         // Countdown
         const countdown = document.createElement('div');
         countdown.className = 'text-sm text-gray-600 mb-2';
         countdown.textContent = 'Starts in: calculating...';
         startCountdown(match.date, countdown);
-
         // Buttons row
         const btnsDiv = document.createElement('div');
         btnsDiv.className = 'flex flex-wrap gap-2';
-
         // Alpha links with JSON display and Copy JSON button
         const alphaSrc = match.sources?.find(s => s.source.toLowerCase() === 'alpha');
         if (alphaSrc) {
@@ -114,7 +115,7 @@
               `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/alpha2?mid=${alphaSrc.id}`,
               "_____"
             ]
-          } ;
+          };
           const jsonDisplay = document.createElement('pre');
           jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
           jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
@@ -126,7 +127,14 @@
           alphaDiv.appendChild(jsonBtn);
           btnsDiv.appendChild(alphaDiv);
         }
-
+        // Alpha button
+        if (alphaSrc) {
+          const alphaBtn = document.createElement('button');
+          alphaBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm';
+          alphaBtn.textContent = 'Alpha Link';
+          alphaBtn.onclick = () => copyLink(`https://ytvlive.pages.dev/alpha?mid=${alphaSrc.id}`);
+          btnsDiv.appendChild(alphaBtn);
+        }
         // Admin button
         const adminSrc = match.sources?.find(s => s.source.toLowerCase() === 'admin');
         if (adminSrc) {
@@ -136,7 +144,6 @@
           btn.onclick = () => copyLink(`https://ytvlive.pages.dev/admin?mid=${adminSrc.id}`);
           btnsDiv.appendChild(btn);
         }
-
         // Poster button
         if (match.poster) {
           const posterBtn = document.createElement('button');
@@ -145,7 +152,6 @@
           posterBtn.onclick = () => copyLink('https://streamed.pk' + match.poster);
           btnsDiv.appendChild(posterBtn);
         }
-
         // Remaining sources
         match.sources?.forEach(src => {
           const lower = src.source.toLowerCase();
@@ -157,7 +163,6 @@
             btnsDiv.appendChild(btn);
           }
         });
-
         card.appendChild(titleRow);
         card.appendChild(countdown);
         card.appendChild(btnsDiv);
@@ -185,7 +190,7 @@
         const minutes = Math.floor(diff / (1000 * 60));
         diff %= (1000 * 60);
         const seconds = Math.floor(diff / 1000);
-        element.textContent = `Starts in: ${days}d ${String(hours).padStart(2,'0')}h ${String(minutes).padStart(2,'0')}m ${String(seconds).padStart(2,'0')}s`;
+        element.textContent = `Starts in: ${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
       };
       updateTimer();
       const interval = setInterval(updateTimer, 1000);
@@ -205,6 +210,10 @@
     }
 
     document.getElementById('search').addEventListener('input', () => {
+      renderMatches(filterMatches());
+    });
+
+    document.getElementById('showCompleted').addEventListener('change', () => {
       renderMatches(filterMatches());
     });
 
