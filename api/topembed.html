@@ -137,11 +137,21 @@
 
         searchedEvents.forEach(event => {
           const matchName = event.match.replace(/\s*-\s*/g, ' vs ');
-          // Prepare links: first is fixed, others are plain channel URLs (up to 4)
-          const channelLinks = Array.isArray(event.channels) ? event.channels.slice(0, 4) : [];
+          // Prepare links: first is fixed, others are from channels (up to 4)
+          let channelLinks = Array.isArray(event.channels) ? event.channels.slice(0, 4) : [];
+          // Modify links based on number of channelLinks
+          if (channelLinks.length === 1) {
+            // If only one link, repeat it three times
+            channelLinks = [channelLinks[0], channelLinks[0], channelLinks[0]];
+          } else if (channelLinks.length === 2) {
+            // If two links, repeat the first link as the third
+            channelLinks = [channelLinks[0], channelLinks[1], channelLinks[0]];
+          }
           const links = [
             'https://yosintv2.pages.dev/ads.html',
-            ...channelLinks.map(url => `https://yosintv2.github.io/ads/foot.html?url=${decodeURIComponent(url)}`)
+            ...channelLinks.map(url =>
+              `https://yosintv2.github.io/ads/foot.html?url=${decodeURIComponent(url)}`
+            ),
           ];
 
           const eventObj = {
@@ -164,8 +174,7 @@
 
           // Copy Match Name button
           const copyMatchBtn = document.createElement('button');
-          copyMatchBtn.className =
-            'ml-2 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs';
+          copyMatchBtn.className = 'ml-2 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs';
           copyMatchBtn.textContent = 'Copy';
           copyMatchBtn.addEventListener('click', () => copyToClipboard(eventObj.name));
 
@@ -185,7 +194,8 @@
 
           // Create JSON-like structure for links
           const jsonContainer = document.createElement('pre');
-          jsonContainer.className = 'bg-gray-100 p-3 rounded text-sm text-gray-800 max-w-full overflow-wrap break-word white-space pre-wrap';
+          jsonContainer.className =
+            'bg-gray-100 p-3 rounded text-sm text-gray-800 max-w-full overflow-wrap break-word white-space pre-wrap';
           const jsonData = {
             name: eventObj.name,
             links: eventObj.links,
@@ -205,10 +215,11 @@
 
           // Add copy button for JSON
           const copyJsonBtn = document.createElement('button');
-          copyJsonBtn.className =
-            'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs mt-2';
+          copyJsonBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs mt-2';
           copyJsonBtn.textContent = 'Copy JSON';
-          copyJsonBtn.addEventListener('click', () => copyToClipboard(JSON.stringify(jsonData, null, 2)));
+          copyJsonBtn.addEventListener('click', () =>
+            copyToClipboard(JSON.stringify(jsonData, null, 2))
+          );
 
           linksDiv.appendChild(jsonContainer);
           linksDiv.appendChild(matchInfoDiv);
@@ -218,8 +229,8 @@
           eventCard.appendChild(matchRow);
           eventCard.appendChild(countdownDiv);
           eventCard.appendChild(linksDiv);
-
           eventsContainer.appendChild(eventCard);
+
           createCountdown(event.unix_timestamp, 2.6, countdownDiv);
         });
       }
