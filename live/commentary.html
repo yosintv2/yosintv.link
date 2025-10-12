@@ -320,16 +320,6 @@
         fetchData();
         setInterval(fetchData, 1000);
     });
-
-    (function() {
-        const allowedDomains = ['www.yosintv.link', 'www.w3schools.com'];
-        const currentDomain = window.location.hostname.toLowerCase().split(':')[0];
-        if (!allowedDomains.includes(currentDomain) && !currentDomain.includes('localhost')) {
-            window.location.replace('https://www.yosin-tv.net/');
-        } else {
-            console.log('Domain allowed:', currentDomain);
-        }
-    })();
 </script>
 
   <div class="gtranslate_wrapper"></div>
