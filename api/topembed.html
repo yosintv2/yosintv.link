@@ -139,6 +139,10 @@
           const matchName = event.match.replace(/\s*-\s*/g, ' vs ');
           // Prepare links: first is fixed, others are from channels (up to 4)
           let channelLinks = Array.isArray(event.channels) ? event.channels.slice(0, 4) : [];
+          // Determine the base URL based on sport
+          const baseUrl = event.sport && event.sport.toLowerCase() === 'cricket'
+            ? 'https://yosintv2.github.io/ads/cric.html'
+            : 'https://yosintv2.github.io/ads/foot.html';
           // Modify links based on number of channelLinks
           if (channelLinks.length === 1) {
             // If only one link, repeat it three times
@@ -150,7 +154,7 @@
           const links = [
             'https://yosintv2.pages.dev/ads.html',
             ...channelLinks.map(url =>
-              `https://yosintv2.github.io/ads/foot.html?url=${decodeURIComponent(url)}`
+              `${baseUrl}?url=${decodeURIComponent(url)}`
             ),
           ];
 
