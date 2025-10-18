@@ -194,7 +194,7 @@
 
           // Links container
           const linksDiv = document.createElement('div');
-          linksDiv.className = 'flex flex-col space-y-2 max-w-full';
+          linksDiv.className = 'flex flex-col space-y-2 max-w-full mt-2';
 
           // Create JSON-like structure for links
           const jsonContainer = document.createElement('pre');
@@ -227,11 +227,11 @@
 
           linksDiv.appendChild(jsonContainer);
           linksDiv.appendChild(matchInfoDiv);
-          linksDiv.appendChild(copyJsonBtn);
 
           eventCard.appendChild(dateTimeDiv);
           eventCard.appendChild(matchRow);
           eventCard.appendChild(countdownDiv);
+          eventCard.appendChild(copyJsonBtn);
           eventCard.appendChild(linksDiv);
           eventsContainer.appendChild(eventCard);
 
