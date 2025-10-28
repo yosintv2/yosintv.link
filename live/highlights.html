@@ -1,155 +1,210 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title> Highlights JSON Generator</title>
+  <title>Highlights JSON Generator – Tall Input</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body.dark-mode { background-color: #121212; color: white; }
-    .json-box { white-space: pre-wrap; font-family: monospace; background: #f8f9fa; padding: 1rem; border-radius: 0.5rem; min-height: 150px; overflow-x: auto; }
-    body.dark-mode .json-box { background: #1e1e1e; color: #eee; }
-    .floating-buttons { position: fixed; top: 50%; right: 20px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 1000; }
-    .container { max-width: 800px; margin: auto; }
-    .popup-alert { position: fixed; bottom: 20px; right: 20px; background: #0d6efd; color: white; padding: 10px 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s ease-in-out; z-index: 2000; }
-    .popup-alert.show { opacity: 1; }
+    body.dark-mode {background:#121212;color:#eee;}
+    .json-box {white-space:pre-wrap;font-family:monospace;background:#f8f9fa;padding:1rem;border-radius:.5rem;min-height:150px;overflow-x:auto;}
+    body.dark-mode .json-box {background:#1e1e1e;color:#eee;}
+    .floating-buttons {position:fixed;top:50%;right:20px;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:1000;}
+    .container {max-width:900px;margin:auto;}
+    .popup-alert {position:fixed;bottom:20px;right:20px;background:#0d6efd;color:#fff;padding:10px 20px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.3);opacity:0;transition:opacity .3s;z-index:2000;}
+    .popup-alert.show {opacity:1;}
+    textarea#matchInput {min-height:500px !important; font-family:monospace; font-size:0.95rem;}
   </style>
 </head>
 <body>
-  <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Highlights JSON Generator</h2>
-      <button id="themeToggle" class="btn btn-secondary">Dark Theme</button>
-    </div>
-    <div class="mb-3">
-      <label for="dateInput" class="form-label">Select Date (defaults to today):</label>
-      <input type="date" id="dateInput" class="form-control mb-3">
-    </div>
-    <div class="mb-3">
-      <label for="matchInput" class="form-label">Enter Match Data (format: Team1 vs Team2, Category, URL):</label>
-      <textarea id="matchInput" class="form-control" rows="10" placeholder="Barcelona vs Como, Friendly, https://highlight.api-football.xyz/2025/08/13/1754864825724/index.m3u8"></textarea>
-    </div>
-    <div class="mb-4">
-      <h5>Generated JSON</h5>
-      <div id="jsonOutput" class="json-box"></div>
-    </div>
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Highlights JSON Generator</h2>
+    <button id="themeToggle" class="btn btn-secondary">Dark Theme</button>
   </div>
-  <div class="floating-buttons">
-    <button id="generateBtn" class="btn btn-primary">Generate JSON</button>
-    <button id="copyBtn" class="btn btn-outline-secondary">Copy JSON</button>
+
+  <div class="mb-3">
+    <label for="dateInput" class="form-label">Date (default today)</label>
+    <input type="date" id="dateInput" class="form-control">
   </div>
-  <div id="popupAlert" class="popup-alert"></div>
-  <script>
-    const inputEl = document.getElementById("matchInput");
-    const dateInputEl = document.getElementById("dateInput");
-    const jsonOutput = document.getElementById("jsonOutput");
-    const generateBtn = document.getElementById("generateBtn");
-    const copyBtn = document.getElementById("copyBtn");
-    const popupAlert = document.getElementById("popupAlert");
 
-    // Set today's date as default value (fixed for local time zone)
-    const today = new Date();
-    dateInputEl.value = today.getFullYear() + '-' + 
-                        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                        String(today.getDate()).padStart(2, '0');
+  <div class="mb-3">
+    <label class="form-label">Paste all matches (one per line)</label>
+    <textarea id="matchInput" class="form-control" placeholder="Arsenal vs Crystal Palace , EPL , https://...
+Arsenal vs Wrexham , , https://...   (Football - mixed)
+Liverpool vs Man City , , https://...
+Real Madrid vs Barcelona , LaLiga , https://...
+Bayern vs Dortmund , , 'vs' friendly , https://..."></textarea>
+  </div>
 
-    function generateRandomId(usedIds) {
-      const letters = 'abcdefghijklmnopqrstuvwxyz';
-      let id;
-      do {
-        const randomLetter1 = letters[Math.floor(Math.random() * letters.length)];
-        const randomLetter2 = letters[Math.floor(Math.random() * letters.length)];
-        const randomLetter3 = letters[Math.floor(Math.random() * letters.length)];
-        const randomNumber = Math.floor(1000000 + Math.random() * 9000000).toString();
-        id = randomLetter1 + randomLetter2 + randomLetter3 + randomNumber;
-      } while (usedIds.has(id));
-      usedIds.add(id);
-      return id;
+  <div class="mb-4">
+    <h5>Generated JSON</h5>
+    <div id="jsonOutput" class="json-box"></div>
+  </div>
+</div>
+
+<div class="floating-buttons">
+  <button id="generateBtn" class="btn btn-primary">Generate JSON</button>
+  <button id="copyBtn" class="btn btn-outline-secondary">Copy JSON</button>
+</div>
+<div id="popupAlert" class="popup-alert"></div>
+
+<script>
+/* ---------- popup ---------- */
+const popup = document.getElementById('popupAlert');
+function show(msg){popup.textContent=msg;popup.classList.add('show');setTimeout(()=>popup.classList.remove('show'),2000);}
+
+/* ---------- date ---------- */
+const dateInput = document.getElementById('dateInput');
+const today = new Date().toISOString().split('T')[0];
+dateInput.value = today;
+
+/* ---------- random id ---------- */
+const used = new Set();
+function rndId(){
+  const a='abcdefghijklmnopqrstuvwxyz';
+  let id;
+  do{
+    id = a[Math.floor(Math.random()*26)]+a[Math.floor(Math.random()*26)]+a[Math.floor(Math.random()*26)]+
+         Math.floor(1000000+Math.random()*9000000);
+  }while(used.has(id));
+  used.add(id);
+  return id;
+}
+
+/* ---------- COMPLETE LEAGUE MAP (2025-26) ---------- */
+const leagueMap = {
+  // ==== PREMIER LEAGUE (20) ====
+  'arsenal':'EPL','chelsea':'EPL','liverpool':'EPL','manchester city':'EPL','man city':'EPL','manchester united':'EPL','man utd':'EPL','tottenham':'EPL','aston villa':'EPL','newcastle':'EPL','west ham':'EPL','brighton':'EPL','crystal palace':'EPL','wolverhampton':'EPL','wolves':'EPL','everton':'EPL','fulham':'EPL','brentford':'EPL','nottingham forest':'EPL','bournemouth':'EPL','southampton':'EPL',
+
+  // ==== SERIE A (20) ====
+  'juventus':'Serie A','inter':'Serie A','milan':'Serie A','ac milan':'Serie A','napoli':'Serie A','roma':'Serie A','lazio':'Serie A','atalanta':'Serie A','fiorentina':'Serie A','torino':'Serie A','bologna':'Serie A','udinese':'Serie A','sassuolo':'Serie A','empoli':'Serie A','monza':'Serie A','salernitana':'Serie A','lecce':'Serie A','verona':'Serie A','spezia':'Serie A','cremonese':'Serie A','sampdoria':'Serie A','cagliari':'Serie A','genoa':'Serie A','parma':'Serie A','como':'Serie A','venezia':'Serie A','palermo':'Serie A','brescia':'Serie A','frosinone':'Serie A','pisa':'Serie A',
+
+  // ==== LA LIGA (20) ====
+  'real madrid':'LaLiga','barcelona':'LaLiga','atletico madrid':'LaLiga','atlético madrid':'LaLiga','sevilla':'LaLiga','real sociedad':'LaLiga','villarreal':'LaLiga','athletic bilbao':'LaLiga','real betis':'LaLiga','osassuna':'LaLiga','rayo vallecano':'LaLiga','mallorca':'LaLiga','celta vigo':'LaLiga','valencia':'LaLiga','getafe':'LaLiga','girona':'LaLiga','espanyol':'LaLiga','cádiz':'LaLiga','granada':'LaLiga','almería':'LaLiga','valladolid':'LaLiga','leganés':'LaLiga','eibar':'LaLiga','huesca':'LaLiga','elche':'LaLiga','levante':'LaLiga','deportivo alavés':'LaLiga','alaves':'LaLiga','las palmas':'LaLiga','tenerife':'LaLiga',
+
+  // ==== BUNDESLIGA (18) ====
+  'bayern munich':'Bundesliga','bayern':'Bundesliga','borussia dortmund':'Bundesliga','dortmund':'Bundesliga','rb leipzig':'Bundesliga','leipzig':'Bundesliga','union berlin':'Bundesliga','freiburg':'Bundesliga','bayer leverkusen':'Bundesliga','leverkusen':'Bundesliga','wolfsburg':'Bundesliga','mainz 05':'Bundesliga','mainz':'Bundesliga','borussia mönchengladbach':'Bundesliga','gladbach':'Bundesliga','köln':'Bundesliga','cologne':'Bundesliga','eintracht frankfurt':'Bundesliga','frankfurt':'Bundesliga','augsburg':'Bundesliga','bochum':'Bundesliga','stuttgart':'Bundesliga','hoffenheim':'Bundesliga','hertha bsc':'Bundesliga','hertha':'Bundesliga','schalke 04':'Bundesliga','schalke':'Bundesliga','werder bremen':'Bundesliga','bremen':'Bundesliga','darmstadt':'Bundesliga','heidenheim':'Bundesliga',
+
+  // ==== LIGUE 1 (18) ====
+  'paris saint-germain':'Ligue 1','psg':'Ligue 1','monaco':'Ligue 1','marseille':'Ligue 1','olympique marseille':'Ligue 1','lyon':'Ligue 1','olympique lyonnais':'Ligue 1','lille':'Ligue 1','nice':'Ligue 1','rennes':'Ligue 1','lens':'Ligue 1','strasbourg':'Ligue 1','montpellier':'Ligue 1','toulouse':'Ligue 1','brest':'Ligue 1','nantes':'Ligue 1','auxerre':'Ligue 1','lorient':'Ligue 1','clermont foot':'Ligue 1','clermont':'Ligue 1','reims':'Ligue 1','troyes':'Ligue 1','ajaccio':'Ligue 1','le havre':'Ligue 1','metz':'Ligue 1','angers':'Ligue 1','saint-étienne':'Ligue 1','st etienne':'Ligue 1','rodez':'Ligue 1','paris fc':'Ligue 1',
+
+  // ==== MLS (29) ====
+  'lafc':'MLS','los angeles fc':'MLS','la galaxy':'MLS','inter miami':'MLS','atlanta united':'MLS','nashville sc':'MLS','philadelphia union':'MLS','fc cincinnati':'MLS','cincinnati':'MLS','columbus crew':'MLS','new england revolution':'MLS','orlando city':'MLS','new york city fc':'MLS','nycfc':'MLS','ny red bulls':'MLS','red bulls':'MLS','portland timbers':'MLS','seattle sounders':'MLS','sporting kansas city':'MLS','sporting kc':'MLS','austin fc':'MLS','charlotte fc':'MLS','chicago fire':'MLS','colorado rapids':'MLS','fc dallas':'MLS','houston dynamo':'MLS','minnesota united':'MLS','real salt lake':'MLS','san jose earthquakes':'MLS','vancouver whitecaps':'MLS','toronto fc':'MLS','cf montréal':'MLS','montreal':'MLS','st. louis city sc':'MLS','stl city':'MLS','san diego fc':'MLS','san diego':'MLS',
+
+  // ==== SAUDI PRO LEAGUE (18) ====
+  'al hilal':'Saudi Pro League','al nassr':'Saudi Pro League','al ittihad':'Saudi Pro League','al ahli':'Saudi Pro League','al shabab':'Saudi Pro League','al fateh':'Saudi Pro League','al ettifaq':'Saudi Pro League','al taawoun':'Saudi Pro League','damac':'Saudi Pro League','al raed':'Saudi Pro League','al fayha':'Saudi Pro League','abha':'Saudi Pro League','al khaleej':'Saudi Pro League','al adalh':'Saudi Pro League','al batin':'Saudi Pro League','al wehda':'Saudi Pro League','al tai':'Saudi Pro League','al okhdood':'Saudi Pro League','al riyadh':'Saudi Pro League','al hazem':'Saudi Pro League','al akhdoud':'Saudi Pro League'
+};
+
+/* ---------- guess league for one team ---------- */
+function getTeamLeague(team){
+  const t = team.toLowerCase();
+  for(const key in leagueMap){
+    if(t.includes(key)) return leagueMap[key];
+  }
+  return null;
+}
+
+/* ---------- smart guess: same league → use it, else → Football ---------- */
+function guessLeague(t1, t2){
+  const l1 = getTeamLeague(t1);
+  const l2 = getTeamLeague(t2);
+
+  if(l1 && l2 && l1 === l2) return l1;
+  if(l1) return l1;
+  if(l2) return l2;
+  return 'Football';
+}
+
+/* ---------- parse all lines ---------- */
+function parseAll(text, date){
+  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const result = [];
+  for(const line of lines){
+    const parts = line.split(',').map(p=>p.trim());
+    if(parts.length < 2) continue;
+
+    const url = parts.pop();
+    const rest = parts.join(',').trim();
+
+    const matchAndLeague = rest.split(/\s*,\s*/);
+    let matchStr, explicitLeague = '';
+
+    if(matchAndLeague.length === 1){
+      matchStr = matchAndLeague[0];
+    }else{
+      matchStr = matchAndLeague.slice(0,-1).join(',');
+      explicitLeague = matchAndLeague[matchAndLeague.length-1];
     }
 
-    function parseInput(text, selectedDate) {
-      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-      const matches = [];
-      const usedIds = new Set();
-      const today = selectedDate || new Date().toISOString().split('T')[0];
-      for (const line of lines) {
-        const parts = line.split(",").map(p => p.trim());
-        if (parts.length !== 3) continue;
-        const [teamLine, category, url] = parts;
-        const [team1, team2] = teamLine.split(" vs ").map(t => t.trim());
-        if (!team1 || !team2 || !category || !url) continue;
-        const id = generateRandomId(usedIds);
-        const match = { id, team1, team2, category, date: today, link: `video?src=${url}` };
-        matches.push(match);
-      }
-      return matches;
-    }
+    const [team1,team2] = matchStr.split(' vs ').map(t=>t.trim());
+    if(!team1 || !team2 || !url) continue;
 
-    function showJSON(element, data) {
-      if (data.length === 0) {
-        element.textContent = "";
-        return;
-      }
-      const jsonString = data
-        .map(item => JSON.stringify(item, null, 2) + ',')
-        .join("\n\n");
-      element.textContent = jsonString;
-      localStorage.setItem("lastJsonOutput", jsonString);
-      showPopup("✅ JSON Generated!");
-    }
+    const finalLeague = explicitLeague || guessLeague(team1, team2);
 
-    function copyJSON() {
-      const jsonText = jsonOutput.textContent;
-      if (!jsonText.trim()) {
-        showPopup("⚠️ No JSON to copy!");
-        return;
-      }
-      navigator.clipboard.writeText(jsonText).then(() => {
-        showPopup("📋 Copied to clipboard!");
-      }).catch(() => {
-        showPopup("❌ Failed to copy.");
-      });
-    }
-
-    function showPopup(message) {
-      popupAlert.textContent = message;
-      popupAlert.classList.add("show");
-      setTimeout(() => {
-        popupAlert.classList.remove("show");
-      }, 2000);
-    }
-
-    generateBtn.addEventListener("click", () => {
-      const input = inputEl.value;
-      const selectedDate = dateInputEl.value;
-      const matches = parseInput(input, selectedDate);
-      showJSON(jsonOutput, matches);
-      localStorage.setItem("lastMatchInput", input);
+    result.push({
+      id: rndId(),
+      team1, team2,
+      category: finalLeague,
+      date,
+      link: `video?src=${url}`
     });
+  }
+  return result;
+}
 
-    copyBtn.addEventListener("click", copyJSON);
+/* ---------- generate ---------- */
+document.getElementById('generateBtn').onclick = ()=>{
+  used.clear();
+  const txt = document.getElementById('matchInput').value;
+  const d = dateInput.value || today;
+  const data = parseAll(txt, d);
 
-    window.addEventListener("load", () => {
-      const savedInput = localStorage.getItem("lastMatchInput");
-      const savedJson = localStorage.getItem("lastJsonOutput");
-      if (savedInput) inputEl.value = savedInput;
-      if (savedJson) jsonOutput.textContent = savedJson;
-    });
+  if(!data.length){
+    document.getElementById('jsonOutput').textContent = '';
+    show('No valid matches');
+    return;
+  }
 
-    const themeToggle = document.getElementById("themeToggle");
-    themeToggle.addEventListener("click", () => {
-      document.body.classList.toggle("dark-mode");
-      localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
-      themeToggle.textContent = document.body.classList.contains("dark-mode") ? "Light Theme" : "Dark Theme";
-    });
+  const out = data.map(o=>JSON.stringify(o,null,2)).join(',\n\n');
+  document.getElementById('jsonOutput').textContent = out;
+  localStorage.setItem('lastJson', out);
+  localStorage.setItem('lastInput', txt);
+  localStorage.setItem('lastDate', d);
+  show('JSON Generated!');
+};
 
-    if (localStorage.getItem("theme") === "dark") {
-      document.body.classList.add("dark-mode");
-      themeToggle.textContent = "Light Theme";
-    } else {
-      themeToggle.textContent = "Dark Theme";
-    }
-  </script>
+/* ---------- copy ---------- */
+document.getElementById('copyBtn').onclick = ()=>{
+  const txt = document.getElementById('jsonOutput').textContent.trim();
+  if(!txt){show('Nothing to copy');return;}
+  navigator.clipboard.writeText(txt).then(()=>show('Copied!')).catch(()=>show('Copy failed'));
+};
+
+/* ---------- load saved data ---------- */
+window.addEventListener('load',()=>{
+  const saved = localStorage.getItem('lastInput');
+  const json = localStorage.getItem('lastJson');
+  const d = localStorage.getItem('lastDate');
+  if(saved) document.getElementById('matchInput').value = saved;
+  if(json) document.getElementById('jsonOutput').textContent = json;
+  if(d) dateInput.value = d;
+
+  const th = localStorage.getItem('theme');
+  if(th==='dark'){
+    document.body.classList.add('dark-mode');
+    document.getElementById('themeToggle').textContent='Light Theme';
+  }
+});
+
+/* ---------- dark mode ---------- */
+document.getElementById('themeToggle').onclick = ()=>{
+  document.body.classList.toggle('dark-mode');
+  const dark = document.body.classList.contains('dark-mode');
+  localStorage.setItem('theme', dark?'dark':'light');
+  document.getElementById('themeToggle').textContent = dark?'Light Theme':'Dark Theme';
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
