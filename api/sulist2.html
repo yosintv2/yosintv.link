@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>streamed.su Match List</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+  <div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Today's Matches</h1>
+    
+    <!-- Search Bar and Toggle -->
+    <div class="mb-6 flex flex-col sm:flex-row gap-4">
+      <input type="text" id="search" placeholder="Search matches..." class="w-full sm:flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
+      <label class="flex items-center">
+        <input type="checkbox" id="showCompleted" class="mr-2" />
+        <span class="text-sm text-gray-700">Show completed matches</span>
+      </label>
+    </div>
+    
+    <!-- Status Messages -->
+    <div id="loading" class="text-center text-gray-500">Loading matches...</div>
+    <div id="error" class="text-center text-red-500 hidden"></div>
+    
+    <!-- Matches -->
+    <div id="matches" class="space-y-4 hidden"></div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow hidden">
+    Copied!
+  </div>
+
+  <script>
+    let allMatches = [];
+    let countdownIntervals = {};
+    const MATCH_DURATION_MS = 10 * 60 * 60 * 1000; // 10 hours
+
+    async function fetchMatches() {
+      const loadingDiv = document.getElementById('loading');
+      const errorDiv = document.getElementById('error');
+      const matchesContainer = document.getElementById('matches');
+      try {
+        const res = await fetch('https://streamed.st/api/matches/all-today');
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error('No matches found');
+        }
+        allMatches = data;
+        renderMatches(filterMatches());
+        loadingDiv.classList.add('hidden');
+        matchesContainer.classList.remove('hidden');
+      } catch (err) {
+        console.error(err);
+        loadingDiv.classList.add('hidden');
+        errorDiv.textContent = `Error: ${err.message}`;
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    function filterMatches() {
+      const query = document.getElementById('search').value.toLowerCase();
+      const showCompleted = document.getElementById('showCompleted').checked;
+      const now = Date.now();
+      return allMatches.filter(match => {
+        if (!match.date) return false;
+        const startTime = new Date(match.date).getTime();
+        if (isNaN(startTime)) return false;
+        if (!showCompleted && now > startTime + MATCH_DURATION_MS) return false;
+        return match.title.toLowerCase().includes(query);
+      });
+    }
+
+    function renderMatches(matches) {
+      const matchesContainer = document.getElementById('matches');
+      matchesContainer.innerHTML = '';
+      Object.values(countdownIntervals).forEach(clearInterval);
+      countdownIntervals = {};
+
+      matches.forEach(match => {
+        const card = document.createElement('div');
+        card.className = 'bg-white p-4 rounded-lg shadow';
+
+        // Title row
+        const titleRow = document.createElement('div');
+        titleRow.className = 'flex items-center justify-between mb-1';
+        const title = document.createElement('h2');
+        title.className = 'text-lg font-semibold text-gray-800';
+        title.textContent = match.title;
+        const copyNameBtn = document.createElement('button');
+        copyNameBtn.className = 'bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-1 rounded text-xs ml-3';
+        copyNameBtn.textContent = 'Copy Match Title';
+        copyNameBtn.onclick = () => copyLink(match.title);
+        titleRow.appendChild(title);
+        titleRow.appendChild(copyNameBtn);
+
+        // Countdown
+        const countdown = document.createElement('div');
+        countdown.className = 'text-sm text-gray-600 mb-2';
+        countdown.textContent = 'Starts in: calculating...';
+        startCountdown(match.date, countdown);
+
+        // Buttons container
+        const btnsDiv = document.createElement('div');
+        btnsDiv.className = 'flex flex-wrap gap-2';
+
+        const alphaSrc = match.sources?.find(s => s.source.toLowerCase() === 'alpha');
+        const adminSrc = match.sources?.find(s => s.source.toLowerCase() === 'admin');
+
+        // ---------- ALPHA (Default JSON with emoji) ----------
+        if (alphaSrc) {
+          const alphaDiv = document.createElement('div');
+          alphaDiv.className = 'mb-2 w-full';
+
+          const alphaTitle = document.createElement('div');
+          alphaTitle.className = 'text-sm font-semibold text-gray-800';
+          alphaTitle.textContent = ` ${match.title}`;
+          alphaDiv.appendChild(alphaTitle);
+
+          const jsonData = {
+            name: `📱💻  ${match.title}`,
+            links: [
+              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/alpha2?mid=${alphaSrc.id}`,
+              `https://yosintv2.pages.dev/ads.html`,
+              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/alpha?mid=${alphaSrc.id}`,
+              "________________blv_links___________"
+            ]
+          };
+
+          const jsonDisplay = document.createElement('pre');
+          jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
+          jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
+          alphaDiv.appendChild(jsonDisplay);
+
+          const jsonBtn = document.createElement('button');
+          jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
+          jsonBtn.textContent = 'Copy JSON';
+          jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData, null, 2));
+          alphaDiv.appendChild(jsonBtn);
+
+          btnsDiv.appendChild(alphaDiv);
+
+          // Alpha direct button
+          const alphaBtn = document.createElement('button');
+          alphaBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm';
+          alphaBtn.textContent = 'Alpha Link';
+          alphaBtn.onclick = () => copyLink(`https://ytvlive.pages.dev/alpha?mid=${alphaSrc.id}`);
+          btnsDiv.appendChild(alphaBtn);
+        }
+
+        // ---------- ADMIN (Fallback JSON if no Alpha) ----------
+        else if (adminSrc) {
+          const adminDiv = document.createElement('div');
+          adminDiv.className = 'mb-2 w-full';
+
+          const adminTitle = document.createElement('div');
+          adminTitle.className = 'text-sm font-semibold text-gray-800';
+          adminTitle.textContent = `${match.title})`;
+          adminDiv.appendChild(adminTitle);
+
+          const jsonData = {
+            name: `📱💻 ${match.title}`,
+            links: [
+              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/admin?mid=${adminSrc.id}`,
+              `https://yosintv2.pages.dev/ads.html`,
+              "________________blv_links___________"
+            ]
+          };
+
+          const jsonDisplay = document.createElement('pre');
+          jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
+          jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
+          adminDiv.appendChild(jsonDisplay);
+
+          const jsonBtn = document.createElement('button');
+          jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
+          jsonBtn.textContent = 'Copy JSON';
+          jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData, null, 2));
+          adminDiv.appendChild(jsonBtn);
+
+          btnsDiv.appendChild(adminDiv);
+        }
+
+        // ---------- ADMIN direct button (always if present) ----------
+        if (adminSrc) {
+          const adminBtn = document.createElement('button');
+          adminBtn.className = 'bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm';
+          adminBtn.textContent = 'Admin Link';
+          adminBtn.onclick = () => copyLink(`https://ytvlive.pages.dev/admin?mid=${adminSrc.id}`);
+          btnsDiv.appendChild(adminBtn);
+        }
+
+        // ---------- POSTER ----------
+        if (match.poster) {
+          const posterBtn = document.createElement('button');
+          posterBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm';
+          posterBtn.textContent = 'Poster Link';
+          posterBtn.onclick = () => copyLink('https://streamed.pk' + match.poster);
+          btnsDiv.appendChild(posterBtn);
+        }
+
+        // ---------- OTHER SOURCES ----------
+        match.sources?.forEach(src => {
+          const lower = src.source.toLowerCase();
+          if (!['alpha', 'admin'].includes(lower)) {
+            const btn = document.createElement('button');
+            btn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm';
+            btn.textContent = src.source;
+            btn.onclick = () => copyLink(src.id);
+            btnsDiv.appendChild(btn);
+          }
+        });
+
+        card.appendChild(titleRow);
+        card.appendChild(countdown);
+        card.appendChild(btnsDiv);
+        matchesContainer.appendChild(card);
+      });
+    }
+
+    function startCountdown(dateStr, element) {
+      const targetTime = new Date(dateStr).getTime();
+      if (isNaN(targetTime)) {
+        element.textContent = 'Starts in: Unknown date';
+        return;
+      }
+      const updateTimer = () => {
+        const now = Date.now();
+        let diff = targetTime - now;
+        if (diff <= 0) {
+          element.textContent = 'Match started';
+          return;
+        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        diff %= (1000 * 60 * 60 * 24);
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        diff %= (1000 * 60 * 60);
+        const minutes = Math.floor(diff / (1000 * 60));
+        diff %= (1000 * 60);
+        const seconds = Math.floor(diff / 1000);
+        element.textContent = `Starts in: ${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+      };
+      updateTimer();
+      const interval = setInterval(updateTimer, 1000);
+      countdownIntervals[element] = interval;
+    }
+
+    function copyLink(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = 'fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow';
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 1500);
+    }
+
+    document.getElementById('search').addEventListener('input', () => {
+      renderMatches(filterMatches());
+    });
+
+    document.getElementById('showCompleted').addEventListener('change', () => {
+      renderMatches(filterMatches());
+    });
+
+    window.onload = fetchMatches;
+  </script>
+</body>
+</html>
