@@ -109,18 +109,18 @@
         const alphaSrc = match.sources?.find(s => s.source.toLowerCase() === 'alpha');
         const adminSrc = match.sources?.find(s => s.source.toLowerCase() === 'admin');
 
-        // ---------- ALPHA (Default JSON with emoji) ----------
+        // ---------- SINGLE JSON BLOCK: Alpha (preferred) ----------
         if (alphaSrc) {
-          const alphaDiv = document.createElement('div');
-          alphaDiv.className = 'mb-2 w-full';
+          const jsonDiv = document.createElement('div');
+          jsonDiv.className = 'mb-2 w-full';
 
-          const alphaTitle = document.createElement('div');
-          alphaTitle.className = 'text-sm font-semibold text-gray-800';
-          alphaTitle.textContent = ` ${match.title}`;
-          alphaDiv.appendChild(alphaTitle);
+          const jsonTitle = document.createElement('div');
+          jsonTitle.className = 'text-sm font-semibold text-gray-800';
+          jsonTitle.textContent = `${match.title}`;
+          jsonDiv.appendChild(jsonTitle);
 
           const jsonData = {
-            name: `📱💻  ${match.title}`,
+            name: `${match.title}`,
             links: [
               `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/alpha2?mid=${alphaSrc.id}`,
               `https://yosintv2.pages.dev/ads.html`,
@@ -132,15 +132,15 @@
           const jsonDisplay = document.createElement('pre');
           jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
           jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
-          alphaDiv.appendChild(jsonDisplay);
+          jsonDiv.appendChild(jsonDisplay);
 
           const jsonBtn = document.createElement('button');
           jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
           jsonBtn.textContent = 'Copy JSON';
           jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData, null, 2));
-          alphaDiv.appendChild(jsonBtn);
+          jsonDiv.appendChild(jsonBtn);
 
-          btnsDiv.appendChild(alphaDiv);
+          btnsDiv.appendChild(jsonDiv);
 
           // Alpha direct button
           const alphaBtn = document.createElement('button');
@@ -150,21 +150,22 @@
           btnsDiv.appendChild(alphaBtn);
         }
 
-        // ---------- ADMIN (Fallback JSON if no Alpha) ----------
+        // ---------- SINGLE JSON BLOCK: Admin (fallback) ----------
         else if (adminSrc) {
-          const adminDiv = document.createElement('div');
-          adminDiv.className = 'mb-2 w-full';
+          const jsonDiv = document.createElement('div');
+          jsonDiv.className = 'mb-2 w-full';
 
-          const adminTitle = document.createElement('div');
-          adminTitle.className = 'text-sm font-semibold text-gray-800';
-          adminTitle.textContent = `${match.title})`;
-          adminDiv.appendChild(adminTitle);
+          const jsonTitle = document.createElement('div');
+          jsonTitle.className = 'text-sm font-semibold text-gray-800';
+          jsonTitle.textContent = `${match.title}`;
+          jsonDiv.appendChild(jsonTitle);
 
           const jsonData = {
             name: `📱💻 ${match.title}`,
             links: [
-              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/admin?mid=${adminSrc.id}`,
-              `https://yosintv2.pages.dev/ads.html`,
+              ` https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/admin?mid=${adminSrc.id} `,
+              ` https://yosintv2.pages.dev/ads.html`,
+              ` https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/admin?mid=${adminSrc.id} `,
               "________________blv_links___________"
             ]
           };
@@ -172,15 +173,15 @@
           const jsonDisplay = document.createElement('pre');
           jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
           jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
-          adminDiv.appendChild(jsonDisplay);
+          jsonDiv.appendChild(jsonDisplay);
 
           const jsonBtn = document.createElement('button');
           jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
           jsonBtn.textContent = 'Copy JSON';
           jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData, null, 2));
-          adminDiv.appendChild(jsonBtn);
+          jsonDiv.appendChild(jsonBtn);
 
-          btnsDiv.appendChild(adminDiv);
+          btnsDiv.appendChild(jsonDiv);
         }
 
         // ---------- ADMIN direct button (always if present) ----------
