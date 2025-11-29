@@ -1,7 +1,7 @@
 {
   "matches": [
 
-    {
+ {
   "team1": "India",
   "team1_logo": "https://aimages.willow.tv/teamLogos/india.png",
   "team2": "South Africa",
@@ -11,26 +11,52 @@
   "duration": 10
 },
 
-    
-    {
-      "team1": "Sri Lanka",
-      "team1_logo": "https://aimages.willow.tv/teamLogos/srilanka.png",
-      "team2": "Bangladesh",
-      "team2_logo": "https://aimages.willow.tv/teamLogos/bangladesh.png",
-      "start": "2025-11-30T02:00:00+09:00",
-      "details_url": " https://blog.cricfoot.net/?yosintv=bangladesh ",
-      "duration": 600
-    },
-    
-    {
-      "team1": " West Indies ",
-      "team1_logo": "https://aimages.willow.tv/teamLogos/westindies.png",
-      "team2": " Australia ",
-      "team2_logo": "https://aimages.willow.tv/teamLogos/australia.png",
-      "start": "2025-07-03T23:00:00+09:00",
-      "details_url": " https://blog.cricfoot.net/?yosintv=australia ",
-      "duration": 90
+{
+  "team1": "New Zealand",
+  "team1_logo": "https://aimages.willow.tv/teamLogos/newzealand.png",
+  "team2": "West Indies",
+  "team2_logo": "https://aimages.willow.tv/teamLogos/westindies.png",
+  "start": "2025-12-02T07:00:00+09:00",
+  "details_url": "https://blog.cricfoot.net/?yosintv=______",
+  "duration": 10
+},
 
-    }
-  ]
+{
+  "team1": "New Zealand",
+  "team1_logo": "https://aimages.willow.tv/teamLogos/newzealand.png",
+  "team2": "West Indies",
+  "team2_logo": "https://aimages.willow.tv/teamLogos/westindies.png",
+  "start": "2025-12-02T07:00:00+09:00",
+  "details_url": "https://blog.cricfoot.net/?yosintv=______",
+  "duration": 10
+},
+{
+  "team1": "Bangladesh",
+  "team1_logo": "https://aimages.willow.tv/teamLogos/bangladesh.png",
+  "team2": "Ireland",
+  "team2_logo": "https://aimages.willow.tv/teamLogos/ireland.png",
+  "start": "2025-12-02T21:00:00+09:00",
+  "details_url": "https://blog.cricfoot.net/?yosintv=______",
+  "duration": 5
+},
+{
+  "team1": "India",
+  "team1_logo": "https://aimages.willow.tv/teamLogos/india.png",
+  "team2": "South Africa",
+  "team2_logo": "https://aimages.willow.tv/teamLogos/southafrica.png",
+  "start": "2025-12-03T17:00:00+09:00",
+  "details_url": "https://blog.cricfoot.net/?yosintv=______",
+  "duration": 8
+},
+{
+  "team1": "Australia",
+  "team1_logo": "https://aimages.willow.tv/teamLogos/australia.png",
+  "team2": "England",
+  "team2_logo": "https://aimages.willow.tv/teamLogos/england.png",
+  "start": "2025-12-04T13:00:00+09:00",
+  "details_url": "https://blog.cricfoot.net/?yosintv=______",
+  "duration": 10
+}
+
+]
 }
