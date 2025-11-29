@@ -5,17 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YoSinTV - Live Cricket & Football Streaming</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
-
   <style>
     body { font-family: 'Poppins', sans-serif; }
     .match-schedule-container { max-width: 1000px; margin: 0 auto; padding: 0 1rem 3rem; box-sizing: border-box; }
-
     .league-title {
       font-size: 20px; font-weight: bold; margin: 35px auto 15px; background: #d10000; color: white;
       border-radius: 5px; text-align: center; padding: 10px; width: calc(100% - 2rem); max-width: 960px;
     }
-
     .match-card {
       display: block; border-radius: 10px; box-shadow: 0 3px 8px rgba(0,0,0,0.12);
       border: 1px solid #e2e8f0; padding: 12px; margin: 12px auto; text-decoration: none;
@@ -24,7 +22,6 @@
     .dark .match-card { background: #1f2937; border-color: #4b5563; }
     .match-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
     .dark .match-card:hover { background: #2d3748; }
-
     .match-card-content { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .match-team { flex: 1; text-align: center; }
     .match-team img { width: 52px; height: 52px; margin: 0 auto; border-radius: 8px; }
@@ -33,44 +30,35 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .dark .match-team-name { color: #f1f5f9; }
-
     .match-center { text-align: center; }
     .match-vs { font-weight: bold; color: #6b7280; font-size: 1.15rem; }
     .dark .match-vs { color: #cbd5e1; }
 
-    /* PERFECT STATUS BADGES - BEAUTIFUL ON MOBILE & DESKTOP */
+    /* STATUS BADGES */
     .match-status {
-      margin-top: 6px;
-      font-size: 0.78rem !important;
-      font-weight: bold;
-      padding: 5px 10px;
-      border-radius: 6px;
-      display: inline-block;
-      min-width: 72px;
-      text-align: center;
+      margin-top: 6px; font-size: 0.78rem !important; font-weight: bold;
+      padding: 5px 10px; border-radius: 6px; display: inline-block;
+      min-width: 72px; text-align: center;
     }
     .match-status-countdown { background: #16a34a; color: white; }
     .match-status-live {
-      background: #dc2626; color: white;
-      animation: pulse 2s infinite;
-      font-size: 0.76rem !important;
-      padding: 5px 8px;
+      background: #dc2626; color: white; animation: pulse 2s infinite;
+      font-size: 0.76rem !important; padding: 5px 8px;
     }
-    .match-status-over { background: #000000; color: #94a3b8; }
-
+    .match-status-over { background: #000000; color: #ffffff; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-
     @media (max-width: 480px) {
-      .match-status {
-        font-size: 0.73rem !important;
-        padding: 4px 8px !important;
-        min-width: 64px;
-      }
+      .match-status { font-size: 0.73rem !important; padding: 4px 8px !important; min-width: 64px; }
     }
 
-    /* SEARCH BAR - FIXED FOREVER */
+    /* SEARCH BAR - FIXED SPACING (NO MORE HUGE GAPS) */
     .search-filter-container {
-      max-width: 1000px; margin: 20px auto 10px; padding: 0 12px;
+      max-width: 1000px;
+      margin: 8px auto 16px auto !important;
+      padding: 0 16px;
+    }
+    @media (max-width: 640px) {
+      .search-filter-container { margin: 4px auto 12px auto !important; padding: 0 12px; }
     }
     .search-input {
       width: 100%; padding: 14px 16px; border: 1px solid #d1d5db;
@@ -104,6 +92,9 @@
     input:checked + .slider { background: #3b82f6; }
     input:checked + .slider:before { transform: translateX(22px); }
 
+    /* Remove extra top margin from first league title after search */
+    .league-title:first-of-type { margin-top: 10px !important; }
+
     .dmca-section, .footer {
       max-width: 1000px; margin: 2rem auto; padding: 1.5rem; background: #f8fafc;
       border-radius: 12px; text-align: center;
@@ -111,7 +102,6 @@
     .dark .dmca-section, .dark .footer { background: #1f2937; color: #e2e8f0; }
   </style>
 </head>
-
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-all duration-300">
 
   <!-- HEADER -->
@@ -125,7 +115,7 @@
     </div>
   </header>
 
-  <main style="padding-top: 85px;">
+  <main style="padding-top: 78px;">
 
     <!-- TOP AD -->
     <center class="my-3">
@@ -136,14 +126,14 @@
 
     <div class="match-schedule-container">
 
-      <!-- SEARCH BAR (PERFECT ON ALL DEVICES) -->
+      <!-- SEARCH BAR - CLEAN & TIGHT -->
       <div class="search-filter-container">
-        <input type="text" id="searchInput" class="search-input" placeholder-gray-500"
+        <input type="text" id="searchInput" class="search-input" 
                placeholder="Search team, league or match...">
       </div>
 
       <!-- MATCHES -->
-      <h2 class="league-title">Cricket Matches </h2>
+      <h2 class="league-title">Cricket Matches</h2>
       <div id="cricket-list" class="match-schedule-list"></div>
 
       <!-- MIDDLE AD -->
@@ -162,7 +152,7 @@
 
     <!-- FOOTER -->
     <footer class="footer text-sm">
-      <a href="#about" class="text-blue-600 hover:underline mx-2">About</a> •
+      <a href="# abut" class="text-blue-600 hover:underline mx-2">About</a> •
       <a href="#contact" class="text-blue-600 hover:underline mx-2">Contact</a> •
       <a href="#privacy" class="text-blue-600 hover:underline mx-2">Privacy Policy</a>
     </footer>
@@ -185,7 +175,7 @@
       try {
         const res = await fetch('https://web.yosintv.link/crickett.json');
         if (!res.ok) throw new Error();
-        const data = await res.json();
+        const data = await  res.json();
         const list = document.getElementById('cricket-list');
         list.innerHTML = '';
         data.matches.forEach(m => list.appendChild(createCard(m)));
@@ -204,7 +194,6 @@
       a.dataset.team2 = m.team2.toLowerCase();
       a.dataset.time = m.match_time || m.start;
       a.dataset.duration = m.duration || 5;
-
       a.innerHTML = `
         <div class="match-card-content">
           <div class="match-team">
@@ -229,7 +218,6 @@
       document.querySelectorAll('.match-status').forEach(el => {
         const start = new Date(el.dataset.time);
         const end = new Date(start.getTime() + (el.dataset.duration || 5) * 3600000);
-
         if (now >= end) {
           el.textContent = 'Match End';
           el.className = 'match-status match-status-over';
@@ -252,8 +240,8 @@
       document.getElementById('searchInput').addEventListener('input', e => {
         const term = e.target.value.toLowerCase().trim();
         document.querySelectorAll('.match-card').forEach(card => {
-          const show = term === '' || 
-            card.dataset.team1.includes(term) || 
+          const show = term === '' ||
+            card.dataset.team1.includes(term) ||
             card.dataset.team2.includes(term);
           card.style.display = show ? 'block' : 'none';
         });
