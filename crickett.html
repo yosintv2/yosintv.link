@@ -34,7 +34,6 @@
     .match-vs { font-weight: bold; color: #6b7280; font-size: 1.15rem; }
     .dark .match-vs { color: #cbd5e1; }
 
-    /* STATUS BADGES */
     .match-status {
       margin-top: 6px; font-size: 0.78rem !important; font-weight: bold;
       padding: 5px 10px; border-radius: 6px; display: inline-block;
@@ -51,17 +50,14 @@
       .match-status { font-size: 0.73rem !important; padding: 4px 8px !important; min-width: 64px; }
     }
 
-    /* SEARCH BAR - FIXED SPACING (NO HUGE GAPS ANYMORE) */
+    /* SEARCH BAR - TIGHT SPACING */
     .search-filter-container {
       max-width: 1000px;
-      margin: 10px auto 14px auto !important;  /* Tight but natural */
+      margin: 10px auto 14px auto !important;
       padding: 0 16px;
     }
     @media (max-width: 640px) {
-      .search-filter-container {
-        margin: 6px auto 12px auto !important;
-        padding: 0 12px;
-      }
+      .search-filter-container { margin: 6px auto 12px auto !important; padding: 0 12px; }
     }
     .search-input {
       width: 100%; padding: 14px 16px; border: 1px solid #d1d5db;
@@ -70,7 +66,6 @@
     }
     .dark .search-input { background: #1f2937; border-color: #4b5563; color: #e5e7eb; }
 
-    /* HEADER */
     header {
       position: fixed; top: 0; width: 100%; background: white;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100;
@@ -81,7 +76,6 @@
       height: 70px; display: flex; justify-content: space-between; align-items: center;
     }
 
-    /* DARK MODE TOGGLE */
     .toggle { position: relative; display: inline-block; width: 46px; height: 24px; }
     .toggle input { opacity: 0; width:0; height:0; }
     .slider {
@@ -95,7 +89,6 @@
     input:checked + .slider { background: #3b82f6; }
     input:checked + .slider:before { transform: translateX(22px); }
 
-    /* Remove extra gap after search bar */
     .league-title:first-of-type { margin-top: 8px !important; }
 
     .dmca-section, .footer {
@@ -119,8 +112,6 @@
   </header>
 
   <main style="padding-top: 78px;">
-
-    <!-- TOP AD -->
     <center class="my-3">
       <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147"
            data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
@@ -128,18 +119,13 @@
     </center>
 
     <div class="match-schedule-container">
-
-      <!-- SEARCH BAR - CLEAN & TIGHT -->
       <div class="search-filter-container">
-        <input type="text" id="searchInput" class="search-input" 
-               placeholder="Search team, league or match...">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search team, league or match...">
       </div>
 
-      <!-- MATCHES -->
       <h2 class="league-title">Cricket Matches</h2>
       <div id="cricket-list" class="match-schedule-list"></div>
 
-      <!-- MIDDLE AD -->
       <center class="my-5">
         <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147"
              data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
@@ -147,13 +133,11 @@
       </center>
     </div>
 
-    <!-- DMCA -->
     <section class="dmca-section">
       <h2 class="text-2xl font-bold mb-3">YoSinTV - DMCA Notice</h2>
       <p class="text-sm leading-relaxed">YoSinTV does not host any content. We only provide links to third-party services.</p>
     </section>
 
-    <!-- FOOTER -->
     <footer class="footer text-sm">
       <a href="#about" class="text-blue-600 hover:underline mx-2">About</a> •
       <a href="#contact" class="text-blue-600 hover:underline mx-2">Contact</a> •
@@ -173,16 +157,16 @@
       localStorage.setItem('darkMode', toggle.checked);
     });
 
-    // Load Matches
+    let allMatches = []; // Store original data
+
     async function loadMatches() {
       try {
         const res = await fetch('https://web.yosintv.link/crickett.json');
         if (!res.ok) throw new Error();
         const data = await res.json();
-        const list = document.getElementById('cricket-list');
-        list.innerHTML = '';
-        data.matches.forEach(m => list.appendChild(createCard(m)));
-        updateStatus();
+        allMatches = data.matches;
+        renderMatches();
+        updateStatusAndSort();
         setupSearch();
       } catch {
         document.getElementById('cricket-list').innerHTML = '<p class="text-center text-red-500 py-10">Failed to load matches</p>';
@@ -216,15 +200,66 @@
       return a;
     }
 
-    function updateStatus() {
-      const now = new Date();
+    function renderMatches() {
+      const list = document.getElementById('cricket-list');
+      list.innerHTML = '';
+      allMatches.forEach(m => list.appendChild(createCard(m)));
+    }
+
+    function updateStatusAndSort() {
+      const now = Date.now();
+
+      allMatches.forEach(match => {
+        const startTime = new Date(match.match_time || match.start).getTime();
+        const duration = (match.duration || 5) * 3600000;
+        const endTime = startTime + duration;
+
+        // Assign sort priority: Live (1), Upcoming (2), Ended (3)
+        if (now >= startTime && now < endTime) {
+          match.sortPriority = 1;     // Live
+          match.status = 'live';
+        } else if (now < startTime) {
+          match.sortPriority = 2;     // Upcoming
+          match.status = 'upcoming';
+        } else {
+          match.sortPriority = 3;     // Ended
+          match.status = 'ended';
+        }
+        // For upcoming: closer start time = higher priority
+        if (match.status === 'upcoming') {
+          match.sortValue = startTime;
+        }
+        // For live: more recently started = higher priority
+        else if (match.status === 'live') {
+          match.sortValue = -startTime; // negative = recently started first
+        }
+        else {
+          match.sortValue = endTime; // ended matches: oldest first
+        }
+      });
+
+      // Sort: Live first (recently started), then Upcoming (soonest first), then Ended
+      allMatches.sort((a, b) => {
+        if (a.sortPriority !== b.sortPriority) {
+          return a.sortPriority - b.sortPriority;
+        }
+        return a.sortValue - b.sortValue;
+      });
+
+      // Re-render in correct order
+      renderMatches();
+
+      // Update status badges
       document.querySelectorAll('.match-status').forEach(el => {
-        const start = new Date(el.dataset.time);
-        const end = new Date(start.getTime() + (el.dataset.duration || 5) * 3600000);
+        const matchTime = el.dataset.time;
+        const duration = parseInt(el.dataset.duration) || 5;
+        const start = new Date(matchTime).getTime();
+        const end = start + duration * 3600000;
+
         if (now >= end) {
           el.textContent = 'Match End';
           el.className = 'match-status match-status-over';
-        } else if (now >=  start) {
+        } else if (now >= start) {
           el.textContent = 'Live Now';
           el.className = 'match-status match-status-live';
         } else {
@@ -236,16 +271,17 @@
           el.className = 'match-status match-status-countdown';
         }
       });
-      setTimeout(updateStatus, 1000);
+
+      setTimeout(updateStatusAndSort, 1000);
     }
 
     function setupSearch() {
       document.getElementById('searchInput').addEventListener('input', e => {
         const term = e.target.value.toLowerCase().trim();
         document.querySelectorAll('.match-card').forEach(card => {
-          const show = term === '' ||
-            card.dataset.team1.includes(term) ||
-            card.dataset.team2.includes(term);
+          const team1 = card.dataset.team1;
+          const team2 = card.dataset.team2;
+          const show = term === '' || team1.includes(term) || team2.includes(term);
           card.style.display = show ? 'block' : 'none';
         });
       });
