@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YoSinTV - Live Cricket & Football Streaming</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
+  
   <style>
     body { font-family: 'Poppins', sans-serif; }
     .match-schedule-container { max-width: 1000px; margin: 0 auto; padding: 0 1rem 3rem; box-sizing: border-box; }
@@ -51,14 +51,17 @@
       .match-status { font-size: 0.73rem !important; padding: 4px 8px !important; min-width: 64px; }
     }
 
-    /* SEARCH BAR - FIXED SPACING (NO MORE HUGE GAPS) */
+    /* SEARCH BAR - FIXED SPACING (NO HUGE GAPS ANYMORE) */
     .search-filter-container {
       max-width: 1000px;
-      margin: 8px auto 16px auto !important;
+      margin: 10px auto 14px auto !important;  /* Tight but natural */
       padding: 0 16px;
     }
     @media (max-width: 640px) {
-      .search-filter-container { margin: 4px auto 12px auto !important; padding: 0 12px; }
+      .search-filter-container {
+        margin: 6px auto 12px auto !important;
+        padding: 0 12px;
+      }
     }
     .search-input {
       width: 100%; padding: 14px 16px; border: 1px solid #d1d5db;
@@ -92,8 +95,8 @@
     input:checked + .slider { background: #3b82f6; }
     input:checked + .slider:before { transform: translateX(22px); }
 
-    /* Remove extra top margin from first league title after search */
-    .league-title:first-of-type { margin-top: 10px !important; }
+    /* Remove extra gap after search bar */
+    .league-title:first-of-type { margin-top: 8px !important; }
 
     .dmca-section, .footer {
       max-width: 1000px; margin: 2rem auto; padding: 1.5rem; background: #f8fafc;
@@ -152,7 +155,7 @@
 
     <!-- FOOTER -->
     <footer class="footer text-sm">
-      <a href="# abut" class="text-blue-600 hover:underline mx-2">About</a> •
+      <a href="#about" class="text-blue-600 hover:underline mx-2">About</a> •
       <a href="#contact" class="text-blue-600 hover:underline mx-2">Contact</a> •
       <a href="#privacy" class="text-blue-600 hover:underline mx-2">Privacy Policy</a>
     </footer>
@@ -175,7 +178,7 @@
       try {
         const res = await fetch('https://web.yosintv.link/crickett.json');
         if (!res.ok) throw new Error();
-        const data = await  res.json();
+        const data = await res.json();
         const list = document.getElementById('cricket-list');
         list.innerHTML = '';
         data.matches.forEach(m => list.appendChild(createCard(m)));
@@ -221,7 +224,7 @@
         if (now >= end) {
           el.textContent = 'Match End';
           el.className = 'match-status match-status-over';
-        } else if (now >= start) {
+        } else if (now >=  start) {
           el.textContent = 'Live Now';
           el.className = 'match-status match-status-live';
         } else {
@@ -248,7 +251,6 @@
       });
     }
 
-    // Start
     loadMatches();
   </script>
 </body>
