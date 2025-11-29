@@ -1,661 +1,302 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YoSinTV - Cricket | Football | Playing XI | Match Preview</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
-    <style>
-        .match-schedule-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 1rem 2rem;
-            font-family: 'Poppins', sans-serif;
-            box-sizing: border-box;
-        }
-        .match-schedule-title {
-            text-align: center;
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 2rem;
-            color: #1f2937;
-        }
-        .dark .match-schedule-title {
-            color: #e5e7eb;
-        }
-        .match-sport-section {
-            margin-bottom: 0.5rem;
-        }
-        .league-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 20px;
-            margin-bottom: 1rem;
-            background-color: #d10000;
-            color: white;
-            border-radius: 5px;
-            text-align: center;
-            padding: 0.5rem;
-            width: calc(100% - 2rem);
-            max-width: 1000px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .match-schedule-list {
-            margin: 0 auto;
-        }
-        .match-card {
-            display: block;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            border: 1px solid #d1d5db;
-            padding: 0.5rem;
-            margin: 0 0.5rem 0.75rem;
-            text-decoration: none;
-            transition: background 0.2s, transform 0.2s;
-            width: calc(100% - 1rem);
-            max-width: 1000px;
-            box-sizing: border-box;
-            background: #ffffff;
-        }
-        .dark .match-card {
-            background: #1f2937;
-            border-color: #4b5563;
-        }
-        .match-card:hover {
-            background: #f8f8f8;
-            transform: translateY(-2px);
-        }
-        .dark .match-card:hover {
-            background: #374151;
-        }
-        .match-card-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-        }
-        .match-team {
-            flex: 1;
-            text-align: center;
-            min-width: 0;
-            max-width: 40%;
-        }
-        .match-team img {
-            width: 50px;
-            height: 50px;
-            display: block;
-            margin: 0 auto;
-        }
-        .match-team-name {
-            margin-top: 0.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #1f2937;
-        }
-        .dark .match-team-name {
-            color: #e5e7eb;
-        }
-        .match-center {
-            flex: 1;
-            text-align: center;
-            min-width: 0;
-            max-width: 20%;
-        }
-        .match-vs {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin: 0;
-            color: #4b5563;
-        }
-        .dark .match-vs {
-            color: #d1d5db;
-        }
-        .match-status {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .match-status-countdown {
-            background: #008000;
-            color: #fff;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-        }
-        .match-status-live {
-            background: #dc3545;
-            color: #fff;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            animation: match-blink 1s step-end infinite;
-        }
-        .match-status-over {
-            background: #000;
-            color: #fff;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-        }
-        @keyframes match-blink {
-            50% { opacity: 0; }
-        }
-        .match-error {
-            text-align: center;
-            color: #dc3545;
-            font-size: 1rem;
-        }
-        .dmca-section {
-            max-width: 1000px;
-            margin: 0.5rem auto;
-            padding: 1rem;
-            background: #f9fafb;
-            border-radius: 8px;
-            text-align: center;
-            color: #4b5563;
-        }
-        .dark .dmca-section {
-            background: #1f2937;
-            color: #d1d5db;
-        }
-        .dmca-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            color: #1f2937;
-        }
-        .dark .dmca-title {
-            color: #e5e7eb;
-        }
-        .dmca-text {
-            font-size: 1rem;
-            line-height: 1.5;
-        }
-        .ad-container {
-            max-width: 1000px;
-            width: calc(100% - 2rem);
-            margin: 0.5rem auto;
-            padding: 1rem;
-            background: #e5e7eb;
-            border-radius: 8px;
-            text-align: center;
-            color: #4b5563;
-            font-size: 1rem;
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-        .dark .ad-container {
-            background: #374151;
-            color: #d1d5db;
-        }
-        .ad-container ins {
-            width: 100%;
-            max-width: 1000px;
-        }
-        .ad-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .ad-overlay-container {
-            width: 300px;
-            height: 250px;
-            background: #fff;
-            position: relative;
-            border: 2px solid #000;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .close-btn {
-            position: absolute;
-            top: -15px;
-            right: -15px;
-            width: 30px;
-            height: 30px;
-            background: red;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-family: Arial, sans-serif;
-            font-size: 16px;
-        }
-        .search-filter-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            padding: 0.5rem;
-        }
-        .search-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            color: #1f2937;
-            background: #ffffff;
-            font-size: 1rem;
-        }
-        .dark .search-input {
-            border-color: #4b5563;
-            background: #1f2937;
-            color: #e5e7eb;
-        }
-        .search-input::placeholder {
-            color: #6b7280;
-        }
-        .dark .search-input::placeholder {
-            color: #9ca3af;
-        }
-        .footer {
-            max-width: 1000px;
-            margin: 2rem auto;
-            padding: 1rem;
-            background: #f9fafb;
-            border-radius: 8px;
-            text-align: center;
-            color: #4b5563;
-        }
-        .dark .footer {
-            background: #1f2937;
-            color: #d1d5db;
-        }
-        .footer a {
-            color: #3b82f6;
-            text-decoration: none;
-            margin: 0 1rem;
-        }
-        .dark .footer a {
-            color: #60a5fa;
-        }
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            padding: 0 1rem;
-            margin: 0 auto;
-            max-width: 1000px;
-        }
-        .logo-container {
-            margin-left: 0;
-        }
-        .logo-container img {
-            width: 200px;
-            height: auto;
-        }
-        @media (max-width: 768px) {
-            .match-schedule-container {
-                padding: 0 0.75rem 1.5rem;
-            }
-            .match-card, .ad-container {
-                margin: 0 0.5rem 1rem;
-                width: calc(100% - 1rem);
-                max-width: none;
-            }
-            .league-title {
-                width: calc(100% - 1rem);
-                max-width: none;
-                font-size: 18px;
-            }
-            .match-team-name {
-                font-size: 1rem;
-                white-space: normal;
-                overflow: visible;
-                text-overflow: clip;
-                line-height: 1.2;
-            }
-            .match-team {
-                max-width: 35%;
-            }
-            .match-center {
-                max-width: 30%;
-            }
-            .dmca-section, .footer {
-                padding: 0.75rem;
-            }
-            .search-filter-container {
-                flex-direction: column;
-                align-items: stretch;
-                padding: 0.5rem;
-            }
-            .search-input {
-                width: 100%;
-            }
-            .logo-container img {
-                width: 150px;
-            }
-            .header-container {
-                padding: 0 0.75rem;
-            }
-            .ad-overlay-container {
-                width: 280px;
-                height: auto;
-            }
-        }
-        @media (max-width: 480px) {
-            .match-team-name {
-                font-size: 0.9rem;
-            }
-            .match-vs {
-                font-size: 0.95rem;
-            }
-            .match-status {
-                font-size: 0.8rem;
-                padding: 0.2rem 0.4rem;
-            }
-            .league-title {
-                font-size: 16px;
-            }
-            .dmca-title {
-                font-size: 1.25rem;
-            }
-            .dmca-text {
-                font-size: 0.9rem;
-            }
-            .ad-container {
-                min-height: 80px;
-            }
-            .footer a {
-                display: inline-block;
-                margin: 0.5rem;
-                font-size: 0.9rem;
-            }
-            .search-input {
-                padding: 0.5rem;
-                font-size: 0.9rem;
-            }
-            .logo-container img {
-                width: 120px;
-            }
-            .match-team {
-                max-width: 33%;
-            }
-            .match-center {
-                max-width: 34%;
-            }
-            .ad-overlay-container {
-                width: 90%;
-                height: auto;
-            }
-        }
-        .toggle {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 20px;
-        }
-        .toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: 0.4s;
-            border-radius: 20px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: 0.4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: #3b82f6;
-        }
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YoSinTV - Cricket | Football | Playing XI | Match Preview</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5525538810839147" crossorigin="anonymous"></script>
+
+  <style>
+    .match-schedule-container { max-width: 1000px; margin: 0 auto; padding: 0 1rem 2rem; font-family: 'Poppins', sans-serif; box-sizing: border-box; }
+    .match-schedule-title { text-align: center; font-size: 2rem; font-weight: bold; margin-bottom: 2rem; color: #1f2937; }
+    .dark .match-schedule-title { color: #e5e7eb; }
+    .match-sport-section { margin-bottom: 0.5rem; }
+    
+    /* THIS IS THE ONLY FIX - Header never hides */
+    .match-sport-section { display: block !important; }
+
+    .league-title {
+      font-size: 20px; font-weight: bold; margin-top: 20px; margin-bottom: 1rem;
+      background-color: #d10000; color: white; border-radius: 5px; text-align: center;
+      padding: 0.5rem; width: calc(100% - 2rem); max-width: 1000px; margin-left: auto; margin-right: auto;
+    }
+    .match-schedule-list { margin: 0 auto; }
+    .match-card {
+      display: block; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 1px solid #d1d5db;
+      padding: 0.5rem; margin: 0 0.5rem 0.75rem; text-decoration: none; transition: background 0.2s, transform 0.2s;
+      width: calc(100% - 1rem); max-width: 1000px; box-sizing: border-box; background: #ffffff;
+    }
+    .dark .match-card { background: #1f2937; border-color: #4b5563; }
+    .match-card:hover { background: #f8f8f8; transform: translateY(-2px); }
+    .dark .match-card:hover { background: #374151; }
+    .match-card-content { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .match-team { flex: 1; text-align: center; min-width: 0; max-width: 40%; }
+    .match-team img { width: 50px; height: 50px; display: block; margin: 0 auto; }
+    .match-team-name {
+      margin-top: 0.5rem; font-size: 1.1rem; font-weight: 600; white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis; color: #1f2937;
+    }
+    .dark .match-team-name { color: #e5e7eb; }
+    .match-center { flex: 1; text-align: center; min-width: 0; max-width: 20%; }
+    .match-vs { font-size: 1.1rem; font-weight: bold; margin: 0; color: #4b5563; }
+    .dark .match-vs { color: #d1d5db; }
+    .match-status {
+      margin-top: 0.5rem; font-size: 0.9rem; font-weight: 600; display: inline-block;
+    }
+    .match-status-countdown { background: #008000; color: #fff; padding: 0.25rem 0.5rem; border-radius: 4px; }
+    .match-status-live { background: #dc3545; color: #fff; padding: 0.25rem 0.5rem; border-radius: 4px; animation: match-blink 1s step-end infinite; }
+    .match-status-over { background: #000; color: #fff; padding: 0.25rem 0.5rem; border-radius: 4px; }
+    @keyframes match-blink { 50% { opacity: 0; } }
+    .match-error { text-align: center; color: #dc3545; font-size: 1rem; }
+
+    .dmca-section { max-width: 1000px; margin: 0.5rem auto; padding: 1rem; background: #f9fafb; border-radius: 8px; text-align: center; color: #4b5563; }
+    .dark .dmca-section { background: #1f2937; color: #d1d5db; }
+    .dmca-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; color: #1f2937; }
+    .dark .dmca-title { color: #e5e7eb; }
+    .dmca-text { font-size: 1rem; line-height: 1.5; }
+
+    .ad-container { max-width: 1000px; width: calc(100% - 2rem); margin: 0.5rem auto; padding: 1rem; background: #e5e7eb; border-radius: 8px; text-align: center; min-height: 100px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .dark .ad-container { background: #374151; color: #d1d5db; }
+
+    .ad-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .ad-overlay-container { width: 300px; height: 250px; background: #fff; position: relative; border: 2px solid #000; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    .close-btn { position: absolute; top: -15px; right: -15px; width: 30px; height: 30px; background: red; color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-family: Arial, sans-serif; font-size: 16px; }
+
+    .search-filter-container { max-width: 1000px; margin: 0 auto; display: flex; gap: 1rem; justify-content: center; padding: 0.5rem; }
+    .search-input { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 5px; color: #1f2937; background: #ffffff; font-size: 1rem; }
+    .dark .search-input { border-color: #4b5563; background: #1f2937; color: #e5e7eb; }
+
+    .footer { max-width: 1000px; margin: 2rem auto; padding: 1rem; background: #f9fafb; border-radius: 8px; text-align: center; color: #4b5563; }
+    .dark .footer { background: #1f2937; color: #d1d5db; }
+    .footer a { color: #3b82f6; text-decoration: none; margin: 0 1rem; }
+    .dark .footer a { color: #60a5fa; }
+
+    .header-container { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 1rem; margin: 0 auto; max-width: 1000px; }
+    .logo-container img { width: 200px; height: auto; }
+
+    .toggle { position: relative; display: inline-block; width: 40px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: 0.4s; border-radius: 20px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: 0.4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #3b82f6; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    @media (max-width: 768px) {
+      .match-card, .ad-container { margin: 0 0.5rem 1rem; width: calc(100% - 1rem); }
+      .league-title { width: calc(100% - 1rem); font-size: 18px; }
+      .match-team-name { font-size: 1rem; white-space: normal; }
+      .logo-container img { width: 150px; }
+    }
+    @media (max-width: 480px) {
+      .logo-container img { width: 120px; }
+    }
+  </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300">
-    <header class="bg-white dark:bg-gray-800 shadow-md py-4 fixed w-full z-10">
-        <div class="header-container">
-            <div class="logo-container">
-                <img src="https://web.cricfoot.net/logo.png" alt="YoSinTV Logo">
-            </div>
-            <label class="toggle">
-                <input type="checkbox" id="darkModeToggle">
-                <span class="slider"></span>
-            </label>
-        </div>
-    </header>
-    <main>
-                <center>
-                    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147" data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                </center>
 
-        <div class="ad-overlay" id="adOverlay">
-            <div class="ad-overlay-container">
-                <ins class="adsbygoogle"
-                     style="display:inline-block;width:300px;height:250px"
-                     data-ad-client="ca-pub-5525538810839147"
-                     data-ad-slot="1234567890"></ins>
-                <div class="close-btn" onclick="closeAd()">X</div>
-            </div>
-        </div>
+  <header class="bg-white dark:bg-gray-800 shadow-md py-4 fixed w-full z-10">
+    <div class="header-container">
+      <div class="logo-container">
+        <img src="https://web.cricfoot.net/logo.png" alt="YoSinTV Logo">
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="darkModeToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </header>
 
-        <div class="match-schedule-container">
-            <div class="search-filter-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search by team name, match name...">
-            </div>
-            <div class="match-sport-section" id="cricket-matches">
-                <h2 class="league-title">Cricket Matches</h2>
-                <div class="match-schedule-list" id="cricket-list"></div>
+  <main style="padding-top: 80px;">
+    <center>
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147" data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </center>
 
-                <center>
-                    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147" data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                </center>
-            </div>
-        </div>
+    <div class="ad-overlay" id="adOverlay">
+      <div class="ad-overlay-container">
+        <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-5525538810839147" data-ad-slot="1234567890"></ins>
+        <div class="close-btn" onclick="closeAd()">X</div>
+      </div>
+    </div>
 
-        <section class="dmca-section">
-            <h2 class="dmca-title">YoSinTV - DMCA</h2>
-            <p class="dmca-text">YoSinTV Doesn't host any media content on it own Site. Our site visitors might use external or third parties services to show content, (Example: Embedding media from sites like Bet365, Dailymotion, Streamable etc ..) We Notify all copyright owners, to discover that the links and media shared by visitors and contained within this site are hosted somewhere else on the web or embedded from other various sites like above.</p>
-        </section>
-        <footer class="footer">
-            <a href="#about">About</a>
-            <a href="#contact">Contact</a>
-            <a href="#privacy">Privacy Policy</a>
-        </footer>
-    </main>
-    <script>
-        // Dark mode toggle
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        if (localStorage.getItem('darkMode') === 'true') {
-            document.body.classList.add('dark');
-            darkModeToggle.checked = true;
-        }
-        darkModeToggle.addEventListener('change', () => {
-            console.log('Dark mode toggle changed:', darkModeToggle.checked);
-            document.body.classList.toggle('dark');
-            localStorage.setItem('darkMode', darkModeToggle.checked);
+    <div class="match-schedule-container">
+      <div class="search-filter-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by team name, match name...">
+      </div>
+
+      <div class="match-sport-section" id="cricket-matches">
+        <h2 class="league-title">Cricket Matches</h2>
+        <div class="match-schedule-list" id="cricket-list"></div>
+      </div>
+
+      <center>
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5525538810839147" data-ad-slot="4345862479" data-ad-format="auto" data-full-width-responsive="true"></ins>
+      </center>
+    </div>
+
+    <section class="dmca-section">
+      <h2 class="dmca-title">YoSinTV - DMCA</h2>
+      <p class="dmca-text">
+        YoSinTV Doesn't host any media content on it own Site. Our site visitors might use external or third parties services to show content...
+      </p>
+    </section>
+
+    <footer class="footer">
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+      <a href="#privacy">Privacy Policy</a>
+    </footer>
+  </main>
+
+  <script>
+    // Dark mode
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
+      darkModeToggle.checked = true;
+    }
+    darkModeToggle.addEventListener('change', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('darkMode', darkModeToggle.checked);
+    });
+
+    // Ad overlay
+    setTimeout(function() {
+      document.getElementById('adOverlay').style.display = 'flex';
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }, 5000);
+    function closeAd() {
+      document.getElementById('adOverlay').style.display = 'none';
+    }
+
+    // Load matches
+    async function loadMatches() {
+      try {
+        const response = await fetch('https://web.yosintv.link/crickett.json');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const cricketData = await response.json();
+        if (!cricketData.matches || !Array.isArray(cricketData.matches)) throw new Error('Invalid JSON');
+
+        const cricketContainer = document.getElementById('cricket-list');
+        cricketContainer.innerHTML = '';
+        cricketData.matches.forEach(match => {
+          cricketContainer.appendChild(createMatchCard(match));
         });
+        updateMatchStatus();
+        setupSearch();
+      } catch (error) {
+        document.getElementById('cricket-list').innerHTML = `<p class="match-error">Failed to load matches: ${error.message}</p>`;
+      }
+    }
 
-        // Ad overlay logic
-        setTimeout(function() {
-            document.getElementById('adOverlay').style.display = 'flex';
-            (adsbygoogle = window.adsbygoogle || []).push({});
-        }, 5000);
+    function createMatchCard(match) {
+      const matchCard = document.createElement('a');
+      matchCard.href = match.details_url;
+      matchCard.className = 'match-card dark:border-gray-600';
+      matchCard.dataset.matchTime = match.match_time || match.start;
+      matchCard.dataset.duration = match.duration;
+      matchCard.dataset.team1 = match.team1.toLowerCase();
+      matchCard.dataset.team2 = match.team2.toLowerCase();
 
-        function closeAd() {
-            document.getElementById('adOverlay').style.display = 'none';
+      matchCard.innerHTML = `
+        <div class="match-card-content">
+          <div class="match-team">
+            <img src="${match.team1_logo}" alt="${match.team1} Logo">
+            <p class="match-team-name dark:text-gray-200">${match.team1}</p>
+          </div>
+          <div class="match-center">
+            <p class="match-vs dark:text-gray-300">VS</p>
+            <p class="match-status" data-time="${match.match_time || match.start}" data-duration="${match.duration}">Loading...</p>
+          </div>
+          <div class="match-team">
+            <img src="${match.team2_logo}" alt="${match.team2} Logo">
+            <p class="match-team-name dark:text-gray-200">${match.team2}</p>
+          </div>
+        </div>
+      `;
+      return matchCard;
+    }
+
+    function updateMatchStatus() {
+      const now = new Date();
+      document.querySelectorAll('.match-status').forEach(element => {
+        const matchTime = new Date(element.dataset.time);
+        const duration = parseFloat(element.dataset.duration);
+        const matchEnd = new Date(matchTime.getTime() + duration * 60 * 60 * 1000);
+
+        if (now >= matchEnd) {
+          element.textContent = 'Match End';
+          element.classList.remove('match-status-countdown', 'match-status-live');
+          element.classList.add('match-status-over');
+        } else if (now >= matchTime) {
+          element.textContent = 'Live NOW';
+          element.classList.remove('match-status-countdown', 'match-status-over');
+          element.classList.add('match-status-live');
+        } else {
+          const diff = matchTime - now;
+          const totalHours = Math.floor(diff / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+          element.textContent = `${totalHours}h ${minutes}m ${seconds}s`;
+          element.classList.remove('match-status-live', 'match-status-over');
+          element.classList.add('match-status-countdown');
         }
+      });
 
-        // Match schedule logic
-        async function loadMatches() {
-            try {
-                const response = await fetch('https://web.yosintv.link/crickett.json');
-                console.log('Fetch response status:', response.status, response.statusText);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
-                }
-                const contentType = response.headers.get('content-type');
-                console.log('Content type:', contentType);
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Invalid content type: Expected application/json');
-                }
-                const cricketData = await response.json();
-                console.log('Fetched data:', cricketData);
-                if (!cricketData.matches || !Array.isArray(cricketData.matches)) {
-                    throw new Error('Invalid JSON structure: Missing or invalid "matches" array');
-                }
+      // Sort: finished matches go to bottom
+      const list = document.getElementById('cricket-list');
+      const cards = Array.from(list.querySelectorAll('.match-card'));
+      cards.sort((a, b) => {
+        const aOver = a.querySelector('.match-status-over');
+        const bOver = b.querySelector('.match-status-over');
+        return (aOver ? 1 : 0) - (bOver ? 1 : 0);
+      });
+      list.innerHTML = '';
+      cards.forEach(card => list.appendChild(card));
 
-                const cricketContainer = document.getElementById('cricket-list');
-                cricketContainer.innerHTML = '';
-                cricketData.matches.forEach(match => {
-                    const matchCard = createMatchCard(match);
-                    cricketContainer.appendChild(matchCard);
-                });
+      filterMatches(); // Re-apply search after sorting
+    }
 
-                updateMatchStatus();
-                setupSearch();
-            } catch (error) {
-                console.error('Error loading matches:', error.message);
-                const container = document.getElementById('cricket-list');
-                container.innerHTML = `<p class="match-error">Failed to load matches: ${error.message}</p>`;
-            }
+    function setupSearch() {
+      document.getElementById('searchInput').addEventListener('input', filterMatches);
+    }
+
+    // FIXED FILTER - Header never disappears
+    function filterMatches() {
+      const searchInput = document.getElementById('searchInput').value.toLowerCase().trim();
+      const matchCards = document.querySelectorAll('#cricket-list .match-card');
+
+      matchCards.forEach(card => {
+        const team1 = card.dataset.team1 || '';
+        const team2 = card.dataset.team2 || '';
+        const searchable = `${team1} ${team2}`.toLowerCase();
+
+        if (searchInput === '' || searchable.includes(searchInput)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
         }
+      });
 
-        function createMatchCard(match) {
-            const matchCard = document.createElement('a');
-            matchCard.href = match.details_url;
-            matchCard.className = 'match-card dark:border-gray-600';
-            matchCard.dataset.matchTime = match.match_time || match.start;
-            matchCard.dataset.duration = match.duration;
-            matchCard.dataset.team1 = match.team1.toLowerCase();
-            matchCard.dataset.team2 = match.team2.toLowerCase();
-            const durationInHours = parseFloat(match.duration).toFixed(1);
-            matchCard.innerHTML = `
-                <div class="match-card-content">
-                    <div class="match-team">
-                        <img src="${match.team1_logo}" alt="${match.team1} Logo">
-                        <p class="match-team-name dark:text-gray-200">${match.team1}</p>
-                    </div>
-                    <div class="match-center">
-                        <p class="match-vs dark:text-gray-300">VS</p>
-                        <p class="match-status" data-time="${match.match_time || match.start}" data-duration="${match.duration}">Loading...</p>
-                    </div>
-                    <div class="match-team">
-                        <img src="${match.team2_logo}" alt="${match.team2} Logo">
-                        <p class="match-team-name dark:text-gray-200">${match.team2}</p>
-                    </div>
-                </div>
-            `;
-            return matchCard;
+      // Optional "No results" message
+      let noMsg = document.getElementById('no-results-msg');
+      if (searchInput && ![...matchCards].some(c => c.style.display === 'block')) {
+        if (!noMsg) {
+          noMsg = document.createElement('p');
+          noMsg.id = 'no-results-msg';
+          noMsg.textContent = `No matches found for "${searchInput}"`;
+          noMsg.style.textAlign = 'center';
+          noMsg.style.padding = '2rem';
+          noMsg.style.color = '#666';
+          document.getElementById('cricket-list').appendChild(noMsg);
         }
+      } else if (noMsg) {
+        noMsg.remove();
+      }
+    }
 
-        function updateMatchStatus() {
-            const container = { id: 'cricket-list', element: document.getElementById('cricket-list') };
-            const now = new Date();
-
-            const statusElements = container.element.querySelectorAll('.match-status');
-
-            statusElements.forEach(element => {
-                const matchTime = new Date(element.dataset.time);
-                const duration = parseFloat(element.dataset.duration); // Duration in hours
-                const matchEnd = new Date(matchTime.getTime() + duration * 60 * 60 * 1000); // Convert hours to milliseconds
-
-                if (now >= matchEnd) {
-                    element.textContent = 'Match End';
-                    element.classList.remove('match-status-countdown', 'match-status-live');
-                    element.classList.add('match-status-over');
-                } else if (now >= matchTime) {
-                    element.textContent = 'Live NOW';
-                    element.classList.remove('match-status-countdown', 'match-status-over');
-                    element.classList.add('match-status-live');
-                } else {
-                    const diff = matchTime - now;
-                    const totalHours = Math.floor(diff / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                    element.textContent = `${totalHours}h ${minutes}m ${seconds}s`;
-                    element.classList.remove('match-status-live', 'match-status-over');
-                    element.classList.add('match-status-countdown');
-                }
-            });
-
-            const matchCards = Array.from(container.element.querySelectorAll('.match-card'));
-            matchCards.sort((a, b) => {
-                const aStatus = a.querySelector('.match-status').classList.contains('match-status-over');
-                const bStatus = b.querySelector('.match-status').classList.contains('match-status-over');
-                if (aStatus && !bStatus) return 1;
-                if (!aStatus && bStatus) return -1;
-                return 0;
-            });
-
-            container.element.innerHTML = '';
-            matchCards.forEach(card => {
-                const vsElement = card.querySelector('.match-vs');
-                if (vsElement) {
-                    vsElement.textContent = 'VS';
-                }
-                container.element.appendChild(card);
-            });
-
-            filterMatches();
-        }
-
-        function setupSearch() {
-            const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', filterMatches);
-        }
-
-        function filterMatches() {
-            const searchInput = document.getElementById('searchInput').value.toLowerCase();
-            const container = { id: 'cricket-list', element: document.getElementById('cricket-list') };
-
-            const matchCards = Array.from(container.element.querySelectorAll('.match-card'));
-
-            matchCards.forEach(card => {
-                const team1 = card.dataset.team1;
-                const team2 = card.dataset.team2;
-                const searchMatch = searchInput === '' || team1.includes(searchInput) || team2.includes(searchInput);
-
-                if (searchMatch) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            const visibleCards = matchCards.filter(card => card.style.display !== 'none');
-            const section = container.element.closest('.match-sport-section');
-            section.style.display = visibleCards.length > 0 ? 'block' : 'none';
-        }
-
-        loadMatches();
-        setInterval(updateMatchStatus, 1000);
-    </script>
+    loadMatches();
+    setInterval(updateMatchStatus, 1000);
+  </script>
 </body>
 </html>
