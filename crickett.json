@@ -1,7 +1,17 @@
 {
   "matches": [
 
- {
+{
+  "team1": "Karnali Yaks",
+  "team1_logo": "https://cdn.yosintv.link/npl/karnali.png",
+  "team2": "Kathmandu Gorkhas",
+  "team2_logo": "https://cdn.yosintv.link/npl/kathmandu.png",
+  "start": "2025-11-30T18:45:00+09:00",
+  "details_url": "https://blog.cricfoot.net/?yosintv=nepal",
+  "duration": 5
+},
+
+  {
   "team1": "India",
   "team1_logo": "https://aimages.willow.tv/teamLogos/india.png",
   "team2": "South Africa",
