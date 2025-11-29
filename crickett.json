@@ -1,14 +1,16 @@
 {
   "matches": [
+
     {
-      "team1": " India ",
-      "team1_logo": "https://aimages.willow.tv/teamLogos/india.png",
-      "team2": " England ",
-      "team2_logo": "https://aimages.willow.tv/teamLogos/england.png",
-      "start": "2025-11-30T01:00:00+09:00",
-      "details_url": " https://blog.cricfoot.net/?yosintv=india ",
-      "duration": 10
-    },
+  "team1": "India",
+  "team1_logo": "https://aimages.willow.tv/teamLogos/india.png",
+  "team2": "South Africa",
+  "team2_logo": "https://aimages.willow.tv/teamLogos/southafrica.png",
+  "start": "2025-11-30T17:00:00+09:00",
+  "details_url": "https://blog.cricfoot.net/?yosintv=india",
+  "duration": 10
+},
+
     
     {
       "team1": "Sri Lanka",
