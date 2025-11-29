@@ -515,7 +515,7 @@
         // Match schedule logic
         async function loadMatches() {
             try {
-                const response = await fetch('https://www.yosintv.link/crickett.json');
+                const response = await fetch('https://web.yosintv.link/crickett.json');
                 console.log('Fetch response status:', response.status, response.statusText);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
