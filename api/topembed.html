@@ -60,7 +60,7 @@
     </section>
 
     <section class="bg-white rounded-lg shadow-md p-4 sm:p-6">
-      <h3 class="text-2xl font-bold text-gray-900 mb-4">More Matches</h3>
+      <h3 class="text-2xl font-bold text-gray-900 mb-4">More Matches in YoSinTV </h3>
       <div id="more-matches" class="space-y-2 sm:space-y-4 min-w-full overflow-visible"></div>
       <div id="no-matches" class="hidden text-center text-gray-600 mt-4">No additional matches available at this time.</div>
     </section>
@@ -109,7 +109,41 @@
 
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
+    // Function to calculate and format countdown
+    const getMatchCountdown = (startIso) => {
+        const startMs = new Date(startIso).getTime();
+        const now = Date.now();
+        const diff = startMs - now;
+
+        if (diff < 0) {
+            // Check if it's already started (e.g., within the last 4 hours)
+            if (Math.abs(diff) < 4 * 3600000) {
+                return '<span class="text-red-600 font-bold">LIVE NOW</span>';
+            }
+            return '<span class="text-gray-400">Finished</span>';
+        }
+
+        const s = Math.floor(diff / 1000);
+        const m = Math.floor(s / 60);
+        const h = Math.floor(m / 60);
+        const d = Math.floor(h / 24);
+
+        if (d > 0) return `${d}d ${h % 24}h`;
+        if (h > 0) return `${h}h ${m % 60}m`;
+        if (m > 0) return `${m}m ${s % 60}s`;
+        return `${s}s`;
+    };
+
+    const updateMoreMatchesCountdown = () => {
+        document.querySelectorAll('.match-countdown').forEach(span => {
+            const startIso = span.getAttribute('data-start');
+            if (startIso) {
+                span.innerHTML = getMatchCountdown(startIso);
+            }
+        });
+    };
+
+    setTimeout(async () => {
       requestAnimationFrame(async () => {
 
         const normalize = s => s.toString().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,'and').replace(/[^a-z0-9]/g,'');
@@ -248,7 +282,7 @@
         document.getElementById('match-table-container').innerHTML = tableHTML;
 
 
-        // Load real stream JSON
+        // Load real stream JSON (unchanged)
         const streamUrl = `https://blog.cricfoot.net/${slug}.json`;
         let streamJson = null;
         try {
@@ -279,7 +313,7 @@
           liveContainer.innerHTML = '<p class="text-center text-orange-600 font-bold">Stream links loading soon...</p>';
         }
 
-        // Progress bar (code unchanged)
+        // Progress bar (unchanged)
         const progContainer = document.createElement('div');
         progContainer.className = 'w-full bg-gray-200 rounded-full h-6 mb-4';
         const progBar = document.createElement('div');
@@ -315,6 +349,7 @@
         };
         updateProgress();
         setInterval(updateProgress, 1000);
+        setInterval(updateMoreMatchesCountdown, 1000); // Start updating countdowns
 
         // FULL ORIGINAL FAQ (time display kept inside FAQ for context)
         const faqHTML = `
@@ -352,7 +387,7 @@
         `;
         document.getElementById('match-info').innerHTML = faqHTML;
 
-        // More Matches (UPDATED TO SHOW LOGOS)
+        // More Matches (UPDATED TO SHOW COUNTDOWN)
         const more = document.getElementById('more-matches');
         const allMatches = [];
         for (const api of mainApis) {
@@ -390,21 +425,24 @@
             card.target = "_blank";
             card.className = 'bg-gray-50 p-4 rounded-lg flex justify-between items-center block hover:bg-gray-100';
             
-            // --- NEW INNER HTML WITH LOGOS ---
+            // --- NEW INNER HTML WITH COUNTDOWN SPAN ---
             card.innerHTML = `
                 <span class="flex items-center space-x-2">
                     <img src="${m.team1_logo}" alt="${m.team1.trim()} Logo" class="h-6 w-6 rounded-full object-contain">
                     <span class="font-medium text-gray-800"> vs </span>
                     <img src="${m.team2_logo}" alt="${m.team2.trim()} Logo" class="h-6 w-6 rounded-full object-contain">
                 </span>
-                <span class="text-sm text-gray-600">
-                    ${new Date(m.start).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                <span class="text-sm text-gray-600 match-countdown" data-start="${m.start}">
+                    ${getMatchCountdown(m.start)}
                 </span>`;
             // --- END NEW INNER HTML ---
 
             more.appendChild(card);
           });
         }
+        
+        // Initial call to set the countdowns immediately
+        updateMoreMatchesCountdown();
 
       });
     }, 0);
