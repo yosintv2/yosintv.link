@@ -111,7 +111,7 @@
 
         list.forEach(stream => {
           const matchNameRaw = stream.name.replace(/\s*-\s*/g, ' vs ');
-          const matchName = `Match: ${matchNameRaw}`;
+          const matchName = ` ${matchNameRaw}`;
 
           // Determine player page
           const isCricket = stream.category_name?.toLowerCase().includes('cricket') ||
