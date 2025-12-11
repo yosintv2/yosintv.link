@@ -3,68 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PPV Streams Schedule</title>
+  <title>PPV.to Match List</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen">
   <div class="container mx-auto p-6">
-    <h1 class="text-4xl font-bold text-center mb-4 text-gray-800">Sports Streams Schedule</h1>
+    <h1 class="text-4xl font-bold text-center mb-4 text-gray-800">PPV.to Sports Schedule</h1>
 
-    <input id="searchInput" type="text" placeholder="Search streams..."
+    <input id="searchInput" type="text" placeholder="Search events..."
       class="w-full mb-6 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400" />
 
-    <div id="loading" class="text-center text-gray-500">Loading streams...</div>
+    <div id="loading" class="text-center text-gray-500">Loading events...</div>
     <div id="error" class="text-center text-red-500 hidden"></div>
     <div id="events" class="space-y-6 hidden"></div>
   </div>
 
   <script>
-    let allStreamsData = null;
+    let allData = null;
 
     async function fetchEvents() {
-      const loadingDiv = document.getElementById('loading');
-      const errorDiv = document.getElementById('error');
-      const eventsContainer = document.getElementById('events');
+      const loading = document.getElementById('loading');
+      const error   = document.getElementById('error');
+      const container = document.getElementById('events');
 
       try {
-        const response = await fetch('https://api.ppv.to/api/streams', {
-          headers: { Accept: 'application/json' }
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
+        const res = await fetch('https://api.ppv.to/api/streams');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (!json.streams?.length) throw new Error('No streams found');
 
-        if (!data.streams?.length) throw new Error('No streams returned');
-
-        allStreamsData = data;
-        displayEvents(data);
-        loadingDiv.classList.add('hidden');
-        eventsContainer.classList.remove('hidden');
+        allData = json;
+        displayEvents(json);
+        loading.classList.add('hidden');
+        container.classList.remove('hidden');
       } catch (e) {
-        loadingDiv.classList.add('hidden');
-        errorDiv.textContent = `Error: ${e.message}`;
-        errorDiv.classList.remove('hidden');
+        loading.classList.add('hidden');
+        error.textContent = `Error: ${e.message}`;
+        error.classList.remove('hidden');
       }
     }
 
     function formatDateTime(ts) {
       return new Date(ts * 1000).toLocaleString('en-US', {
-        weekday:'short', year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
       });
     }
 
-    function createCountdown(start, end, el) {
+    function createCountdown(startTs, endTs, el) {
       const update = () => {
-        const now = Math.floor(Date.now()/1000);
-        let txt = '';
-        if (now < start) txt = `Starts in: ${fmt(start-now)}`;
-        else if (now <= end) txt = `Ends in: ${fmt(end-now)}`;
-        else txt = 'Ended';
-        el.textContent = txt;
+        const now = Math.floor(Date.now() / 1000);
+        let text = '';
+        if (now < startTs) {
+          text = `Starts in: ${fmt(startTs - now)}`;
+        } else if (now <= endTs) {
+          text = `Live – ends in: ${fmt(endTs - now)}`;
+        } else {
+          text = 'Ended';
+        }
+        el.textContent = text;
       };
       const fmt = s => {
-        const d = Math.floor(s/86400); s%=86400;
-        const h = Math.floor(s/3600); s%=3600;
-        const m = Math.floor(s/60); s%=60;
+        const d = Math.floor(s / 86400); s %= 86400;
+        const h = Math.floor(s / 3600); s %= 3600;
+        const m = Math.floor(s / 60); s %= 60;
         return `${d?d+'d ':''}${h}h ${m}m ${s}s`;
       };
       update();
@@ -74,120 +76,133 @@
     function displayEvents(data, filter = '') {
       const cont = document.getElementById('events');
       cont.innerHTML = '';
-      const low = filter.toLowerCase();
-      const byDate = {};
+      const lower = filter.toLowerCase();
 
+      const byDate = {};
       data.streams.forEach(cat => {
         cat.streams.forEach(s => {
-          if (s.always_live && s.starts_at===0 && s.ends_at===0) return;
-          const date = new Date(s.starts_at*1000).toDateString();
-          byDate[date] ??= [];
-          byDate[date].push({...s, category: cat.category_name});
+          if (s.always_live || !s.starts_at) return; // skip always_live for now
+          const dateKey = new Date(s.starts_at * 1000).toDateString();
+          byDate[dateKey] = byDate[dateKey] || [];
+          byDate[dateKey].push({ ...s, category_name: cat.category_name });
         });
       });
 
-      const now = Math.floor(Date.now()/1000);
+      const now = Math.floor(Date.now() / 1000);
 
-      for (const date in byDate) {
-        let list = byDate[date]
-          .filter(s => now <= s.ends_at || (s.always_live && s.ends_at===0))
-          .filter(s => !filter || s.name.toLowerCase().includes(low) ||
-                       `${s.category||''} ${s.tag||''}`.toLowerCase().includes(low));
+      for (const dateKey in byDate) {
+        let list = byDate[dateKey]
+          .filter(s => now <= s.ends_at) // hide already ended
+          .filter(s => !filter ||
+            s.name.toLowerCase().includes(lower) ||
+            s.category_name?.toLowerCase().includes(lower) ||
+            s.tag?.toLowerCase().includes(lower)
+          );
 
         if (!list.length) continue;
 
+        // Date header
         const header = document.createElement('h2');
         header.className = 'text-2xl font-semibold mt-8 mb-4 text-gray-700';
-        header.textContent = new Date(date).toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+        header.textContent = new Date(dateKey).toLocaleDateString('en-US', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
         cont.appendChild(header);
 
-        list.forEach(s => {
-          const name = s.name.replace(/\s*-\s*/g, ' vs ');
+        list.forEach(stream => {
+          const matchNameRaw = stream.name.replace(/\s*-\s*/g, ' vs ');
+          const matchName = `Match: ${matchNameRaw}`;
 
+          // Determine player page
+          const isCricket = stream.category_name?.toLowerCase().includes('cricket') ||
+                            stream.tag?.toLowerCase().includes('cricket');
+          const player = isCricket
+            ? 'https://yosintv2.github.io/ads/cric.html'
+            : 'https://yosintv2.github.io/ads/foot.html';
+
+          // Build links array (always at least 4 entries like your TopEmbed version)
+          let links = ['http://yosintv-api.pages.dev/api/ads']; // fixed first link
+
+          const main = stream.iframe ? `${player}?url=${stream.iframe}` : null;
+          const subs = (stream.substreams || []).map(sub => `${player}?url=${sub.iframe}`);
+
+          const allStreams = main ? [main, ...subs] : subs;
+
+          // Pad / repeat to always have 4 links total (1 fixed + 3 streams)
+          while (allStreams.length < 1) {
+            allStreams.push(allStreams[0] || links[0]);
+          }
+          links = links.concat(allStreams.slice(0, 3));
+
+          const jsonObj = { name: matchName, links };
+
+          // Card
           const card = document.createElement('div');
           card.className = 'bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow';
 
-          const time = document.createElement('div');
-          time.className = 'text-gray-600 text-sm font-medium';
-          time.textContent = formatDateTime(s.starts_at);
+          const timeDiv = document.createElement('div');
+          timeDiv.className = 'text-gray-600 text-sm font-medium';
+          timeDiv.textContent = formatDateTime(stream.starts_at);
 
-          const title = document.createElement('div');
-          title.className = 'text-xl font-semibold text-gray-900';
-          title.textContent = name;
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'text-xl font-semibold text-gray-900 mt-2';
+          nameDiv.textContent = matchName;
 
-          const copyName = document.createElement('button');
-          copyName.textContent = 'Copy Name';
-          copyName.className = 'ml-3 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs';
-          copyName.onclick = () => copyToClipboard(name);
+          const copyNameBtn = document.createElement('button');
+          copyNameBtn.textContent = 'Copy Name';
+          copyNameBtn.className = 'ml-3 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs';
+          copyNameBtn.onclick = () => copyToClipboard(matchName);
 
-          const titleRow = document.createElement('div');
-          titleRow.className = 'flex items-center mt-2';
-          titleRow.append(title, copyName);
+          const nameRow = document.createElement('div');
+          nameRow.className = 'flex items-center';
+          nameRow.append(nameDiv, copyNameBtn);
 
           const countdown = document.createElement('div');
           countdown.className = 'text-sm font-medium text-gray-700 mt-2';
-          countdown.textContent = '…';
+          countdown.textContent = '...';
 
-          const bottom = document.createElement('div');
-          bottom.className = 'mt-4 flex items-center justify-between';
+          const category = [stream.category_name, stream.tag].filter(Boolean).join(' | ') || 'Uncategorized';
+          const catDiv = document.createElement('div');
+          catDiv.className = 'text-sm italic text-gray-500 mt-1';
+          catDiv.textContent = category;
 
-          const links = document.createElement('div');
-          links.className = 'flex gap-2';
+          // JSON block
+          const jsonPre = document.createElement('pre');
+          jsonPre.className = 'bg-gray-100 p-3 rounded text-sm overflow-x-auto mt-3';
+          jsonPre.textContent = JSON.stringify(jsonObj, null, 2);
 
-          // MAIN STREAM – raw, no encodeURIComponent
-          if (s.iframe) {
-            const url = `    "https://yosintv2.github.io/ads/foot.html?url=${s.iframe}", `;
-            const btn = document.createElement('button');
-            btn.textContent = 'Stream Link';
-            btn.className = 'px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs';
-            btn.onclick = () => copyToClipboard(url);
-            links.appendChild(btn);
-          }
+          const copyJsonBtn = document.createElement('button');
+          copyJsonBtn.textContent = 'Copy JSON';
+          copyJsonBtn.className = 'mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm';
+          copyJsonBtn.onclick = () => copyToClipboard(JSON.stringify(jsonObj, null, 2));
 
-          // SUBSTREAMS – also raw
-          if (s.substreams?.length) {
-            s.substreams.forEach((sub, i) => {
-              const url = `https://yosintv2.github.io/ads/foot.html?url=${sub.iframe}`;
-              const btn = document.createElement('button');
-              btn.textContent = `Sub ${i+1}`;
-              btn.className = 'px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs';
-              btn.onclick = () => copyToClipboard(url);
-              links.appendChild(btn);
-            });
-          }
-
-          const cat = [s.category, s.tag].filter(Boolean).join(' | ') || 'Uncategorized';
-          const catEl = document.createElement('div');
-          catEl.textContent = cat;
-          catEl.className = 'text-sm italic text-gray-500';
-
-          bottom.append(links, catEl);
-          card.append(time, titleRow, countdown, bottom);
+          card.append(timeDiv, nameRow, countdown, catDiv, jsonPre, copyJsonBtn);
           cont.appendChild(card);
 
-          if (s.always_live && s.starts_at===0) countdown.textContent = 'Always Live';
-          else createCountdown(s.starts_at, s.ends_at, countdown);
+          createCountdown(stream.starts_at, stream.ends_at, countdown);
         });
       }
     }
 
     function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        const t = document.getElementById('toast') || (() => {
-          const el = document.createElement('div');
-          el.id = 'toast';
-          el.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded shadow-lg z-50 transition-opacity';
-          document.body.appendChild(el);
-          return el;
-        })();
-        t.textContent = 'Copied!';
-        t.style.opacity = 1;
-        setTimeout(() => t.style.opacity = 0, 2000);
-      });
+      navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+    }
+
+    function showToast(msg) {
+      let toast = document.getElementById('toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded shadow-lg z-50 transition-opacity';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.opacity = 1;
+      setTimeout(() => toast.style.opacity = 0, 2000);
     }
 
     document.getElementById('searchInput').addEventListener('input', e => {
-      if (allStreamsData) displayEvents(allStreamsData, e.target.value.trim());
+      if (allData) displayEvents(allData, e.target.value.trim());
     });
 
     window.onload = fetchEvents;
