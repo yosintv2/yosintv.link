@@ -3,37 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PPV.to Match List</title>
+  <title>PPV.to Live Matches</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    pre { background:#f3f4f6; padding:12px; border-radius:10px; font-size:13.5px; }
+  </style>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen">
-  <div class="container mx-auto p-6">
-    <h1 class="text-4xl font-bold text-center mb-4 text-gray-800">PPV.to Sports Schedule</h1>
 
-    <input id="searchInput" type="text" placeholder="Search events..."
-      class="w-full mb-6 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400" />
+  <div class="container mx-auto p-6 max-w-5xl">
+    <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">PPV.to Live Sports Today</h1>
 
-    <div id="loading" class="text-center text-gray-500">Loading events...</div>
-    <div id="error" class="text-center text-red-500 hidden"></div>
-    <div id="events" class="space-y-6 hidden"></div>
+    <div class="mb-8 flex flex-col sm:flex-row gap-4 items-center">
+      <input type="text" id="search" placeholder="Search matches, league or team..."
+        class="w-full sm:flex-1 px-5 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <label class="flex items-center cursor-pointer">
+        <input type="checkbox" id="showCompleted" class="mr-3 h-5 w-5 text-blue-600" />
+        <span class="text-gray-700">Show ended matches</span>
+      </label>
+    </div>
+
+    <div id="loading" class="text-center text-gray-600 text-lg">Loading events...</div>
+    <div id="error" class="text-center text-red-600 hidden"></div>
+    <div id="matches" class="space-y-6 hidden"></div>
+  </div>
+
+  <div id="toast" class="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 opacity-0 transition-opacity">
+    Copied!
   </div>
 
   <script>
-    let allData = null;
+    let allEvents = [];
+    let countdownIntervals = {};
 
     async function fetchEvents() {
       const loading = document.getElementById('loading');
-      const error   = document.getElementById('error');
-      const container = document.getElementById('events');
+      const error = document.getElementById('error');
+      const container = document.getElementById('matches');
 
       try {
         const res = await fetch('https://api.ppv.to/api/streams');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
-        if (!json.streams?.length) throw new Error('No streams found');
 
-        allData = json;
-        displayEvents(json);
+        allEvents = [];
+        json.streams.forEach(cat => {
+          cat.streams.forEach(s => {
+            if (s.always_live || !s.starts_at) return;
+            allEvents.push({
+              ...s,
+              category: cat.category_name || 'Other'
+            });
+          });
+        });
+
+        if (allEvents.length === 0) throw new Error('No events found');
+
+        renderMatches(filterMatches());
         loading.classList.add('hidden');
         container.classList.remove('hidden');
       } catch (e) {
@@ -43,167 +69,132 @@
       }
     }
 
-    function formatDateTime(ts) {
-      return new Date(ts * 1000).toLocaleString('en-US', {
-        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      });
-    }
-
-    function createCountdown(startTs, endTs, el) {
-      const update = () => {
-        const now = Math.floor(Date.now() / 1000);
-        let text = '';
-        if (now < startTs) {
-          text = `Starts in: ${fmt(startTs - now)}`;
-        } else if (now <= endTs) {
-          text = `Live – ends in: ${fmt(endTs - now)}`;
-        } else {
-          text = 'Ended';
-        }
-        el.textContent = text;
-      };
-      const fmt = s => {
-        const d = Math.floor(s / 86400); s %= 86400;
-        const h = Math.floor(s / 3600); s %= 3600;
-        const m = Math.floor(s / 60); s %= 60;
-        return `${d?d+'d ':''}${h}h ${m}m ${s}s`;
-      };
-      update();
-      return setInterval(update, 1000);
-    }
-
-    function displayEvents(data, filter = '') {
-      const cont = document.getElementById('events');
-      cont.innerHTML = '';
-      const lower = filter.toLowerCase();
-
-      const byDate = {};
-      data.streams.forEach(cat => {
-        cat.streams.forEach(s => {
-          if (s.always_live || !s.starts_at) return; // skip always_live for now
-          const dateKey = new Date(s.starts_at * 1000).toDateString();
-          byDate[dateKey] = byDate[dateKey] || [];
-          byDate[dateKey].push({ ...s, category_name: cat.category_name });
-        });
-      });
-
+    function filterMatches() {
+      const query = document.getElementById('search').value.toLowerCase();
+      const showEnded = document.getElementById('showCompleted').checked;
       const now = Math.floor(Date.now() / 1000);
 
-      for (const dateKey in byDate) {
-        let list = byDate[dateKey]
-          .filter(s => now <= s.ends_at) // hide already ended
-          .filter(s => !filter ||
-            s.name.toLowerCase().includes(lower) ||
-            s.category_name?.toLowerCase().includes(lower) ||
-            s.tag?.toLowerCase().includes(lower)
-          );
+      return allEvents.filter(e => {
+        if (!showEnded && now > e.ends_at) return false;
+        return e.name.toLowerCase().includes(query) ||
+               e.category.toLowerCase().includes(query) ||
+               (e.tag && e.tag.toLowerCase().includes(query));
+      });
+    }
 
-        if (!list.length) continue;
+    function renderMatches(events) {
+      const container = document.getElementById('matches');
+      container.innerHTML = '';
+      Object.values(countdownIntervals).forEach(clearInterval);
+      countdownIntervals = {};
 
-        // Date header
-        const header = document.createElement('h2');
-        header.className = 'text-2xl font-semibold mt-8 mb-4 text-gray-700';
-        header.textContent = new Date(dateKey).toLocaleDateString('en-US', {
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
-        cont.appendChild(header);
+      events.forEach(stream => {
+        const matchName = stream.name.replace(/\s*-\s*/g, ' vs ').trim();
+        const fullTitle = `${matchName}`;
 
-        list.forEach(stream => {
-          const matchNameRaw = stream.name.replace(/\s*-\s*/g, ' vs ');
-          const matchName = ` ${matchNameRaw}`;
+        // Detect sport → choose correct player page
+        const isCricket = /cricket/i.test(stream.category) || /cricket/i.test(stream.tag || '');
+        const playerBase = isCricket 
+          ? 'https://yosintv2.github.io/ads/cric.html' 
+          : 'https://yosintv2.github.io/ads/foot.html';
 
-          // Determine player page
-          const isCricket = stream.category_name?.toLowerCase().includes('cricket') ||
-                            stream.tag?.toLowerCase().includes('cricket');
-          const player = isCricket
-            ? 'https://yosintv2.github.io/ads/cric.html'
-            : 'https://yosintv2.github.io/ads/foot.html';
+        // Get the raw iframe URL (main or first substream)
+        const rawIframe = stream.iframe || 
+          (stream.substreams && stream.substreams[0] && stream.substreams[0].iframe) || 
+          '';
 
-          // Build links array (always at least 4 entries like your TopEmbed version)
-          let links = ['http://yosintv-api.pages.dev/api/ads']; // fixed first link
+        // This is exactly what you wanted:
+        const playerLink = rawIframe ? `${playerBase}?url=${rawIframe}` : '';
 
-          const main = stream.iframe ? `${player}?url=${stream.iframe}` : null;
-          const subs = (stream.substreams || []).map(sub => `${player}?url=${sub.iframe}`);
+        const jsonData = {
+          name: fullTitle,
+          links: [
+            playerLink,                                      // Link 1
+            "https://yosintv-api.pages.dev/api/ads",        // Ad link
+            playerLink,                                      // Link 3 → same as link 1
+            "________________blv_links___________"
+          ]
+        };
 
-          const allStreams = main ? [main, ...subs] : subs;
+        // Card
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow';
 
-          // Pad / repeat to always have 4 links total (1 fixed + 3 streams)
-          while (allStreams.length < 1) {
-            allStreams.push(allStreams[0] || links[0]);
-          }
-          links = links.concat(allStreams.slice(0, 3));
+        const titleRow = document.createElement('div');
+        titleRow.className = 'flex items-center justify-between mb-3';
+        const title = document.createElement('h2');
+        title.className = 'text-xl font-bold text-gray-900';
+        title.textContent = fullTitle;
+        const copyNameBtn = document.createElement('button');
+        copyNameBtn.textContent = 'Copy Title';
+        copyNameBtn.className = 'bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg text-sm font-medium';
+        copyNameBtn.onclick = () => copyToClipboard(fullTitle);
+        titleRow.append(title, copyNameBtn);
 
-          const jsonObj = { name: matchName, links };
+        const countdown = document.createElement('div');
+        countdown.className = 'text-lg font-medium text-orange-600 mb-4';
+        startCountdown(stream.starts_at, stream.ends_at, countdown);
 
-          // Card
-          const card = document.createElement('div');
-          card.className = 'bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow';
+        const info = document.createElement('div');
+        info.className = 'text-sm text-gray-600 italic mb-4';
+        info.textContent = [stream.category, stream.tag].filter(Boolean).join(' • ') || 'Live Event';
 
-          const timeDiv = document.createElement('div');
-          timeDiv.className = 'text-gray-600 text-sm font-medium';
-          timeDiv.textContent = formatDateTime(stream.starts_at);
+        // JSON Block
+        const jsonBlock = document.createElement('div');
+        jsonBlock.className = 'bg-gray-50 rounded-lg p-4';
+        const jsonTitle = document.createElement('div');
+        jsonTitle.textContent = `${fullTitle}`;
+        jsonTitle.className = 'font-bold text-gray-800 mb-2';
+        const pre = document.createElement('pre');
+        pre.textContent = JSON.stringify(jsonData, null, 2);
+        const copyJsonBtn = document.createElement('button');
+        copyJsonBtn.textContent = 'Copy JSON';
+        copyJsonBtn.className = 'mt-3 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-medium';
+        copyJsonBtn.onclick = () => copyToClipboard(JSON.stringify(jsonData, null, 2));
 
-          const nameDiv = document.createElement('div');
-          nameDiv.className = 'text-xl font-semibold text-gray-900 mt-2';
-          nameDiv.textContent = matchName;
+        jsonBlock.append(jsonTitle, pre, copyJsonBtn);
 
-          const copyNameBtn = document.createElement('button');
-          copyNameBtn.textContent = 'Copy Name';
-          copyNameBtn.className = 'ml-3 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs';
-          copyNameBtn.onclick = () => copyToClipboard(matchName);
+        card.append(titleRow, countdown, info, jsonBlock);
+        container.appendChild(card);
+      });
+    }
 
-          const nameRow = document.createElement('div');
-          nameRow.className = 'flex items-center';
-          nameRow.append(nameDiv, copyNameBtn);
-
-          const countdown = document.createElement('div');
-          countdown.className = 'text-sm font-medium text-gray-700 mt-2';
-          countdown.textContent = '...';
-
-          const category = [stream.category_name, stream.tag].filter(Boolean).join(' | ') || 'Uncategorized';
-          const catDiv = document.createElement('div');
-          catDiv.className = 'text-sm italic text-gray-500 mt-1';
-          catDiv.textContent = category;
-
-          // JSON block
-          const jsonPre = document.createElement('pre');
-          jsonPre.className = 'bg-gray-100 p-3 rounded text-sm overflow-x-auto mt-3';
-          jsonPre.textContent = JSON.stringify(jsonObj, null, 2);
-
-          const copyJsonBtn = document.createElement('button');
-          copyJsonBtn.textContent = 'Copy JSON';
-          copyJsonBtn.className = 'mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm';
-          copyJsonBtn.onclick = () => copyToClipboard(JSON.stringify(jsonObj, null, 2));
-
-          card.append(timeDiv, nameRow, countdown, catDiv, jsonPre, copyJsonBtn);
-          cont.appendChild(card);
-
-          createCountdown(stream.starts_at, stream.ends_at, countdown);
-        });
-      }
+    function startCountdown(startTs, endTs, el) {
+      const update = () => {
+        const now = Math.floor(Date.now() / 1000);
+        if (now < startTs) {
+          el.textContent = `Starts in: ${fmt(startTs - now)}`;
+          el.className = 'text-lg font-medium text-orange-600 mb-4';
+        } else if (now <= endTs) {
+          el.textContent = `LIVE – ends in: ${fmt(endTs - now)}`;
+          el.className = 'text-lg font-bold text-red-600 mb-4 animate-pulse';
+        } else {
+          el.textContent = 'Match Ended';
+          el.className = 'text-lg font-medium text-gray-500 mb-4';
+        }
+      };
+      const fmt = s => {
+        const d = Math.floor(s / 86400);
+        const h = Math.floor((s % 86400) / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const sec = s % 60;
+        return `${d?d+'d ':''}${h}h ${m}m ${sec}s`;
+      };
+      update();
+      const id = setInterval(update, 1000);
+      countdownIntervals[el] = id;
     }
 
     function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('toast');
+        toast.classList.remove('opacity-0');
+        setTimeout(() => toast.classList.add('opacity-0'), 1800);
+      });
     }
 
-    function showToast(msg) {
-      let toast = document.getElementById('toast');
-      if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toast';
-        toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded shadow-lg z-50 transition-opacity';
-        document.body.appendChild(toast);
-      }
-      toast.textContent = msg;
-      toast.style.opacity = 1;
-      setTimeout(() => toast.style.opacity = 0, 2000);
-    }
-
-    document.getElementById('searchInput').addEventListener('input', e => {
-      if (allData) displayEvents(allData, e.target.value.trim());
-    });
+    document.getElementById('search').addEventListener('input', () => renderMatches(filterMatches()));
+    document.getElementById('showCompleted').addEventListener('change', () => renderMatches(filterMatches()));
 
     window.onload = fetchEvents;
   </script>
