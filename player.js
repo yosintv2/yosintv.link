@@ -29,10 +29,10 @@ document.addEventListener('DOMContentLoaded', function() {
             let displayUrlBase = originalUrl;
 
             if (srcParam) {
-                const decodedSrc = decodeURIComponent(srcParam);
+                const decodedSrc = encodeURIComponent(srcParam);
                 displayUrlBase = originalUrl.replace(srcParam, decodedSrc);
             }
-            displayUrl = decodeURIComponent(displayUrlBase);
+            displayUrl = encodeURIComponent(displayUrlBase);
 
             const apiUrl = 'https://tinyurl.com/api-create.php?url=' + encodeURIComponent(originalUrl);
 
