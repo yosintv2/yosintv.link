@@ -64,7 +64,7 @@
       <div class="row g-3">
         <div class="col-sm-4">
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="sport" id="football" value="football" checked>
+            <input class="form-check-input" type="radio" name="sport" id="football" value="football">
             <label class="form-check-label fw-medium" for="football">⚽ Football Only</label>
           </div>
         </div>
@@ -83,32 +83,37 @@
       </div>
     </div>
 
-    <!-- Custom Date (optional) -->
+    <!-- Custom Date -->
     <div class="mb-4">
       <label for="customDate" class="form-label fw-medium">Custom Date (optional):</label>
-      <input type="text" id="customDate" class="form-control" placeholder="Leave blank for auto date (e.g., 17 December 2025)">
-      <small class="text-muted">Today's date will be used automatically if empty</small>
+      <input type="text" id="customDate" class="form-control" placeholder="e.g., 17 December 2025">
+      <small class="text-muted">Leave blank → auto uses today's date (17 December 2025)</small>
     </div>
 
     <!-- Matchups Input -->
     <div class="mb-4">
-      <label for="matchups" class="form-label fw-bold">Matchups + Timers:</label>
-      <textarea id="matchups" rows="10" class="form-control" placeholder="Al Nassr vs Istiklol&#10;0d 1h 51m&#10;India vs Australia&#10;0d 0h 15m&#10;Pakistan vs England&#10;1d 4h 20m"></textarea>
-      <small class="text-muted">One matchup per two lines: Team A vs Team B → next line timer (optional)</small>
+      <label for="matchups" class="form-label fw-bold">Matchups (3 lines per match):</label>
+      <textarea id="matchups" rows="12" class="form-control" placeholder="2:00
+PSG vs Flamengo | FIFA Intercontinental Cup Final
+psg
+2:00
+Arsenal vs Liverpool
+arsenal"></textarea>
+      <small class="text-muted">Add | Competition Name for trophy line (optional)</small>
     </div>
 
-    <!-- Custom Links Section -->
+    <!-- Custom Links -->
     <details class="mb-4 bg-light p-3 rounded">
-      <summary class="fw-bold text-primary">⚙️ Customize Links (saved in browser)</summary>
-      <div class="mt-3 row">
+      <summary class="fw-bold text-primary">⚙️ Customize Links (saved automatically)</summary>
+      <div class="mt-3 row g-3">
         <div class="col-md-6">
-          <label class="form-label">Football Streaming Links (one per line):</label>
-          <textarea id="fbLinks" rows="4" class="form-control mb-3">https://www.yosin-tv.net/
+          <label class="form-label">Football Streaming Links:</label>
+          <textarea id="fbLinks" rows="4" class="form-control">https://www.yosin-tv.net/
 https://www.yosintv.link/football.html</textarea>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Cricket Streaming Links (one per line):</label>
-          <textarea id="crLinks" rows="4" class="form-control mb-3">https://www.yosin-tv.net/
+          <label class="form-label">Cricket Streaming Links:</label>
+          <textarea id="crLinks" rows="4" class="form-control">https://www.yosin-tv.net/
 https://www.yosintv.link/</textarea>
         </div>
         <div class="col-12">
@@ -127,8 +132,21 @@ https://www.yosintv.link/</textarea>
   </div>
 
   <script>
-    // Load saved links
+    // Load saved settings on page load
     window.onload = () => {
+      const savedSport = localStorage.getItem('sportMode');
+      if (savedSport) {
+        document.getElementById(savedSport).checked = true;
+      } else {
+        document.getElementById('football').checked = true; // default
+      }
+
+      const savedDate = localStorage.getItem('customDate');
+      if (savedDate) document.getElementById('customDate').value = savedDate;
+
+      const savedMatchups = localStorage.getItem('matchups');
+      if (savedMatchups) document.getElementById('matchups').value = savedMatchups;
+
       ['fbLinks', 'crLinks', 'hlLink'].forEach(id => {
         const saved = localStorage.getItem(id);
         if (saved) document.getElementById(id).value = saved;
@@ -142,7 +160,10 @@ https://www.yosintv.link/</textarea>
       const outputText = document.getElementById('outputText');
       outputText.innerHTML = '';
 
-      // Save links
+      // Save current settings to localStorage
+      localStorage.setItem('sportMode', mode);
+      localStorage.setItem('customDate', customDate);
+      localStorage.setItem('matchups', input);
       ['fbLinks', 'crLinks', 'hlLink'].forEach(id => {
         localStorage.setItem(id, document.getElementById(id).value.trim());
       });
@@ -155,55 +176,52 @@ https://www.yosintv.link/</textarea>
       const lines = input.split('\n').map(l => l.trim()).filter(l => l);
       const unique = new Set();
       let output = '';
-      const regex = /(.+?)\s+vs\s+(.+)/i;
 
-      // Dynamic Date
+      const matchRegex = /^(.*?)\s+vs\s+(.*?)(?:\s*\|\s*(.+))?$/i;
+
+      // Auto date
       const today = new Date();
-      const dateStr = customDate || today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      const autoDate = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      const displayDate = customDate || autoDate;
 
       // Header
       const sportName = mode === 'cricket' ? 'Cricket' : mode === 'football' ? 'Football' : 'Football & Cricket';
-      output += `Today's ${sportName} Matches | L!ve ‼️\n`;
-      output += `📅 Date: ${dateStr}\n\n`;
+      output += `⚠️ Today's ${sportName} Matches | Live ‼️\n`;
+      output += `📅 Date: ${displayDate}\n\n`;
 
       // Load links
       const fbLinks = document.getElementById('fbLinks').value.trim().split('\n').map(l => l.trim()).filter(l => l);
       const crLinks = document.getElementById('crLinks').value.trim().split('\n').map(l => l.trim()).filter(l => l);
 
-      // Match emoji
       const matchEmoji = mode === 'cricket' ? '🏏' : '⚽';
 
-      // Determine which links to use
       let activeLinks = [];
       if (mode === 'football') activeLinks = fbLinks;
       else if (mode === 'cricket') activeLinks = crLinks;
-      else if (mode === 'both') {
-        // Combine and remove duplicates
-        activeLinks = [...new Set([...fbLinks, ...crLinks])];
-      }
+      else activeLinks = [...new Set([...fbLinks, ...crLinks])];
 
-      // Process matches
-      for (let i = 0; i < lines.length; i += 2) {
-        const matchup = lines[i];
-        const timer = lines[i + 1] || '';
+      // Process every 3 lines
+      for (let i = 0; i < lines.length; i += 3) {
+        if (i + 1 >= lines.length) break;
 
-        const m = matchup.match(regex);
-        if (!m) continue;
+        const matchupLine = lines[i + 1];
+        const match = matchupLine.match(matchRegex);
+        if (!match) continue;
 
-        const team1 = m[1].trim();
-        const team2 = m[2].trim();
+        let team1 = match[1].trim();
+        let team2 = match[2].trim();
+        const competition = match[3] ? match[3].trim() : null;
+
         const key = `${team1} vs ${team2}`;
         if (unique.has(key)) continue;
         unique.add(key);
 
-        // Live detection
-        const isLive = timer && (timer.match(/0d\s*0h\s*0?m/i) || timer.toLowerCase().includes('live'));
-        const liveBadge = isLive ? ' 🔥 LIVE' : '';
+        if (competition) {
+          output += `🏆 ${competition}\n`;
+        }
 
-        output += `${matchEmoji} ${team1} 🆚 ${team2}${liveBadge}\n`;
-        if (timer && !isLive) output += `⏰ ${timer}\n`;
+        output += `${matchEmoji} ${team1} 🆚 ${team2}\n`;
 
-        // Add active links
         activeLinks.forEach(link => {
           output += `👉 ${link}\n`;
         });
@@ -213,14 +231,15 @@ https://www.yosintv.link/</textarea>
       if (unique.size === 0) {
         output = '<p class="text-danger fw-bold">No valid matchups detected.</p>';
       } else {
-        const hl = document.getElementById('hlLink').value.trim();
-        output += `📱 Watch Football/Cricket Highlights ⬇️\n👉 ${hl}`;
+        const hl = document.getElementById('hlLink').value.trim() || 'https://www.cricfoot.net/';
+        const hlText = mode === 'both' ? 'Football/Cricket' : sportName;
+        output += `📱 Watch ${hlText} Highlights ⬇️\n👉 ${hl}`;
       }
 
       const pre = document.createElement('pre');
-      pre.textContent = output;
+      pre.textContent = output.trim();
       pre.ondblclick = () => {
-        navigator.clipboard.writeText(output).then(() => {
+        navigator.clipboard.writeText(output.trim()).then(() => {
           const msg = document.createElement('div');
           msg.className = 'copy-message';
           msg.textContent = '✅ Copied to clipboard!';
@@ -228,7 +247,6 @@ https://www.yosintv.link/</textarea>
           setTimeout(() => msg.remove(), 3000);
         });
       };
-
       outputText.appendChild(pre);
     }
   </script>
