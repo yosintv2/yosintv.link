@@ -36,6 +36,19 @@
       transition: background 0.2s;
     }
     pre:hover { background: #e9ecef; }
+    .preview-box {
+      background: #e3f2fd;
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid #bbdefb;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #1565c0;
+      cursor: pointer;
+      white-space: pre-wrap;
+      transition: background 0.2s;
+    }
+    .preview-box:hover { background: #bbdefb; }
     .copy-message {
       color: #28a745;
       font-weight: bold;
@@ -87,7 +100,7 @@
     <div class="mb-4">
       <label for="customDate" class="form-label fw-medium">Custom Date (optional):</label>
       <input type="text" id="customDate" class="form-control" placeholder="e.g., 17 December 2025">
-      <small class="text-muted">Leave blank → auto uses today's date (17 December 2025)</small>
+      <small class="text-muted">Leave blank → auto uses today's date</small>
     </div>
 
     <!-- Matchups Input -->
@@ -96,10 +109,13 @@
       <textarea id="matchups" rows="12" class="form-control" placeholder="2:00
 PSG vs Flamengo | FIFA Intercontinental Cup Final
 psg
-2:00
+04:30
 Arsenal vs Liverpool
-arsenal"></textarea>
-      <small class="text-muted">Add | Competition Name for trophy line (optional)</small>
+arsenal
+03:00
+Atlético Baleares vs Atlético Madrid
+atletico"></textarea>
+      <small class="text-muted">Add | Competition Name after teams for 🏆 line (optional)</small>
     </div>
 
     <!-- Custom Links -->
@@ -125,9 +141,16 @@ https://www.yosintv.link/</textarea>
 
     <button onclick="generateTxt()" class="btn btn-success btn-lg w-100 shadow-sm mb-5">🚀 Generate Match Text</button>
 
+    <!-- Generated Telegram Text -->
     <div id="output">
       <h3 class="fw-bold text-dark mb-4">Generated Text (Double-click to copy):</h3>
       <div id="outputText"></div>
+    </div>
+
+    <!-- Today's Match Preview -->
+    <div id="previewSection" class="mt-5">
+      <h3 class="fw-bold text-dark mb-4">Today's Match Preview (Click to copy):</h3>
+      <div id="previewText" class="preview-box"></div>
     </div>
   </div>
 
@@ -138,7 +161,7 @@ https://www.yosintv.link/</textarea>
       if (savedSport) {
         document.getElementById(savedSport).checked = true;
       } else {
-        document.getElementById('football').checked = true; // default
+        document.getElementById('football').checked = true;
       }
 
       const savedDate = localStorage.getItem('customDate');
@@ -158,9 +181,11 @@ https://www.yosintv.link/</textarea>
       const customDate = document.getElementById('customDate').value.trim();
       const input = document.getElementById('matchups').value.trim();
       const outputText = document.getElementById('outputText');
+      const previewText = document.getElementById('previewText');
       outputText.innerHTML = '';
+      previewText.innerHTML = '';
 
-      // Save current settings to localStorage
+      // Save current settings
       localStorage.setItem('sportMode', mode);
       localStorage.setItem('customDate', customDate);
       localStorage.setItem('matchups', input);
@@ -170,16 +195,18 @@ https://www.yosintv.link/</textarea>
 
       if (!input) {
         outputText.innerHTML = '<p class="text-danger fw-bold">Please enter at least one matchup!</p>';
+        previewText.innerHTML = '<p class="text-muted">No matches entered yet.</p>';
         return;
       }
 
       const lines = input.split('\n').map(l => l.trim()).filter(l => l);
       const unique = new Set();
+      const previewMatches = [];
       let output = '';
 
       const matchRegex = /^(.*?)\s+vs\s+(.*?)(?:\s*\|\s*(.+))?$/i;
 
-      // Auto date
+      // Auto date fallback
       const today = new Date();
       const autoDate = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
       const displayDate = customDate || autoDate;
@@ -216,6 +243,10 @@ https://www.yosintv.link/</textarea>
         if (unique.has(key)) continue;
         unique.add(key);
 
+        // Add to preview with trailing comma
+        previewMatches.push(`${team1} vs ${team2},`);
+
+        // Add competition trophy if exists
         if (competition) {
           output += `🏆 ${competition}\n`;
         }
@@ -228,6 +259,7 @@ https://www.yosintv.link/</textarea>
         output += '\n';
       }
 
+      // Final Telegram output
       if (unique.size === 0) {
         output = '<p class="text-danger fw-bold">No valid matchups detected.</p>';
       } else {
@@ -236,6 +268,7 @@ https://www.yosintv.link/</textarea>
         output += `📱 Watch ${hlText} Highlights ⬇️\n👉 ${hl}`;
       }
 
+      // Display Telegram text
       const pre = document.createElement('pre');
       pre.textContent = output.trim();
       pre.ondblclick = () => {
@@ -248,6 +281,24 @@ https://www.yosintv.link/</textarea>
         });
       };
       outputText.appendChild(pre);
+
+      // Display Match Preview (one per line with comma)
+      if (previewMatches.length > 0) {
+        const previewContent = previewMatches.join('\n');
+        previewText.textContent = previewContent;
+
+        previewText.onclick = () => {
+          navigator.clipboard.writeText(previewContent).then(() => {
+            const msg = document.createElement('div');
+            msg.className = 'copy-message';
+            msg.textContent = '✅ Preview copied!';
+            previewText.appendChild(msg);
+            setTimeout(() => msg.remove(), 3000);
+          });
+        };
+      } else {
+        previewText.innerHTML = '<p class="text-muted">No matches to preview.</p>';
+      }
     }
   </script>
 </body>
