@@ -50,18 +50,37 @@
 <body>
   <div class="container">
     <h1 class="text-center text-dark mb-4 h3">Team Matchup Generator</h1>
+
+    <div class="mb-3">
+      <label class="form-label fw-medium">Select Sport:</label>
+      <div class="d-flex gap-4">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="sport" id="football" value="football" checked>
+          <label class="form-check-label" for="football">⚽ Football</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="sport" id="cricket" value="cricket">
+          <label class="form-check-label" for="cricket">🏏 Cricket</label>
+        </div>
+      </div>
+    </div>
+
     <div class="mb-4">
       <label for="matchups" class="form-label fw-medium">Enter Matchups (e.g., Al Nassr vs Istiklol):</label>
-      <textarea id="matchups" rows="8" class="form-control" placeholder="Al Nassr vs Istiklol\n0d 1h 51m\nAjax vs Inter Milan\n0d 2h 36m"></textarea>
+      <textarea id="matchups" rows="8" class="form-control" placeholder="Al Nassr vs Istiklol&#10;0d 1h 51m&#10;Ajax vs Inter Milan&#10;0d 2h 36m"></textarea>
     </div>
-    <button onclick="generateTxt()" class="btn btn-primary w-100 w-sm-auto mb-4">Generate Matchup Text</button>
+
+    <button onclick="generateTxt()" class="btn btn-primary w-100 mb-4">Generate Matchup Text</button>
+
     <div id="output">
       <h3 class="text-dark mb-3 fw-medium">Generated Text (Double-click to copy):</h3>
       <div id="outputText"></div>
     </div>
   </div>
+
   <script>
     function generateTxt() {
+      const sport = document.querySelector('input[name="sport"]:checked').value;
       const input = document.getElementById('matchups').value.trim();
       const outputText = document.getElementById('outputText');
       outputText.innerHTML = '';
@@ -75,12 +94,15 @@
       const lines = input.split('\n').filter(line => line.trim() !== '');
       const uniqueMatches = new Set();
       let output = '';
-      const regex = /(.+?)\s+vs\s+(.+)/i; // Case-insensitive, flexible spacing
 
-      // Header
-      output += `\u26A0\uFE0F Today's Football Matches | Live \u203C\uFE0F\n\n`;
+      const regex = /(.+?)\s+vs\s+(.+)/i;
 
-      // Process every odd-numbered line (0-based index) as a matchup
+      // Header based on sport
+      const sportName = sport === 'cricket' ? 'Cricket' : 'Football';
+      const headerEmoji = sport === 'cricket' ? '🏏' : '⚽';
+      output += `\u26A0\uFE0F Today's ${sportName} Matches | L!ve \u203C\uFE0F\n\n`;
+
+      // Process every odd-numbered line (0-based) as matchup
       for (let i = 0; i < lines.length; i += 2) {
         const line = lines[i];
         const match = line.match(regex);
@@ -93,26 +115,30 @@
         const team2 = match[2].trim();
         const matchKey = `${team1} vs ${team2}`;
 
-        if (uniqueMatches.has(matchKey)) {
-          continue; // Skip duplicates
-        }
+        if (uniqueMatches.has(matchKey)) continue; // Skip duplicates
         uniqueMatches.add(matchKey);
 
-        // Generate matchup text with emojis and links
-        output += `\u26F3 ${team1} \uD83C\uDD9A ${team2}\n` +
-                 `\uD83D\uDC49 https://www.yosin-tv.net/\n` +
-                 `\uD83D\uDC49 https://www.yosintv.link/football.html\n\n`;
+        // Matchup line
+        output += `${headerEmoji} ${team1} \uD83C\uDD9A ${team2}\n`;
+
+        // Links based on sport
+        if (sport === 'football') {
+          output += `\uD83D\uDC49 https://www.yosin-tv.net/\n`;
+          output += `\uD83D\uDC49 https://www.yosintv.link/football.html\n\n`;
+        } else { // cricket
+          output += `\uD83D\uDC49 https://www.yosintv.link/\n\n`;
+        }
       }
 
       if (uniqueMatches.size === 0) {
         output = '<p class="text-danger fw-medium">No valid matchups found.</p>';
       } else {
-        // Footer with highlights
-        output += `\uD83D\uDCF1 Watch Football/Cricket Highlights⬇️\n` +
-                 `\uD83D\uDC49 https://www.cricfoot.net/`;
+        // Footer - always show highlights link
+        output += `\uD83D\uDCF1 Watch Football/Cricket Highlights⬇️\n`;
+        output += `\uD83D\uDC49 https://www.cricfoot.net/`;
       }
 
-      // Create pre element for output
+      // Create pre element
       const preElement = document.createElement('pre');
       preElement.textContent = output;
       preElement.ondblclick = function() {
@@ -126,6 +152,7 @@
           console.error('Failed to copy: ', err);
         });
       };
+
       outputText.appendChild(preElement);
     }
   </script>
