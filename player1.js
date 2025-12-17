@@ -265,7 +265,7 @@ function initializePlayer() {
 
 // Domain restriction check
 (function() {
-  const allowedDomains = ['www.livesoccertvhd.com', 'dplayerr.blogspot.com/', 'ads1-yosintv.pages.dev' ]; // Added 'localhost' for testing
+  const allowedDomains = ['www.livesoccertvhd.com', 'dplayerr.blogspot.com', 'ads1-yosintv.pages.dev' ]; // Added 'localhost' for testing
   const currentDomain = window.location.hostname.toLowerCase().split(':')[0]; // Normalize domain, remove port
 
   if (!allowedDomains.includes(currentDomain)) {
