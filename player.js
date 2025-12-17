@@ -221,41 +221,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-function initializePlayer() {
-    try {
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        // Get potentially encoded params
-        const encodedSrc = urlParams.get('src');   // for iframe embed
-        const encodedHls = urlParams.get('hls');   // for direct HLS stream
-        
-        const iframe = document.getElementById('iframe');
-        const jwPlayerDiv = document.getElementById('jwPlayer');
-        
-        if (!iframe || !jwPlayerDiv) throw new Error("Player elements not found");
+    function initializePlayer() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const srcParam = urlParams.get('src');
+            const videoUrl = urlParams.get('hls');
 
-        let srcUrl = null;
-        let hlsUrl = null;
+            const iframe = document.getElementById('iframe');
+            const jwPlayerDiv = document.getElementById('jwPlayer');
 
-        if (encodedSrc) {
-            // Decode: first URI component, then Base64
-            srcUrl = atob(decodeURIComponent(encodedSrc));
-            iframe.src = srcUrl;
-            jwPlayerDiv.style.display = 'none';
-        } else if (encodedHls && typeof jwplayer === 'function') {
-            hlsUrl = atob(decodeURIComponent(encodedHls));
-            jwplayer("jwPlayer").setup({
-                file: hlsUrl,
-                width: "100%",
-                aspectratio: "16:9"
-            });
-            iframe.style.display = 'none';
+            if (!iframe || !jwPlayerDiv) throw new Error("Player elements not found");
+
+            if (srcParam) {
+                iframe.src = srcParam;
+                jwPlayerDiv.style.display = 'none';
+            } else if (videoUrl && typeof jwplayer === 'function') {
+                jwplayer("jwPlayer").setup({
+                    file: videoUrl,
+                    width: "100%",
+                    aspectratio: "16:9"
+                });
+                iframe.style.display = 'none';
+            }
+        } catch (error) {
+            console.error("initializePlayer error:", error);
         }
-
-    } catch (error) {
-        console.error("initializePlayer error:", error);
     }
-}
 
     // Initialize the app
     initializePlayer(); 
