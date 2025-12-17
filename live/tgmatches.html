@@ -106,15 +106,7 @@
     <!-- Matchups Input -->
     <div class="mb-4">
       <label for="matchups" class="form-label fw-bold">Matchups (3 lines per match):</label>
-      <textarea id="matchups" rows="12" class="form-control" placeholder="2:00
-PSG vs Flamengo | FIFA Intercontinental Cup Final
-psg
-04:30
-Arsenal vs Liverpool
-arsenal
-03:00
-Atlético Baleares vs Atlético Madrid
-atletico"></textarea>
+      <textarea id="matchups" rows="12" class="form-control" placeholder=" "></textarea>
       <small class="text-muted">Add | Competition Name after teams for 🏆 line (optional)</small>
     </div>
 
@@ -213,7 +205,7 @@ https://www.yosintv.link/</textarea>
 
       // Header
       const sportName = mode === 'cricket' ? 'Cricket' : mode === 'football' ? 'Football' : 'Football & Cricket';
-      output += `⚠️ Today's ${sportName} Matches | Live ‼️\n`;
+      output += `⚠️ Today's ${sportName} Matches | L!ve ‼️\n`;
       output += `📅 Date: ${displayDate}\n\n`;
 
       // Load links
