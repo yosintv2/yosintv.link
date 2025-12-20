@@ -17,6 +17,7 @@
   </style>
 </head>
 <body>
+
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Highlights JSON Generator</h2>
@@ -61,93 +62,131 @@ Bayern vs Dortmund , , https://..."></textarea>
 <div id="popupAlert" class="popup-alert"></div>
 
 <script>
-/* ---------- popup ---------- */
+/* ---------- Popup Alert ---------- */
 const popup = document.getElementById('popupAlert');
-function show(msg){popup.textContent=msg;popup.classList.add('show');setTimeout(()=>popup.classList.remove('show'),2000);}
+function show(msg) {
+  popup.textContent = msg;
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 2000);
+}
 
-/* ---------- date ---------- */
+/* ---------- Set Today's Date Properly ---------- */
+function setTodayDate() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
+  document.getElementById('dateInput').value = todayStr;
+}
+
+// Always set today when page loads (overrides any saved stale date)
+window.addEventListener('load', () => {
+  setTodayDate();
+
+  // Load saved data (but date is overridden with today)
+  const savedInput = localStorage.getItem('lastInput');
+  const savedJson = localStorage.getItem('lastJson');
+  const savedCat = localStorage.getItem('manualCategory');
+  const savedMatchList = localStorage.getItem('lastMatchList');
+  const savedTheme = localStorage.getItem('theme');
+
+  if (savedInput) document.getElementById('matchInput').value = savedInput;
+  if (savedJson) document.getElementById('jsonOutput').textContent = savedJson;
+  if (savedCat) document.getElementById('manualCategory').value = savedCat;
+  if (savedMatchList) document.getElementById('currentDataOutput').textContent = savedMatchList;
+
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    document.getElementById('themeToggle').textContent = 'Light Theme';
+  }
+});
+
+/* ---------- Elements ---------- */
 const dateInput = document.getElementById('dateInput');
-const today = new Date().toISOString().split('T')[0];
-dateInput.value = today;
-
-/* ---------- elements ---------- */
 const manualCategoryEl = document.getElementById('manualCategory');
+const jsonOutput = document.getElementById('jsonOutput');
 const currentDataOutput = document.getElementById('currentDataOutput');
 
-/* ---------- random id ---------- */
+/* ---------- Random ID ---------- */
 const used = new Set();
-function rndId(){
-  const a='abcdefghijklmnopqrstuvwxyz';
+function rndId() {
+  const a = 'abcdefghijklmnopqrstuvwxyz';
   let id;
-  do{
-    id = a[Math.floor(Math.random()*26)]+a[Math.floor(Math.random()*26)]+a[Math.floor(Math.random()*26)]+
-         Math.floor(1000000+Math.random()*9000000);
-  }while(used.has(id));
+  do {
+    id = a[Math.floor(Math.random()*26)] + a[Math.floor(Math.random()*26)] + a[Math.floor(Math.random()*26)] + Math.floor(1000000 + Math.random()*9000000);
+  } while (used.has(id));
   used.add(id);
   return id;
 }
 
-/* ---------- COMPLETE LEAGUE MAP (2025-26) ---------- */
+/* ---------- League Map (2025-26 Season) ---------- */
 const leagueMap = {
+  // EPL
   'arsenal':'EPL','chelsea':'EPL','liverpool':'EPL','manchester city':'EPL','man city':'EPL','manchester united':'EPL','man utd':'EPL','tottenham':'EPL','aston villa':'EPL','newcastle':'EPL','west ham':'EPL','brighton':'EPL','crystal palace':'EPL','wolverhampton':'EPL','wolves':'EPL','everton':'EPL','fulham':'EPL','brentford':'EPL','nottingham forest':'EPL','bournemouth':'EPL','southampton':'EPL',
-  'juventus':'Serie A','inter':'Serie A','milan':'Serie A','ac milan':'Serie A','napoli':'Serie A','roma':'Serie A','lazio':'Serie A','atalanta':'Serie A','fiorentina':'Serie A','torino':'Serie A','bologna':'Serie A','udinese':'Serie A','sassuolo':'Serie A','empoli':'Serie A','monza':'Serie A','salernitana':'Serie A','lecce':'Serie A','verona':'Serie A','spezia':'Serie A','cremonese':'Serie A','sampdoria':'Serie A','cagliari':'Serie A','genoa':'Serie A','parma':'Serie A','como':'Serie A','venezia':'Serie A','palermo':'Serie A','brescia':'Serie A','frosinone':'Serie A','pisa':'Serie A',
-  'real madrid':'LaLiga','barcelona':'LaLiga','atletico madrid':'LaLiga','atlético madrid':'LaLiga','sevilla':'LaLiga','real sociedad':'LaLiga','villarreal':'LaLiga','athletic bilbao':'LaLiga','real betis':'LaLiga','osassuna':'LaLiga','rayo vallecano':'LaLiga','mallorca':'LaLiga','celta vigo':'LaLiga','valencia':'LaLiga','getafe':'LaLiga','girona':'LaLiga','espanyol':'LaLiga','cádiz':'LaLiga','granada':'LaLiga','almería':'LaLiga','valladolid':'LaLiga','leganés':'LaLiga','eibar':'LaLiga','huesca':'LaLiga','elche':'LaLiga','levante':'LaLiga','deportivo alavés':'LaLiga','alaves':'LaLiga','las palmas':'LaLiga','tenerife':'LaLiga',
-  'bayern munich':'Bundesliga','bayern':'Bundesliga','borussia dortmund':'Bundesliga','dortmund':'Bundesliga','rb leipzig':'Bundesliga','leipzig':'Bundesliga','union berlin':'Bundesliga','freiburg':'Bundesliga','bayer leverkusen':'Bundesliga','leverkusen':'Bundesliga','wolfsburg':'Bundesliga','mainz 05':'Bundesliga','mainz':'Bundesliga','borussia mönchengladbach':'Bundesliga','gladbach':'Bundesliga','köln':'Bundesliga','cologne':'Bundesliga','eintracht frankfurt':'Bundesliga','frankfurt':'Bundesliga','augsburg':'Bundesliga','bochum':'Bundesliga','stuttgart':'Bundesliga','hoffenheim':'Bundesliga','hertha bsc':'Bundesliga','hertha':'Bundesliga','schalke 04':'Bundesliga','schalke':'Bundesliga','werder bremen':'Bundesliga','bremen':'Bundesliga','darmstadt':'Bundesliga','heidenheim':'Bundesliga',
-  'paris saint-germain':'Ligue 1','psg':'Ligue 1','monaco':'Ligue 1','marseille':'Ligue 1','olympique marseille':'Ligue 1','lyon':'Ligue 1','olympique lyonnais':'Ligue 1','lille':'Ligue 1','nice':'Ligue 1','rennes':'Ligue 1','lens':'Ligue 1','strasbourg':'Ligue 1','montpellier':'Ligue 1','toulouse':'Ligue 1','brest':'Ligue 1','nantes':'Ligue 1','auxerre':'Ligue 1','lorient':'Ligue 1','clermont foot':'Ligue 1','clermont':'Ligue 1','reims':'Ligue 1','troyes':'Ligue 1','ajaccio':'Ligue 1','le havre':'Ligue 1','metz':'Ligue 1','angers':'Ligue 1','saint-étienne':'Ligue 1','st etienne':'Ligue 1','rodez':'Ligue 1','paris fc':'Ligue 1',
-  'lafc':'MLS','los angeles fc':'MLS','la galaxy':'MLS','inter miami':'MLS','atlanta united':'MLS','nashville sc':'MLS','philadelphia union':'MLS','fc cincinnati':'MLS','cincinnati':'MLS','columbus crew':'MLS','new england revolution':'MLS','orlando city':'MLS','new york city fc':'MLS','nycfc':'MLS','ny red bulls':'MLS','red bulls':'MLS','portland timbers':'MLS','seattle sounders':'MLS','sporting kansas city':'MLS','sporting kc':'MLS','austin fc':'MLS','charlotte fc':'MLS','chicago fire':'MLS','colorado rapids':'MLS','fc dallas':'MLS','houston dynamo':'MLS','minnesota united':'MLS','real salt lake':'MLS','san jose earthquakes':'MLS','vancouver whitecaps':'MLS','toronto fc':'MLS','cf montréal':'MLS','montreal':'MLS','st. louis city sc':'MLS','stl city':'MLS','san diego fc':'MLS','san diego':'MLS',
-  'al hilal':'Saudi Pro League','al nassr':'Saudi Pro League','al ittihad':'Saudi Pro League','al ahli':'Saudi Pro League','al shabab':'Saudi Pro League','al fateh':'Saudi Pro League','al ettifaq':'Saudi Pro League','al taawoun':'Saudi Pro League','damac':'Saudi Pro League','al raed':'Saudi Pro League','al fayha':'Saudi Pro League','abha':'Saudi Pro League','al khaleej':'Saudi Pro League','al adalh':'Saudi Pro League','al batin':'Saudi Pro League','al wehda':'Saudi Pro League','al tai':'Saudi Pro League','al okhdood':'Saudi Pro League','al riyadh':'Saudi Pro League','al hazem':'Saudi Pro League','al akhdoud':'Saudi Pro League'
+  // Serie A
+  'juventus':'Serie A','inter':'Serie A','milan':'Serie A','ac milan':'Serie A','napoli':'Serie A','roma':'Serie A','lazio':'Serie A','atalanta':'Serie A','fiorentina':'Serie A','torino':'Serie A','bologna':'Serie A','udinese':'Serie A','sassuolo':'Serie A','empoli':'Serie A','monza':'Serie A','lecce':'Serie A','verona':'Serie A','cagliari':'Serie A','genoa':'Serie A','parma':'Serie A','como':'Serie A','venezia':'Serie A',
+  // LaLiga
+  'real madrid':'LaLiga','barcelona':'LaLiga','atletico madrid':'LaLiga','atlético madrid':'LaLiga','sevilla':'LaLiga','real sociedad':'LaLiga','villarreal':'LaLiga','athletic bilbao':'LaLiga','real betis':'LaLiga','osassuna':'LaLiga','rayo vallecano':'LaLiga','mallorca':'LaLiga','celta vigo':'LaLiga','valencia':'LaLiga','getafe':'LaLiga','girona':'LaLiga','espanyol':'LaLiga','leganés':'LaLiga','las palmas':'LaLiga','alaves':'LaLiga','deportivo alavés':'LaLiga',
+  // Bundesliga
+  'bayern munich':'Bundesliga','bayern':'Bundesliga','borussia dortmund':'Bundesliga','dortmund':'Bundesliga','rb leipzig':'Bundesliga','leipzig':'Bundesliga','union berlin':'Bundesliga','freiburg':'Bundesliga','bayer leverkusen':'Bundesliga','leverkusen':'Bundesliga','wolfsburg':'Bundesliga','mainz 05':'Bundesliga','mainz':'Bundesliga','borussia mönchengladbach':'Bundesliga','gladbach':'Bundesliga','köln':'Bundesliga','cologne':'Bundesliga','eintracht frankfurt':'Bundesliga','frankfurt':'Bundesliga','stuttgart':'Bundesliga','bochum':'Bundesliga','augsburg':'Bundesliga','heidenheim':'Bundesliga',
+  // Ligue 1
+  'paris saint-germain':'Ligue 1','psg':'Ligue 1','monaco':'Ligue 1','marseille':'Ligue 1','olympique marseille':'Ligue 1','lyon':'Ligue 1','olympique lyonnais':'Ligue 1','lille':'Ligue 1','nice':'Ligue 1','rennes':'Ligue 1','lens':'Ligue 1','brest':'Ligue 1','montpellier':'Ligue 1','toulouse':'Ligue 1','nantes':'Ligue 1','strasbourg':'Ligue 1','reims':'Ligue 1','le havre':'Ligue 1','metz':'Ligue 1','angers':'Ligue 1',
+  // MLS
+  'lafc':'MLS','los angeles fc':'MLS','la galaxy':'MLS','inter miami':'MLS','atlanta united':'MLS','nashville sc':'MLS','philadelphia union':'MLS','fc cincinnati':'MLS','cincinnati':'MLS','columbus crew':'MLS','orlando city':'MLS','new york city fc':'MLS','nycfc':'MLS','ny red bulls':'MLS','red bulls':'MLS','seattle sounders':'MLS','portland timbers':'MLS','sporting kansas city':'MLS','sporting kc':'MLS','austin fc':'MLS','charlotte fc':'MLS','chicago fire':'MLS','houston dynamo':'MLS','real salt lake':'MLS','st. louis city sc':'MLS',
+  // Saudi Pro League
+  'al hilal':'Saudi Pro League','al nassr':'Saudi Pro League','al ittihad':'Saudi Pro League','al ahli':'Saudi Pro League','al shabab':'Saudi Pro League'
 };
 
-/* ---------- guess league ---------- */
-function getTeamLeague(team){
+/* ---------- Guess League ---------- */
+function getTeamLeague(team) {
   const t = team.toLowerCase();
-  for(const key in leagueMap){
-    if(t.includes(key)) return leagueMap[key];
+  for (const key in leagueMap) {
+    if (t.includes(key)) return leagueMap[key];
   }
   return null;
 }
 
-function guessLeague(t1, t2){
+function guessLeague(t1, t2) {
   const l1 = getTeamLeague(t1);
   const l2 = getTeamLeague(t2);
-  if(l1 && l2 && l1 === l2) return l1;
-  if(l1) return l1;
-  if(l2) return l2;
+  if (l1 && l2 && l1 === l2) return l1;
+  if (l1) return l1;
+  if (l2) return l2;
   return 'Football';
 }
 
-/* ---------- parse all lines ---------- */
-function parseAll(text, date, manualCat = ''){
-  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+/* ---------- Parse Matches ---------- */
+function parseAll(text, date, manualCat = '') {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   const result = [];
   const matchNames = [];
 
-  for(const line of lines){
-    const parts = line.split(',').map(p=>p.trim());
-    if(parts.length < 2) continue;
+  for (const line of lines) {
+    const parts = line.split(',').map(p => p.trim());
+    if (parts.length < 2) continue;
 
     const url = parts.pop();
     const rest = parts.join(',').trim();
-
     const matchAndLeague = rest.split(/\s*,\s*/);
-    let matchStr, explicitLeague = '';
 
-    if(matchAndLeague.length === 1){
+    let matchStr, explicitLeague = '';
+    if (matchAndLeague.length === 1) {
       matchStr = matchAndLeague[0];
-    }else{
-      matchStr = matchAndLeague.slice(0,-1).join(',');
-      explicitLeague = matchAndLeague[matchAndLeague.length-1];
+    } else {
+      matchStr = matchAndLeague.slice(0, -1).join(',');
+      explicitLeague = matchAndLeague[matchAndLeague.length - 1];
     }
 
-    const [team1,team2] = matchStr.split(' vs ').map(t=>t.trim());
-    if(!team1 || !team2 || !url) continue;
+    const [team1, team2] = matchStr.split(' vs ').map(t => t.trim());
+    if (!team1 || !team2 || !url) continue;
 
-    // Manual category overrides everything
     const finalLeague = manualCat || explicitLeague || guessLeague(team1, team2);
 
     result.push({
       id: rndId(),
-      team1, team2,
+      team1,
+      team2,
       category: finalLeague,
       date,
       link: `https://cricfoot.pages.dev/yt?url=${url}`
@@ -159,15 +198,15 @@ function parseAll(text, date, manualCat = ''){
   return { result, matchNames };
 }
 
-/* ---------- generate ---------- */
-document.getElementById('generateBtn').onclick = ()=>{
+/* ---------- Generate JSON ---------- */
+document.getElementById('generateBtn').onclick = () => {
   used.clear();
-  const txt = document.getElementById('matchInput').value;
-  const d = dateInput.value || today;
+  const txt = document.getElementById('matchInput').value.trim();
+  const d = dateInput.value; // Already today's date by default
   const manualCat = manualCategoryEl.value.trim();
 
-  if(!txt.trim()){
-    document.getElementById('jsonOutput').textContent = '';
+  if (!txt) {
+    jsonOutput.textContent = '';
     currentDataOutput.textContent = '';
     show('No input');
     return;
@@ -175,76 +214,56 @@ document.getElementById('generateBtn').onclick = ()=>{
 
   const { result, matchNames } = parseAll(txt, d, manualCat);
 
-  if(!result.length){
-    document.getElementById('jsonOutput').textContent = '';
+  if (!result.length) {
+    jsonOutput.textContent = '';
     currentDataOutput.textContent = '';
     show('No valid matches');
     return;
   }
 
-  // RAW ARRAY: each } followed by , and final comma at end
+  // Raw array format with comma after each object, including last + extra comma
   const jsonLines = result.map((obj, i) => {
     const str = JSON.stringify(obj, null, 2);
-    return i < result.length - 1 ? str + ',' : str;
+    return str + (i < result.length - 1 ? ',' : ',');
   });
-  const outputJson = jsonLines.join('\n') + ',\n';
 
-  document.getElementById('jsonOutput').textContent = outputJson;
+  const outputJson = jsonLines.join('\n') + '\n';
+
+  jsonOutput.textContent = outputJson;
   currentDataOutput.textContent = matchNames.join('\n');
 
-  // Save all
-  localStorage.setItem('lastJson', outputJson);
+  // Save everything to localStorage
   localStorage.setItem('lastInput', txt);
-  localStorage.setItem('lastDate', d);
+  localStorage.setItem('lastJson', outputJson);
+  localStorage.setItem('lastDate', d); // Still save in case user changed it
   localStorage.setItem('manualCategory', manualCat);
   localStorage.setItem('lastMatchList', matchNames.join('\n'));
 
-  show('Generated!');
+  show('Generated & Saved!');
 };
 
-/* ---------- copy JSON ---------- */
-document.getElementById('copyJsonBtn').onclick = ()=>{
-  const txt = document.getElementById('jsonOutput').textContent.trim();
-  if(!txt){show('Nothing to copy');return;}
-  navigator.clipboard.writeText(txt).then(()=>show('JSON Copied!')).catch(()=>show('Copy failed'));
+/* ---------- Copy Buttons ---------- */
+document.getElementById('copyJsonBtn').onclick = () => {
+  const txt = jsonOutput.textContent.trim();
+  if (!txt) { show('Nothing to copy'); return; }
+  navigator.clipboard.writeText(txt).then(() => show('JSON Copied!')).catch(() => show('Copy failed'));
 };
 
-/* ---------- copy match list ---------- */
-document.getElementById('copyMatchesBtn').onclick = ()=>{
+document.getElementById('copyMatchesBtn').onclick = () => {
   const txt = currentDataOutput.textContent.trim();
-  if(!txt){show('No matches');return;}
-  navigator.clipboard.writeText(txt).then(()=>show('Match List Copied!')).catch(()=>show('Copy failed'));
+  if (!txt) { show('No matches'); return; }
+  navigator.clipboard.writeText(txt).then(() => show('Match List Copied!')).catch(() => show('Copy failed'));
 };
 
-/* ---------- load saved data ---------- */
-window.addEventListener('load',()=>{
-  const saved = localStorage.getItem('lastInput');
-  const json = localStorage.getItem('lastJson');
-  const d = localStorage.getItem('lastDate');
-  const cat = localStorage.getItem('manualCategory');
-  const matchList = localStorage.getItem('lastMatchList');
-
-  if(saved) document.getElementById('matchInput').value = saved;
-  if(json) document.getElementById('jsonOutput').textContent = json;
-  if(d) dateInput.value = d;
-  if(cat) manualCategoryEl.value = cat;
-  if(matchList) currentDataOutput.textContent = matchList;
-
-  const th = localStorage.getItem('theme');
-  if(th==='dark'){
-    document.body.classList.add('dark-mode');
-    document.getElementById('themeToggle').textContent='Light Theme';
-  }
-});
-
-/* ---------- dark mode ---------- */
-document.getElementById('themeToggle').onclick = ()=>{
+/* ---------- Theme Toggle ---------- */
+document.getElementById('themeToggle').onclick = () => {
   document.body.classList.toggle('dark-mode');
-  const dark = document.body.classList.contains('dark-mode');
-  localStorage.setItem('theme', dark?'dark':'light');
-  document.getElementById('themeToggle').textContent = dark?'Light Theme':'Dark Theme';
+  const isDark = document.body.classList.contains('dark-mode');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeToggle').textContent = isDark ? 'Light Theme' : 'Dark Theme';
 };
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
