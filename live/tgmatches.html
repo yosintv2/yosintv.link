@@ -6,163 +6,129 @@
   <title>TG Match Generator Pro</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body {
-      background-color: #f0f2f5;
-      min-height: 100vh;
+    body { background-color: #f0f2f5; min-height: 100vh; padding: 1rem; font-family: system-ui, -apple-system, sans-serif; }
+    .container { max-width: 800px; background: #fff; border-radius: 1rem; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin: auto; position: relative; }
+    
+    /* Sticky Rectangular Buttons Sidebar */
+    .sticky-actions {
+      position: fixed;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 1000;
+    }
+
+    .sticky-btn {
+      width: 100px;
+      height: 50px;
+      border-radius: 8px; /* Rectangular with slight rounding */
+      border: none;
+      color: white;
+      font-weight: 800;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 1rem;
-      font-family: system-ui, -apple-system, sans-serif;
+      text-transform: uppercase;
     }
-    .container {
-      max-width: 800px;
-      background: #fff;
-      border-radius: 1rem;
-      padding: 2rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+
+    /* Pop-up Hover Effect */
+    .sticky-btn:hover {
+      transform: translateX(-5px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
     }
-    pre {
-      background: #f8f9fa;
-      padding: 1.5rem;
-      border: 1px solid #dee2e6;
-      border-radius: 0.75rem;
-      cursor: pointer;
-      font-size: 1.05rem;
-      line-height: 1.7;
-      font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      transition: background 0.2s;
+
+    .btn-gen { background: #28a745; border-left: 5px solid #1a6d2d; }
+    .btn-copy { background: #007bff; border-left: 5px solid #004a99; }
+
+    pre { background: #f8f9fa; padding: 1.5rem; border: 1px solid #dee2e6; border-radius: 0.75rem; font-size: 1.05rem; line-height: 1.7; font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif; white-space: pre-wrap; word-wrap: break-word; }
+    
+    .copy-toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      display: none;
+      z-index: 2000;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      animation: slideIn 0.3s ease-out;
     }
-    pre:hover { background: #e9ecef; }
-    .preview-box {
-      background: #e3f2fd;
-      padding: 1.5rem;
-      border-radius: 0.75rem;
-      border: 1px solid #bbdefb;
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: #1565c0;
-      cursor: pointer;
-      white-space: pre-wrap;
-      transition: background 0.2s;
+
+    @keyframes slideIn {
+      from { top: -50px; opacity: 0; }
+      to { top: 20px; opacity: 1; }
     }
-    .preview-box:hover { background: #bbdefb; }
-    .copy-message {
-      color: #28a745;
-      font-weight: bold;
-      font-size: 1.1rem;
-      margin-top: 1rem;
-      opacity: 0;
-      animation: fadeInOut 3s ease forwards;
-    }
-    @keyframes fadeInOut {
-      0% { opacity: 0; transform: translateY(10px); }
-      15% { opacity: 1; transform: translateY(0); }
-      85% { opacity: 1; }
-      100% { opacity: 0; }
-    }
+
     details { margin-bottom: 1.5rem; }
     summary { cursor: pointer; font-weight: bold; color: #0d6efd; }
   </style>
 </head>
 <body>
+
+  <div id="copyToast" class="copy-toast">✅ Copied For TG Updates </div>
+
+  <div class="sticky-actions">
+    <button onclick="generateTxt()" class="sticky-btn btn-gen">GENERATE</button>
+    <button onclick="copyToClipboard()" class="sticky-btn btn-copy">COPY ALL</button>
+  </div>
+
   <div class="container">
     <h1 class="text-center mb-5 display-6 fw-bold text-primary">⚡ TG Match Generator Pro</h1>
 
-    <!-- Sport Mode -->
     <div class="mb-4">
       <label class="form-label fw-bold">Sport Mode:</label>
       <div class="row g-3">
-        <div class="col-sm-4">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="sport" id="football" value="football">
-            <label class="form-check-label fw-medium" for="football">⚽ Football Only</label>
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="sport" id="cricket" value="cricket">
-            <label class="form-check-label fw-medium" for="cricket">🏏 Cricket Only</label>
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="sport" id="both" value="both">
-            <label class="form-check-label fw-medium" for="both">🔥 Both Sports</label>
-          </div>
-        </div>
+        <div class="col-sm-4"><div class="form-check"><input class="form-check-input" type="radio" name="sport" id="football" value="football"><label class="form-check-label fw-medium" for="football">⚽ Football</label></div></div>
+        <div class="col-sm-4"><div class="form-check"><input class="form-check-input" type="radio" name="sport" id="cricket" value="cricket"><label class="form-check-label fw-medium" for="cricket">🏏 Cricket</label></div></div>
+        <div class="col-sm-4"><div class="form-check"><input class="form-check-input" type="radio" name="sport" id="both" value="both"><label class="form-check-label fw-medium" for="both">🔥 Both</label></div></div>
       </div>
     </div>
 
-    <!-- Custom Date -->
     <div class="mb-4">
       <label for="customDate" class="form-label fw-medium">Custom Date (optional):</label>
       <input type="text" id="customDate" class="form-control" placeholder="e.g., 17 December 2025">
-      <small class="text-muted">Leave blank → auto uses today's date</small>
     </div>
 
-    <!-- Matchups Input -->
     <div class="mb-4">
-      <label for="matchups" class="form-label fw-bold">Matchups (3 lines per match):</label>
-      <textarea id="matchups" rows="12" class="form-control" placeholder=" "></textarea>
-      <small class="text-muted">Add | Competition Name after teams for 🏆 line (optional)</small>
+      <label for="matchups" class="form-label fw-bold">Matchups:</label>
+      <textarea id="matchups" rows="12" class="form-control" placeholder="Paste data here..."></textarea>
+      <small class="text-muted">Use <b>|</b> for competition names (e.g. Team A vs Team B | EPL).</small>
     </div>
 
-    <!-- Custom Links -->
-    <details class="mb-4 bg-light p-3 rounded">
-      <summary class="fw-bold text-primary">⚙️ Customize Links (saved automatically)</summary>
+    <details class="mb-5 bg-light p-3 rounded">
+      <summary class="fw-bold text-primary">⚙️ Customize Links</summary>
       <div class="mt-3 row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Football Streaming Links:</label>
-          <textarea id="fbLinks" rows="4" class="form-control">https://www.yosin-tv.net/
-https://www.yosintv.link/football.html</textarea>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Cricket Streaming Links:</label>
-          <textarea id="crLinks" rows="4" class="form-control">https://www.yosin-tv.net/
-https://www.yosintv.link/</textarea>
-        </div>
-        <div class="col-12">
-          <label class="form-label">Highlights Link:</label>
-          <input type="text" id="hlLink" class="form-control" value="https://www.cricfoot.net/">
-        </div>
+        <div class="col-md-6"><label class="form-label">Football Links:</label><textarea id="fbLinks" rows="3" class="form-control">https://www.yosin-tv.net/&#10;https://www.yosintv.link/football.html</textarea></div>
+        <div class="col-md-6"><label class="form-label">Cricket Links:</label><textarea id="crLinks" rows="3" class="form-control">https://www.yosin-tv.net/&#10;https://www.yosintv.link/</textarea></div>
+        <div class="col-12"><label class="form-label">Highlights:</label><input type="text" id="hlLink" class="form-control" value="https://www.cricfoot.net/"></div>
       </div>
     </details>
 
-    <button onclick="generateTxt()" class="btn btn-success btn-lg w-100 shadow-sm mb-5">🚀 Generate Match Text</button>
-
-    <!-- Generated Telegram Text -->
     <div id="output">
-      <h3 class="fw-bold text-dark mb-4">Generated Text (Double-click to copy):</h3>
+      <h3 class="fw-bold text-dark mb-4">Generated Text:</h3>
       <div id="outputText"></div>
-    </div>
-
-    <!-- Today's Match Preview -->
-    <div id="previewSection" class="mt-5">
-      <h3 class="fw-bold text-dark mb-4">Today's Match Preview (Click to copy):</h3>
-      <div id="previewText" class="preview-box"></div>
     </div>
   </div>
 
   <script>
-    // Load saved settings on page load
+    let currentOutput = "";
+
     window.onload = () => {
-      const savedSport = localStorage.getItem('sportMode');
-      if (savedSport) {
-        document.getElementById(savedSport).checked = true;
-      } else {
-        document.getElementById('football').checked = true;
-      }
-
-      const savedDate = localStorage.getItem('customDate');
-      if (savedDate) document.getElementById('customDate').value = savedDate;
-
-      const savedMatchups = localStorage.getItem('matchups');
-      if (savedMatchups) document.getElementById('matchups').value = savedMatchups;
-
-      ['fbLinks', 'crLinks', 'hlLink'].forEach(id => {
+      const savedSport = localStorage.getItem('sportMode') || 'football';
+      document.getElementById(savedSport).checked = true;
+      ['customDate', 'matchups', 'fbLinks', 'crLinks', 'hlLink'].forEach(id => {
         const saved = localStorage.getItem(id);
         if (saved) document.getElementById(id).value = saved;
       });
@@ -172,125 +138,79 @@ https://www.yosintv.link/</textarea>
       const mode = document.querySelector('input[name="sport"]:checked').value;
       const customDate = document.getElementById('customDate').value.trim();
       const input = document.getElementById('matchups').value.trim();
-      const outputText = document.getElementById('outputText');
-      const previewText = document.getElementById('previewText');
-      outputText.innerHTML = '';
-      previewText.innerHTML = '';
+      const outputArea = document.getElementById('outputText');
+      outputArea.innerHTML = '';
 
-      // Save current settings
       localStorage.setItem('sportMode', mode);
       localStorage.setItem('customDate', customDate);
       localStorage.setItem('matchups', input);
-      ['fbLinks', 'crLinks', 'hlLink'].forEach(id => {
-        localStorage.setItem(id, document.getElementById(id).value.trim());
+      ['fbLinks', 'crLinks', 'hlLink'].forEach(id => localStorage.setItem(id, document.getElementById(id).value.trim()));
+
+      if (!input) return;
+
+      const dateRegex = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}$|^\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/i;
+      const slugRegex = /^[a-z0-9-_]+$/;
+      const statusRegex = /^(LIVE|FT|HT|CANCL|POSTP|TBA|[\d]+')$/i;
+
+      const rawLines = input.split('\n').map(l => l.trim()).filter(l => l);
+      const filteredLines = rawLines.filter(line => {
+        return !dateRegex.test(line) && !statusRegex.test(line) && !(slugRegex.test(line) && line === line.toLowerCase());
       });
 
-      if (!input) {
-        outputText.innerHTML = '<p class="text-danger fw-bold">Please enter at least one matchup!</p>';
-        previewText.innerHTML = '<p class="text-muted">No matches entered yet.</p>';
-        return;
-      }
-
-      const lines = input.split('\n').map(l => l.trim()).filter(l => l);
       const unique = new Set();
-      const previewMatches = [];
       let output = '';
+      const matchRegex = /^(.*?)(?:\s+vs\s+|\s*🆚\s*)(.*?)(?:\s*\|\s*(.+))?$/i;
 
-      const matchRegex = /^(.*?)\s+vs\s+(.*?)(?:\s*\|\s*(.+))?$/i;
-
-      // Auto date fallback
-      const today = new Date();
-      const autoDate = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-      const displayDate = customDate || autoDate;
-
-      // Header
+      const displayDate = customDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
       const sportName = mode === 'cricket' ? 'Cricket' : mode === 'football' ? 'Football' : 'Football & Cricket';
+      
       output += `⚠️ Today's ${sportName} Matches | L!ve ‼️\n`;
       output += `📅 Date: ${displayDate}\n\n`;
 
-      // Load links
-      const fbLinks = document.getElementById('fbLinks').value.trim().split('\n').map(l => l.trim()).filter(l => l);
-      const crLinks = document.getElementById('crLinks').value.trim().split('\n').map(l => l.trim()).filter(l => l);
-
+      const fbLinks = document.getElementById('fbLinks').value.split('\n').filter(l => l.trim());
+      const crLinks = document.getElementById('crLinks').value.split('\n').filter(l => l.trim());
+      let activeLinks = mode === 'football' ? fbLinks : mode === 'cricket' ? crLinks : [...new Set([...fbLinks, ...crLinks])];
       const matchEmoji = mode === 'cricket' ? '🏏' : '⚽';
 
-      let activeLinks = [];
-      if (mode === 'football') activeLinks = fbLinks;
-      else if (mode === 'cricket') activeLinks = crLinks;
-      else activeLinks = [...new Set([...fbLinks, ...crLinks])];
+      filteredLines.forEach(line => {
+        const match = line.match(matchRegex);
+        if (match) {
+          let team1 = match[1].trim();
+          let team2 = match[2].trim();
+          let competition = match[3] ? match[3].trim() : null;
 
-      // Process every 3 lines
-      for (let i = 0; i < lines.length; i += 3) {
-        if (i + 1 >= lines.length) break;
-
-        const matchupLine = lines[i + 1];
-        const match = matchupLine.match(matchRegex);
-        if (!match) continue;
-
-        let team1 = match[1].trim();
-        let team2 = match[2].trim();
-        const competition = match[3] ? match[3].trim() : null;
-
-        const key = `${team1} vs ${team2}`;
-        if (unique.has(key)) continue;
-        unique.add(key);
-
-        // Add to preview with trailing comma
-        previewMatches.push(`${team1} vs ${team2},`);
-
-        // Add competition trophy if exists
-        if (competition) {
-          output += `🏆 ${competition}\n`;
+          const key = `${team1} vs ${team2}`;
+          if (!unique.has(key)) {
+            unique.add(key);
+            if (competition) output += `🏆 ${competition}\n`;
+            output += `${matchEmoji} ${team1} 🆚 ${team2}\n`;
+            activeLinks.forEach(link => { output += `👉 ${link.trim()}\n`; });
+            output += '\n';
+          }
         }
+      });
 
-        output += `${matchEmoji} ${team1} 🆚 ${team2}\n`;
+      output += `📱 Watch Highlights ⬇️\n👉 ${document.getElementById('hlLink').value}`;
+      currentOutput = output.trim();
 
-        activeLinks.forEach(link => {
-          output += `👉 ${link}\n`;
-        });
-        output += '\n';
-      }
-
-      // Final Telegram output
-      if (unique.size === 0) {
-        output = '<p class="text-danger fw-bold">No valid matchups detected.</p>';
-      } else {
-        const hl = document.getElementById('hlLink').value.trim() || 'https://www.cricfoot.net/';
-        const hlText = mode === 'both' ? 'Football/Cricket' : sportName;
-        output += `📱 Watch ${hlText} Highlights ⬇️\n👉 ${hl}`;
-      }
-
-      // Display Telegram text
       const pre = document.createElement('pre');
-      pre.textContent = output.trim();
-      pre.ondblclick = () => {
-        navigator.clipboard.writeText(output.trim()).then(() => {
-          const msg = document.createElement('div');
-          msg.className = 'copy-message';
-          msg.textContent = '✅ Copied to clipboard!';
-          outputText.appendChild(msg);
-          setTimeout(() => msg.remove(), 3000);
-        });
-      };
-      outputText.appendChild(pre);
+      pre.textContent = currentOutput;
+      outputArea.appendChild(pre);
+      
+      // Auto-scroll to output
+      window.scrollTo({ top: document.getElementById('output').offsetTop - 20, behavior: 'smooth' });
+    }
 
-      // Display Match Preview (one per line with comma)
-      if (previewMatches.length > 0) {
-        const previewContent = previewMatches.join('\n');
-        previewText.textContent = previewContent;
-
-        previewText.onclick = () => {
-          navigator.clipboard.writeText(previewContent).then(() => {
-            const msg = document.createElement('div');
-            msg.className = 'copy-message';
-            msg.textContent = '✅ Preview copied!';
-            previewText.appendChild(msg);
-            setTimeout(() => msg.remove(), 3000);
-          });
-        };
-      } else {
-        previewText.innerHTML = '<p class="text-muted">No matches to preview.</p>';
+    function copyToClipboard() {
+      if (!currentOutput) {
+        generateTxt(); // Try to generate if empty
+        if (!currentOutput) return;
       }
+      navigator.clipboard.writeText(currentOutput).then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+      });
     }
   </script>
 </body>
