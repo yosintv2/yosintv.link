@@ -9,7 +9,6 @@
 <body class="bg-gray-100 font-sans min-h-screen">
   <div class="container mx-auto p-6">
     <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Today's Matches</h1>
-    
     <!-- Search Bar and Toggle -->
     <div class="mb-6 flex flex-col sm:flex-row gap-4">
       <input type="text" id="search" placeholder="Search matches..." class="w-full sm:flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
@@ -18,20 +17,16 @@
         <span class="text-sm text-gray-700">Show completed matches</span>
       </label>
     </div>
-    
     <!-- Status Messages -->
     <div id="loading" class="text-center text-gray-500">Loading matches...</div>
     <div id="error" class="text-center text-red-500 hidden"></div>
-    
     <!-- Matches -->
     <div id="matches" class="space-y-4 hidden"></div>
   </div>
-
   <!-- Toast Notification -->
   <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow hidden">
     Copied!
   </div>
-
   <script>
     let allMatches = [];
     let countdownIntervals = {};
@@ -76,13 +71,13 @@
     function renderMatches(matches) {
       const matchesContainer = document.getElementById('matches');
       matchesContainer.innerHTML = '';
+      // Clear previous countdowns
       Object.values(countdownIntervals).forEach(clearInterval);
       countdownIntervals = {};
 
       matches.forEach(match => {
         const card = document.createElement('div');
         card.className = 'bg-white p-4 rounded-lg shadow';
-
         // Title row
         const titleRow = document.createElement('div');
         titleRow.className = 'flex items-center justify-between mb-1';
@@ -95,105 +90,61 @@
         copyNameBtn.onclick = () => copyLink(match.title);
         titleRow.appendChild(title);
         titleRow.appendChild(copyNameBtn);
-
         // Countdown
         const countdown = document.createElement('div');
         countdown.className = 'text-sm text-gray-600 mb-2';
         countdown.textContent = 'Starts in: calculating...';
         startCountdown(match.date, countdown);
-
-        // Buttons container
+        // Buttons row
         const btnsDiv = document.createElement('div');
         btnsDiv.className = 'flex flex-wrap gap-2';
-
+        // Alpha links with JSON display and Copy JSON button
         const alphaSrc = match.sources?.find(s => s.source.toLowerCase() === 'alpha');
-        const adminSrc = match.sources?.find(s => s.source.toLowerCase() === 'admin');
-
-        // ---------- SINGLE JSON BLOCK: Alpha (preferred) ----------
         if (alphaSrc) {
-          const jsonDiv = document.createElement('div');
-          jsonDiv.className = 'mb-2 w-full';
-
-          const jsonTitle = document.createElement('div');
-          jsonTitle.className = 'text-sm font-semibold text-gray-800';
-          jsonTitle.textContent = `${match.title}`;
-          jsonDiv.appendChild(jsonTitle);
-
+          const alphaDiv = document.createElement('div');
+          alphaDiv.className = 'mb-2 w-full';
+          const alphaTitle = document.createElement('div');
+          alphaTitle.className = 'text-sm font-semibold text-gray-800';
+          alphaTitle.textContent = `📱💻 ${match.title}`;
+          alphaDiv.appendChild(alphaTitle);
           const jsonData = {
-            name: `${match.title}`,
+            name: `📱💻 ${match.title}`,
             links: [
-              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/alpha2?mid=${alphaSrc.id}`,
-              `http://yosintv-api.pages.dev/api/ads`,
+              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7c?m=______ `,
+              `https://yosintv-api.pages.dev/api/ads`,
               `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/alpha?mid=${alphaSrc.id}`,
               "________________blv_links___________"
             ]
           };
-
           const jsonDisplay = document.createElement('pre');
           jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
           jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
-          jsonDiv.appendChild(jsonDisplay);
-
+          alphaDiv.appendChild(jsonDisplay);
           const jsonBtn = document.createElement('button');
           jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
           jsonBtn.textContent = 'Copy JSON';
           jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData, null, 2));
-          jsonDiv.appendChild(jsonBtn);
-
-          btnsDiv.appendChild(jsonDiv);
-
-          // Alpha direct button
+          alphaDiv.appendChild(jsonBtn);
+          btnsDiv.appendChild(alphaDiv);
+        }
+        // Alpha button
+        if (alphaSrc) {
           const alphaBtn = document.createElement('button');
           alphaBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm';
           alphaBtn.textContent = 'Alpha Link';
           alphaBtn.onclick = () => copyLink(`https://ytvlive.pages.dev/alpha?mid=${alphaSrc.id}`);
           btnsDiv.appendChild(alphaBtn);
         }
-
-        // ---------- SINGLE JSON BLOCK: Admin (fallback) ----------
-        else if (adminSrc) {
-          const jsonDiv = document.createElement('div');
-          jsonDiv.className = 'mb-2 w-full';
-
-          const jsonTitle = document.createElement('div');
-          jsonTitle.className = 'text-sm font-semibold text-gray-800';
-          jsonTitle.textContent = `${match.title}`;
-          jsonDiv.appendChild(jsonTitle);
-
-          const jsonData = {
-            name: ` ${match.title}`,
-            links: [
-              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/admin?mid=${adminSrc.id} `,
-              `http://yosintv-api.pages.dev/api/ads`,
-              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/admin?mid=${adminSrc.id} `,
-              "________________blv_links___________"
-            ]
-          };
-
-          const jsonDisplay = document.createElement('pre');
-          jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
-          jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
-          jsonDiv.appendChild(jsonDisplay);
-
-          const jsonBtn = document.createElement('button');
-          jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
-          jsonBtn.textContent = 'Copy JSON';
-          jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData, null, 2));
-          jsonDiv.appendChild(jsonBtn);
-
-          btnsDiv.appendChild(jsonDiv);
-        }
-
-        // ---------- ADMIN direct button (always if present) ----------
+        // Admin button
+        const adminSrc = match.sources?.find(s => s.source.toLowerCase() === 'admin');
         if (adminSrc) {
-          const adminBtn = document.createElement('button');
-          adminBtn.className = 'bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm';
-          adminBtn.textContent = 'Admin Link';
-          adminBtn.onclick = () => copyLink(`https://ytvlive.pages.dev/admin?mid=${adminSrc.id}`);
-          btnsDiv.appendChild(adminBtn);
+          const btn = document.createElement('button');
+          btn.className = 'bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm';
+          btn.textContent = 'Admin Link';
+          btn.onclick = () => copyLink(`https://ytvlive.pages.dev/admin?mid=${adminSrc.id}`);
+          btnsDiv.appendChild(btn);
         }
-
-        // ---------- POSTER ----------
+        // Poster button
         if (match.poster) {
           const posterBtn = document.createElement('button');
           posterBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm';
@@ -201,8 +152,7 @@
           posterBtn.onclick = () => copyLink('https://streamed.pk' + match.poster);
           btnsDiv.appendChild(posterBtn);
         }
-
-        // ---------- OTHER SOURCES ----------
+        // Remaining sources
         match.sources?.forEach(src => {
           const lower = src.source.toLowerCase();
           if (!['alpha', 'admin'].includes(lower)) {
@@ -213,7 +163,6 @@
             btnsDiv.appendChild(btn);
           }
         });
-
         card.appendChild(titleRow);
         card.appendChild(countdown);
         card.appendChild(btnsDiv);
