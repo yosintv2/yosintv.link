@@ -298,9 +298,9 @@
         data.push(`    "https://yosintv-api.pages.dev/api/ads", `);
       }
       if (blvs.length > 1) {
+        data.push(`    "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/ak?m=${blvs[0]}", `);
         data.push(`    "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/ak?m=${blvs[1]}", `);
-        data.push(`    "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/ak?m=${blvs[1]}", `);
-        data.push(`    "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/ak?m=${blvs[1]}" `);
+        data.push(`    "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/ak?m=${blvs[2]}" `);
         data.push(''); // Adds a one-line space after the second link
       }
       return data.join('\n');
