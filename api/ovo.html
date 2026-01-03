@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ovogoaal Link Extractor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+  <div class="max-w-3xl mx-auto p-4 sm:p-6">
+    
+    <header class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-gray-800">Match Link Configurator</h1>
+        <p class="text-gray-500 text-sm mt-2">Football & Cricket Link Extraction</p>
+    </header>
+    
+    <div class="mb-8 flex flex-col sm:flex-row gap-4">
+      <input type="text" id="search" placeholder="Search matches..." class="w-full sm:flex-1 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+      <div class="flex items-center justify-center bg-white px-4 py-2 rounded-lg border shadow-sm">
+        <span class="text-xs font-mono text-gray-500" id="lastUpdated">Updating...</span>
+      </div>
+    </div>
+        
+    <div id="loading" class="text-center py-10 text-gray-500 animate-pulse">Fetching data...</div>
+    <div id="error" class="text-center text-red-500 hidden py-10 font-semibold"></div>
+        
+    <div id="matches" class="space-y-6 hidden"></div>
+  </div>
+
+  <div id="toast" class="fixed bottom-5 right-5 bg-green-600 text-white px-6 py-3 rounded-xl shadow-2xl hidden z-50 font-bold">
+    Copied to Clipboard!
+  </div>
+
+  <script>
+    let allMatches = [];
+    const API_URL = 'https://yosintv.github.io/mayiru/ovogoaal_events.json';
+    const PREFIX = 'https://yosintv2.github.io/ads/foot.html?url=https://yosintv.github.io/player/1m.html?url=';
+    const ADS_LINK = 'http://yosintv-api.pages.dev/api/ads';
+
+    async function fetchMatches() {
+      const loadingDiv = document.getElementById('loading');
+      const errorDiv = document.getElementById('error');
+      const matchesContainer = document.getElementById('matches');
+      
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        const data = await res.json();
+        
+        let apiRoot = Array.isArray(data) ? data[0] : data;
+        document.getElementById('lastUpdated').textContent = `Sync: ${new Date(apiRoot.last_updated).toLocaleTimeString()}`;
+
+        allMatches = apiRoot.matches.filter(match => {
+            const title = (match.title || "").toLowerCase();
+            const cat = (match.category || "").toLowerCase();
+            const keywords = ['vs', 'premier', 'laliga', 'seriea', 'portugal', 'cup', 'fc', 'united', 'cricket'];
+            const exclusions = ['nba', 'tennis']; 
+            return keywords.some(k => title.includes(k) || cat.includes(k)) && !exclusions.some(e => title.includes(e));
+        });
+
+        renderMatches(allMatches);
+        loadingDiv.classList.add('hidden');
+        matchesContainer.classList.remove('hidden');
+      } catch (err) {
+        errorDiv.textContent = `Error: ${err.message}`;
+        errorDiv.classList.remove('hidden');
+        loadingDiv.classList.add('hidden');
+      }
+    }
+
+    function renderMatches(matches) {
+      const container = document.getElementById('matches');
+      container.innerHTML = '';
+
+      matches.forEach(match => {
+        const card = document.createElement('div');
+        card.className = 'bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col';
+
+        const title = document.createElement('h2');
+        title.className = 'text-xl font-bold text-gray-800 mb-1';
+        title.textContent = match.title;
+
+        const infoRow = document.createElement('div');
+        infoRow.className = 'text-xs font-bold text-blue-500 mb-4 uppercase';
+        infoRow.textContent = `${match.category} | ${match.time}`;
+
+        // Uniform 4-space indentation for both lines
+        const firstStream = (match.stream_urls && match.stream_urls.length > 0) ? match.stream_urls[0] : null;
+        
+        let formattedOutput = "";
+        if (firstStream) {
+            formattedOutput = `    "${PREFIX}${firstStream}",\n    "${ADS_LINK}",`;
+        } else {
+            formattedOutput = `    "${ADS_LINK}",`;
+        }
+
+        const displayArea = document.createElement('pre');
+        displayArea.className = 'bg-gray-900 text-green-400 p-4 rounded-xl text-xs overflow-auto mb-4 font-mono leading-relaxed border border-gray-700 whitespace-pre';
+        displayArea.textContent = formattedOutput;
+
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'flex gap-3';
+
+        const copyLinksBtn = createBtn('Copy Links', 'bg-blue-600 hover:bg-blue-700 text-white flex-1', () => {
+          copyToClipboard(formattedOutput);
+        });
+
+        const copyTitleBtn = createBtn('Copy Title', 'bg-gray-100 hover:bg-gray-200 text-gray-700 px-6', () => {
+          copyToClipboard(match.title);
+        });
+
+        btnGroup.appendChild(copyLinksBtn);
+        btnGroup.appendChild(copyTitleBtn);
+
+        card.appendChild(title);
+        card.appendChild(infoRow);
+        card.appendChild(displayArea);
+        card.appendChild(btnGroup);
+        container.appendChild(card);
+      });
+    }
+
+    function createBtn(text, classes, onClick) {
+      const btn = document.createElement('button');
+      btn.className = `py-2 rounded-lg font-bold text-sm transition-all active:scale-95 ${classes}`;
+      btn.textContent = text;
+      btn.onclick = onClick;
+      return btn;
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('toast');
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 1500);
+      });
+    }
+
+    document.getElementById('search').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = allMatches.filter(m => m.title.toLowerCase().includes(query));
+      renderMatches(filtered);
+    });
+
+    window.onload = fetchMatches;
+  </script>
+</body>
+</html>
