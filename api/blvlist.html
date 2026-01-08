@@ -3,414 +3,371 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>blv Match List</title>
+  <title>BLV Stream Link Extractor</title>
   <style>
-    * { box-sizing: border-box; }
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg-body: #f3f4f6;
+      --bg-card: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --success: #10b981;
+    }
+
+    * { box-sizing: border-box; transition: all 0.2s ease; }
+    
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f9fafb;
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      background: var(--bg-body);
       margin: 0;
-      padding: 20px;
-      color: #333;
+      padding: 40px 20px;
+      color: var(--text-main);
       display: flex;
       justify-content: center;
     }
+
     main {
-      max-width: 720px;
+      max-width: 850px;
       width: 100%;
-      background: #fff;
-      padding: 25px 30px;      border-radius: 10px;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
     }
+
+    .header-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
     h1 {
-      margin-top: 0;
-      font-weight: 700;
-      font-size: 1.9rem;
-      color: #222;
-      user-select: none;
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 8px;
+      color: #111827;
     }
+
     #updateTime {
-      margin-top: 5px;
-      margin-bottom: 20px;
-      color: #555;
-      font-size: 1rem;
-      line-height: 1.4;
-      user-select: none;
+      color: var(--text-muted);
+      font-size: 0.9rem;
     }
-    p {
-      margin-top: 5px;
-      margin-bottom: 20px;
-      color: #555;
-      font-size: 1rem;
-      line-height: 1.4;
-      user-select: none;
+
+    .card {
+      background: var(--bg-card);
+      padding: 30px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
     }
+
     textarea {
       width: 100%;
-      min-height: 160px;
-      padding: 14px 16px;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 15px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
+      min-height: 140px;
+      padding: 16px;
+      font-family: 'Fira Code', 'Courier New', monospace;
+      font-size: 14px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
       resize: vertical;
-      transition: border-color 0.3s ease;
-      outline-offset: 2px;
+      background: #f9fafb;
     }
+
     textarea:focus {
-      border-color: #4a90e2;
+      border-color: var(--primary);
       outline: none;
-      box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
     }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      align-items: center;
+    }
+
     button.extract-btn {
-      margin-top: 15px;
-      padding: 12px 25px;
-      font-size: 16px;
+      padding: 12px 28px;
+      font-size: 15px;
       font-weight: 600;
-      background: #4a90e2;
+      background: var(--primary);
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       color: white;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(74,144,226,0.5);
-      transition: background-color 0.25s ease, box-shadow 0.25s ease;
-      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+
     button.extract-btn:hover {
-      background: #357ABD;
-      box-shadow: 0 6px 18px rgba(53,122,189,0.7);
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
     }
+
     #searchBar {
-      width: 100%;
+      flex-grow: 1;
       padding: 12px 16px;
-      font-size: 16px;
-      margin: 28px 0 12px 0;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      transition: border-color 0.3s ease;
-      outline-offset: 2px;
+      font-size: 15px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
       display: none;
     }
+
     #searchBar:focus {
-      border-color: #4a90e2;
+      border-color: var(--primary);
       outline: none;
-      box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
     }
-    #results {
-      font-size: 1rem;
-      color: #222;
+
+    .match-card {
+      background: white;
+      margin-top: 25px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
     }
-    h2 {
-      margin-top: 36px;
-      margin-bottom: 12px;
-      font-weight: 700;
-      font-size: 1.3rem;
-      border-bottom: 2px solid #e1e5eb;
-      padding-bottom: 6px;
-      user-select: text;
-    }
-    .blv-container {
-      margin-bottom: 20px;
-    }
-    .blv-container pre {
-      background: #f5f5f5;
-      padding: 10px;
-      border-radius: 6px;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 14px;
-      overflow-x: auto;
-      max-height: 200px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-    .blv-container button {
-      margin: 6px 8px 6px 0;
-      padding: 8px 16px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: 1.5px solid #4a90e2;
-      background-color: #f0f5ff;
-      color: #1a3c7d;
-      cursor: pointer;
-      box-shadow: 0 1px 3px rgba(74,144,226,0.3);
-      transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
-      user-select: text;
-      position: relative;
-      display: inline-flex;
+
+    .match-header {
+      background: #f8fafc;
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      padding-right: 30px;
     }
-    .blv-container button:hover {
-      background-color: #d3e0ff;
-      box-shadow: 0 4px 10px rgba(74,144,226,0.5);
-      color: #154a96;
+
+    .match-title {
+      font-weight: 700;
+      color: #1e293b;
+      font-size: 1.1rem;
+      text-transform: capitalize;
     }
-    .copy-tick {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 18px;
-      height: 18px;
-      fill: #2e7d32;
-      user-select: none;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+
+    .badge {
+      background: #e0e7ff;
+      color: #4338ca;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
     }
-    .copy-tick.show {
-      opacity: 1;
+
+    .match-body {
+      padding: 20px;
     }
-    .blv-ids {
-      margin-top: 10px;
+
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin-bottom: 15px;
+      position: relative;
     }
-    @media (max-width: 480px) {
-      main {
-        padding: 20px 15px;
-      }
-      .blv-container button {
-        margin: 5px 5px 5px 0;
-        padding: 7px 12px;
-        font-size: 13px;
-        padding-right: 28px;
-      }
-      .copy-tick {
-        width: 16px;
-        height: 16px;
-        top: 3px;
-        right: 3px;
-      }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-copy-main {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-copy-main:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .blv-id-chip {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .blv-id-chip:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .success-text {
+      color: var(--success);
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .actions { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
 <body>
-  <main>
-    <h1>blv Match List</h1>
+
+<main>
+  <div class="header-section">
+    <h1>Broadcaster Extractor</h1>
     <div id="updateTime"></div>
-    <textarea id="linksInput" placeholder="Paste your links here..."></textarea>
-    <button class="extract-btn" onclick="extractBroadcasts()">Extract Broadcasts</button>
-    <input type="text" id="searchBar" placeholder="Search matches or broadcast numbers..." oninput="filterResults()" />
-    <div id="results"></div>
-  </main>
+  </div>
 
-  <script>
-    const STORAGE_KEY = 'broadcastExtractorData';
-    const STORAGE_TIME_KEY = 'broadcastExtractorTimestamp';
-    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-    let currentTickButton = null;
+  <div class="card">
+    <textarea id="linksInput" placeholder="Paste streaming links here (one per line)..."></textarea>
+    <div class="actions">
+      <button class="extract-btn" onclick="extractBroadcasts()">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Process Links
+      </button>
+      <input type="text" id="searchBar" placeholder="Quick search matches..." oninput="filterResults()" />
+    </div>
+  </div>
 
-    function formatTimeAgo(timestamp) {
-      const now = Date.now();
-      const diffMs = now - timestamp;
-      const seconds = Math.floor(diffMs / 1000);
-      const minutes = Math.floor(seconds / 60);
-      const hours = Math.floor(minutes / 60);
-      const days = Math.floor(hours / 24);
-      if (seconds < 60) return `Updated just now`;
-      if (minutes < 60) return `Updated ${minutes} minute${minutes === 1 ? '' : 's'} ago`;
-      if (hours < 24) return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago`;
-      if (days < 7) return `Updated ${days} day${days === 1 ? '' : 's'} ago`;
-      return `Updated on ${new Date(timestamp).toLocaleString()}`;
+  <div id="results"></div>
+</main>
+
+<script>
+  const STORAGE_KEY = 'broadcastExtractorData';
+  const STORAGE_TIME_KEY = 'broadcastExtractorTimestamp';
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+  function formatTimeAgo(timestamp) {
+    const diff = Math.floor((Date.now() - timestamp) / 1000);
+    if (diff < 60) return 'Updated just now';
+    if (diff < 3600) return `Updated ${Math.floor(diff/60)}m ago`;
+    return `Updated ${new Date(timestamp).toLocaleTimeString()}`;
+  }
+
+  function updateTimeDisplay() {
+    const savedTime = localStorage.getItem(STORAGE_TIME_KEY);
+    const div = document.getElementById('updateTime');
+    if (savedTime) div.textContent = formatTimeAgo(parseInt(savedTime));
+  }
+
+  window.onload = function() {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    updateTimeDisplay();
+    if (savedData) {
+      displayResults(JSON.parse(savedData));
+      document.getElementById('searchBar').style.display = 'block';
     }
+    setInterval(updateTimeDisplay, 30000);
+  };
 
-    function updateTimeDisplay() {
-      const savedTime = localStorage.getItem(STORAGE_TIME_KEY);
-      const updateTimeDiv = document.getElementById('updateTime');
-      if (savedTime) {
-        updateTimeDiv.textContent = formatTimeAgo(parseInt(savedTime));
-      } else {
-        updateTimeDiv.textContent = '';
-      }
-    }
+  function extractBroadcasts() {
+    const input = document.getElementById('linksInput').value.trim();
+    if (!input) return;
 
-    window.onload = function() {
-      clearExpiredData();
-      const savedData = localStorage.getItem(STORAGE_KEY);
-      updateTimeDisplay();
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        if (parsed && typeof parsed === 'object') {
-          displayResults(parsed);
-          document.getElementById('searchBar').style.display = 'block';
-        }
-      }
-      setInterval(updateTimeDisplay, 60 * 1000);
-    };
+    const lines = input.split('\n').map(l => l.trim()).filter(l => l);
+    const urlPattern = /\/truc-tiep\/([^\/\?]+).*blv=(\d+)/i;
+    const matches = {};
 
-    function clearExpiredData() {
-      const savedTime = localStorage.getItem(STORAGE_TIME_KEY);
-      if (savedTime && Date.now() - parseInt(savedTime) > ONE_DAY_MS) {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STORAGE_TIME_KEY);
+    lines.forEach(link => {
+      const parts = link.match(urlPattern);
+      if (parts) {
+        const name = parts[1].replace(/-/g, ' ');
+        if (!matches[name]) matches[name] = new Set();
+        matches[name].add(parts[2]);
       }
-    }
+    });
 
-    function extractBroadcasts() {
-      const input = document.getElementById('linksInput').value.trim();
-      const resultsDiv = document.getElementById('results');
-      const searchBar = document.getElementById('searchBar');
-      resultsDiv.innerHTML = '';
-      if (!input) {
-        alert('Please paste some links first.');
-        return;
-      }
-      const lines = input.split('\n').map(line => line.trim()).filter(line => line);
-      const urlPattern = /\/truc-tiep\/([^\/\?]+).*blv=(\d+)/i;
-      const matches = {};
-      lines.forEach(link => {
-        const match = link.match(urlPattern);
-        if (match) {
-          const matchName = match[1];
-          const blv = match[2];
-          if (!matches[matchName]) {
-            matches[matchName] = new Set();
-          }
-          matches[matchName].add(blv);
-        }
-      });
-      if (Object.keys(matches).length === 0) {
-        alert('No valid links with broadcast numbers found.');
-        return;
-      }
-      const matchesForStorage = {};
-      for (const key in matches) {
-        matchesForStorage[key] = Array.from(matches[key]);
-      }
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(matchesForStorage));
-        localStorage.setItem(STORAGE_TIME_KEY, Date.now().toString());
-      } catch (e) {
-        console.warn(`Storage quota exceeded: ${e.message}. Proceeding without cache.`);
-      }
-      displayResults(matchesForStorage);
-      searchBar.style.display = 'block';
-      searchBar.value = '';
-      updateTimeDisplay();
-      removeCurrentTick();
-    }
+    const finalData = {};
+    for (const key in matches) finalData[key] = Array.from(matches[key]);
 
-    function formatMatchName(matchName) {
-      return matchName;
-    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(finalData));
+    localStorage.setItem(STORAGE_TIME_KEY, Date.now().toString());
+    
+    displayResults(finalData);
+    document.getElementById('searchBar').style.display = 'block';
+    updateTimeDisplay();
+  }
 
-    // UPDATED: Logic changed to output sequence 0, 1, 2
-    function generateJsonData(blvs) {
-      const data = [];
-      if (blvs[0]) {
-        data.push(`    "https://yosintv-api.pages.dev/api/ads", `);
-      }
-      if (blvs.length > 1) {
-        // Index 0
-        data.push(`    "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/ak?m=${blvs[0]}", `);
-        // Index 1
-        data.push(`    "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/ak?m=${blvs[1]}", `);
-        // Index 2 (Fallback to Index 0 if Index 2 doesn't exist)
-        const thirdId = blvs[2] ? blvs[2] : blvs[0];
-        data.push(`    "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/ak?m=${thirdId}" `);
-        data.push(''); 
-      }
-      return data.join('\n');
-    }
+  function generateJsonData(blvs) {
+    const ads = `    "https://yosintv-api.pages.dev/api/ads", `;
+    const base = `    "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/ak?m=`;
+    
+    let links = [ads];
+    links.push(`${base}${blvs[0]}", `);
+    if (blvs[1]) links.push(`${base}${blvs[1]}", `);
+    links.push(`${base}${blvs[2] || blvs[0]}"`);
+    
+    return links.join('\n');
+  }
 
-    function displayResults(matches) {
-      const resultsDiv = document.getElementById('results');
-      resultsDiv.innerHTML = '';
-      const fragment = document.createDocumentFragment();
-      for (const matchName in matches) {
-        const heading = document.createElement('h2');
-        heading.textContent = formatMatchName(matchName);
-        fragment.appendChild(heading);
-        const container = document.createElement('div');
-        container.className = 'blv-container';
-        const pre = document.createElement('pre');
-        
-        // UPDATED: Slicing to 3 to allow index 0, 1, and 2
-        pre.textContent = generateJsonData(matches[matchName].slice(0, 3));
-        
-        container.appendChild(pre);
-        const copyBtn = document.createElement('button');
-        copyBtn.textContent = 'Copy JSON';
-        copyBtn.title = 'Click to copy JSON';
-        copyBtn.onclick = () => copyToClipboard(pre.textContent, copyBtn);
-        container.appendChild(copyBtn);
-        const blvIdsDiv = document.createElement('div');
-        blvIdsDiv.className = 'blv-ids';
-        matches[matchName].forEach(blv => {
-          const btn = document.createElement('button');
-          btn.textContent = blv;
-          btn.title = 'Click to copy BLV ID';
-          btn.onclick = () => copyToClipboard(blv, btn);
-          blvIdsDiv.appendChild(btn);
-        });
-        container.appendChild(blvIdsDiv);
-        fragment.appendChild(container);
-      }
-      resultsDiv.appendChild(fragment);
-    }
+  function displayResults(matches) {
+    const container = document.getElementById('results');
+    container.innerHTML = '';
 
-    function copyToClipboard(text, btn) {
-      navigator.clipboard.writeText(text).then(() => {
-        showCopyTick(btn);
-      }, () => {
-        alert('Failed to copy to clipboard.');
-      });
-    }
+    Object.entries(matches).forEach(([name, ids]) => {
+      const section = document.createElement('div');
+      section.className = 'match-card';
+      const jsonContent = generateJsonData(ids);
 
-    function showCopyTick(button) {
-      removeCurrentTick();
-      const svgns = "http://www.w3.org/2000/svg";
-      const svg = document.createElementNS(svgns, "svg");
-      svg.setAttribute("viewBox", "0 0 24 24");
-      svg.classList.add('copy-tick', 'show');
-      const path = document.createElementNS(svgns, "path");
-      path.setAttribute("d", "M20.285 6.708l-11.4 11.4-5.37-5.37 1.414-1.414 3.957 3.956 9.986-9.985z");
-      svg.appendChild(path);
-      button.appendChild(svg);
-      currentTickButton = button;
-    }
+      section.innerHTML = `
+        <div class="match-header">
+          <span class="match-title">${name}</span>
+          <span class="badge">${ids.length} Broadcasters</span>
+        </div>
+        <div class="match-body">
+          <pre id="pre-${name}">${jsonContent}</pre>
+          <div class="btn-group">
+            <button class="btn-copy-main" onclick="copyText('pre-${name}', this)">Copy JSON Config</button>
+            ${ids.map(id => `
+              <button class="blv-id-chip" onclick="copyValue('${id}', this)">
+                <small>ID:</small> <strong>${id}</strong>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      container.appendChild(section);
+    });
+  }
 
-    function removeCurrentTick() {
-      if (currentTickButton) {
-        const oldTick = currentTickButton.querySelector('.copy-tick');
-        if (oldTick) {
-          oldTick.remove();
-        }
-        currentTickButton = null;
-      }
-    }
+  async function copyText(elementId, btn) {
+    const text = document.getElementById(elementId).innerText;
+    await navigator.clipboard.writeText(text);
+    handleFeedback(btn, 'Copied!');
+  }
 
-    function filterResults() {
-      const query = document.getElementById('searchBar').value.toLowerCase();
-      const resultsDiv = document.getElementById('results');
-      if (!query) {
-        [...resultsDiv.children].forEach(child => {
-          child.style.display = '';
-        });
-        return;
-      }
-      const children = [...resultsDiv.children];
-      for (let i = 0; i < children.length; i += 2) {
-        const heading = children[i];
-        const blvContainer = children[i + 1];
-        const matchName = heading.textContent.toLowerCase();
-        const pre = blvContainer.querySelector('pre');
-        const jsonText = pre.textContent.toLowerCase();
-        const blvIdsDiv = blvContainer.querySelector('.blv-ids');
-        let anyBlvMatch = false;
-        [...blvIdsDiv.children].forEach(btn => {
-          const blvText = btn.textContent.toLowerCase();
-          if (blvText.includes(query)) {
-            anyBlvMatch = true;
-          }
-        });
-        if (jsonText.includes(query) || matchName.includes(query) || anyBlvMatch) {
-          heading.style.display = '';
-          blvContainer.style.display = '';
-        } else {
-          heading.style.display = 'none';
-          blvContainer.style.display = 'none';
-        }
-      }
-    }
-  </script>
+  async function copyValue(val, btn) {
+    await navigator.clipboard.writeText(val);
+    handleFeedback(btn, 'Copied!');
+  }
+
+  function handleFeedback(btn, message) {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = `<span class="success-text">${message}</span>`;
+    btn.style.borderColor = 'var(--success)';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.style.borderColor = '';
+    }, 1500);
+  }
+
+  function filterResults() {
+    const query = document.getElementById('searchBar').value.toLowerCase();
+    document.querySelectorAll('.match-card').forEach(card => {
+      const text = card.innerText.toLowerCase();
+      card.style.display = text.includes(query) ? 'block' : 'none';
+    });
+  }
+</script>
+
 </body>
 </html>
