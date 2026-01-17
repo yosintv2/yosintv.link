@@ -2,13 +2,11 @@
   "title": "All Cricket Events",
   "matches": [     
     
-    
     {
       "name": " All Cricket Matches Live ",
       "image": "https://cdn.yosintv.link/cricket.png",
       "link": "https://www.yosintv.link/cricket.html"
     },
-
   
     {
       "name": " ICC Men's T20 World Cup 2026  ",
@@ -19,12 +17,6 @@
     {
       "name": " BPL Live 2025 ",
       "image": "https://cricketvectors.akamaized.net/Series/1ZC.png",
-      "link": "https://www.yosintv.link/cricket.html"
-    },
-    
-    {
-      "name": " The Ashes, 2025-26 ",
-      "image": "https://cricketvectors.akamaized.net/Series/1OY.png",
       "link": "https://www.yosintv.link/cricket.html"
     }
     
