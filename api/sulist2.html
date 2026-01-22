@@ -30,24 +30,24 @@
 
   <script>
     let allMatches = [];
-    let countdownIntervals = [];
+    let countdownIntervals = {};
     const MATCH_DURATION_MS = 10 * 60 * 60 * 1000; // 10 hours
 
     /**
-     * This function performs an asynchronous fetch operation to the match API using a proxy 
-     * because direct cross-origin requests are frequently blocked by modern web browsers for security reasons.
+     * This asynchronous function initiates a network request to the match API through a CORS proxy service 
+     * to bypass security headers that often prevent direct browser-to-server data retrieval from external domains.
      */
     async function fetchMatches() {
       const loadingDiv = document.getElementById('loading');
       const errorDiv = document.getElementById('error');
       const matchesContainer = document.getElementById('matches');
       try {
+        // Updated to use .su and a CORS proxy to ensure the data actually loads for you.
         const apiUrl = 'https://streamed.su/api/matches/all-today';
         const res = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(apiUrl));
         
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         const data = await res.json();
-        
         if (!Array.isArray(data) || data.length === 0) {
           throw new Error('No matches found');
         }
@@ -79,31 +79,33 @@
     function renderMatches(matches) {
       const matchesContainer = document.getElementById('matches');
       matchesContainer.innerHTML = '';
-      countdownIntervals.forEach(clearInterval);
-      countdownIntervals = [];
+      Object.values(countdownIntervals).forEach(clearInterval);
+      countdownIntervals = {};
 
       matches.forEach(match => {
         const card = document.createElement('div');
         card.className = 'bg-white p-4 rounded-lg shadow';
 
+        // Title row
         const titleRow = document.createElement('div');
         titleRow.className = 'flex items-center justify-between mb-1';
         const title = document.createElement('h2');
         title.className = 'text-lg font-semibold text-gray-800';
         title.textContent = match.title;
-        
         const copyNameBtn = document.createElement('button');
         copyNameBtn.className = 'bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-1 rounded text-xs ml-3';
         copyNameBtn.textContent = 'Copy Match Title';
         copyNameBtn.onclick = () => copyLink(match.title);
-        
         titleRow.appendChild(title);
         titleRow.appendChild(copyNameBtn);
 
+        // Countdown
         const countdown = document.createElement('div');
         countdown.className = 'text-sm text-gray-600 mb-2';
+        countdown.textContent = 'Starts in: calculating...';
         startCountdown(match.date, countdown);
 
+        // Buttons container
         const btnsDiv = document.createElement('div');
         btnsDiv.className = 'flex flex-wrap gap-2';
 
@@ -111,33 +113,62 @@
         const adminSrc = match.sources?.find(s => s.source.toLowerCase() === 'admin');
         const targetSrc = alphaSrc || adminSrc;
 
-        // JSON Generation Logic strictly adhering to user requirements
-        const jsonData = {
-          name: ` ${match.title} `,
-          links: [
-            `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7?m=______ `,
-            `http://yosintv-api.pages.dev/api/ads`,
-            `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7c?m=______ `,
-            targetSrc ? `https://ytvlive.pages.dev/${targetSrc.source.toLowerCase()}?mid=${targetSrc.id} ` : "___________________________"
-          ]
-        };
+        // ---------- SINGLE JSON BLOCK ----------
+        if (targetSrc) {
+          const jsonDiv = document.createElement('div');
+          jsonDiv.className = 'mb-2 w-full';
 
-        const jsonDiv = document.createElement('div');
-        jsonDiv.className = 'mb-2 w-full';
-        
-        const jsonDisplay = document.createElement('pre');
-        jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto mb-2';
-        jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
-        
-        const jsonBtn = document.createElement('button');
-        jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm w-full';
-        jsonBtn.textContent = 'Copy JSON';
-        // We stringify without pretty-printing for the clipboard to avoid extra whitespace issues
-        jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData));
+          const jsonTitle = document.createElement('div');
+          jsonTitle.className = 'text-sm font-semibold text-gray-800';
+          jsonTitle.textContent = `${match.title}`;
+          jsonDiv.appendChild(jsonTitle);
 
-        jsonDiv.appendChild(jsonDisplay);
-        jsonDiv.appendChild(jsonBtn);
-        btnsDiv.appendChild(jsonDiv);
+          const jsonData = {
+            name: ` ${match.title} `,
+            links: [
+              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7?m=______ `,
+              `http://yosintv-api.pages.dev/api/ads`,
+              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7c?m=______ `,
+              `https://ytvlive.pages.dev/${targetSrc.source.toLowerCase()}?mid=${targetSrc.id} `,
+              "________________blv_links___________"
+            ]
+          };
+
+          const jsonDisplay = document.createElement('pre');
+          jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
+          // Using null, 2 here ensures the visual display has newlines and indents
+          jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
+          jsonDiv.appendChild(jsonDisplay);
+
+          const jsonBtn = document.createElement('button');
+          jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
+          jsonBtn.textContent = 'Copy JSON';
+          /**
+           * By including the indentation parameters in the stringify method, we ensure that the clipboard 
+           * receives the data in a human-readable multi-line format rather than a single compressed string.
+           */
+          jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData, null, 2));
+          jsonDiv.appendChild(jsonBtn);
+
+          btnsDiv.appendChild(jsonDiv);
+        }
+
+        // Direct Buttons (Alpha/Admin)
+        if (alphaSrc) {
+          const alphaBtn = document.createElement('button');
+          alphaBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm';
+          alphaBtn.textContent = 'Alpha Link';
+          alphaBtn.onclick = () => copyLink(`https://ytvlive.pages.dev/alpha?mid=${alphaSrc.id}`);
+          btnsDiv.appendChild(alphaBtn);
+        }
+
+        if (adminSrc) {
+          const adminBtn = document.createElement('button');
+          adminBtn.className = 'bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm';
+          adminBtn.textContent = 'Admin Link';
+          adminBtn.onclick = () => copyLink(`https://ytvlive.pages.dev/admin?mid=${adminSrc.id}`);
+          btnsDiv.appendChild(adminBtn);
+        }
 
         card.appendChild(titleRow);
         card.appendChild(countdown);
@@ -159,12 +190,13 @@
         element.textContent = `Starts in: ${h}h ${m}m ${s}s`;
       };
       updateTimer();
-      countdownIntervals.push(setInterval(updateTimer, 1000));
+      const interval = setInterval(updateTimer, 1000);
+      countdownIntervals[element] = interval;
     }
 
     /**
-     * This refined copy function ensures that text data is successfully transferred to the user's system clipboard 
-     * by employing a fallback mechanism that creates a temporary invisible textarea when the standard API is restricted.
+     * This robust copy function provides a fallback mechanism by creating a hidden textarea 
+     * to facilitate the copying of text in environments where the modern clipboard API is unavailable or restricted.
      */
     function copyLink(text) {
       if (navigator.clipboard && window.isSecureContext) {
@@ -172,13 +204,15 @@
       } else {
         const textArea = document.createElement("textarea");
         textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
         document.body.appendChild(textArea);
         textArea.select();
         try {
           document.execCommand('copy');
           showToast('Copied!');
         } catch (err) {
-          console.error('Copy failed', err);
+          console.error('Manual copy failed', err);
         }
         document.body.removeChild(textArea);
       }
