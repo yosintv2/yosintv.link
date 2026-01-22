@@ -3,228 +3,196 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>streamed.su Match List - Fixed</title>
+  <title>streamed.su Match List</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .glass-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-    }
-    @keyframes pulse-red {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    .animate-live {
-      animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    }
-  </style>
 </head>
-<body class="bg-slate-50 font-sans min-h-screen text-slate-900">
-  <div class="container mx-auto p-4 max-w-4xl">
-    <header class="text-center py-8">
-      <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">Today's Live Sports</h1>
-      <p class="text-slate-500 mt-2">Data fetched from streamed.su API via CORS Proxy</p>
-    </header>
+<body class="bg-gray-100 font-sans min-h-screen">
+  <div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Today's Matches</h1>
         
-    <div class="mb-8 flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-      <div class="relative w-full md:flex-1">
-        <input type="text" id="search" placeholder="Filter by team or league name..." 
-               class="w-full pl-4 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
-      </div>
-      <label class="flex items-center cursor-pointer select-none">
-        <input type="checkbox" id="showCompleted" class="w-5 h-5 mr-2 accent-blue-600" />
-        <span class="text-sm font-medium text-slate-700">Include Finished Matches</span>
+    <div class="mb-6 flex flex-col sm:flex-row gap-4">
+      <input type="text" id="search" placeholder="Search matches..." class="w-full sm:flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
+      <label class="flex items-center">
+        <input type="checkbox" id="showCompleted" class="mr-2" />
+        <span class="text-sm text-gray-700">Show completed matches</span>
       </label>
-      <button onclick="fetchMatches()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
-        Refresh
-      </button>
     </div>
         
-    <div id="loading" class="flex flex-col items-center justify-center py-20">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-      <p class="text-slate-500 animate-pulse">Requesting match data from server...</p>
-    </div>
-
-    <div id="error" class="hidden bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded shadow-sm">
-      <div class="flex items-center">
-        <div class="text-red-700 font-bold">Fetch Error:</div>
-        <div id="error-msg" class="ml-2 text-red-600"></div>
-      </div>
-    </div>
+    <div id="loading" class="text-center text-gray-500">Loading matches...</div>
+    <div id="error" class="text-center text-red-500 hidden"></div>
         
-    <div id="matches" class="grid grid-cols-1 gap-6 hidden"></div>
+    <div id="matches" class="space-y-4 hidden"></div>
   </div>
 
-  <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-50">
-    Copied to clipboard!
+  <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow hidden">
+    Copied!
   </div>
 
   <script>
     let allMatches = [];
     let countdownIntervals = [];
-    const MATCH_DURATION_MS = 10 * 60 * 60 * 1000; // 10-hour window
+    const MATCH_DURATION_MS = 10 * 60 * 60 * 1000; // 10 hours
 
     /**
-     * Fetches match data using a CORS proxy to prevent browser security blocks 
-     * which typically occur when making client-side requests to external streaming APIs.
+     * This function performs an asynchronous fetch operation to the match API using a proxy 
+     * because direct cross-origin requests are frequently blocked by modern web browsers for security reasons.
      */
     async function fetchMatches() {
       const loadingDiv = document.getElementById('loading');
       const errorDiv = document.getElementById('error');
       const matchesContainer = document.getElementById('matches');
-      
-      loadingDiv.classList.remove('hidden');
-      errorDiv.classList.add('hidden');
-      matchesContainer.classList.add('hidden');
-
       try {
         const apiUrl = 'https://streamed.su/api/matches/all-today';
-        // We use corsproxy.io because the streamed.su server does not send Access-Control-Allow-Origin headers.
-        const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(apiUrl)}`);
+        const res = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(apiUrl));
         
-        if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
-        
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         const data = await res.json();
-        if (!Array.isArray(data)) throw new Error('Received invalid data format from the API.');
-
+        
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error('No matches found');
+        }
         allMatches = data;
         renderMatches(filterMatches());
         loadingDiv.classList.add('hidden');
         matchesContainer.classList.remove('hidden');
       } catch (err) {
+        console.error(err);
         loadingDiv.classList.add('hidden');
-        document.getElementById('error-msg').textContent = err.message;
+        errorDiv.textContent = `Error: ${err.message}`;
         errorDiv.classList.remove('hidden');
       }
     }
 
-    /**
-     * Filters the global match list based on the user's search query and 
-     * whether they have chosen to view matches that have already concluded.
-     */
     function filterMatches() {
       const query = document.getElementById('search').value.toLowerCase();
       const showCompleted = document.getElementById('showCompleted').checked;
       const now = Date.now();
-
       return allMatches.filter(match => {
+        if (!match.date) return false;
         const startTime = new Date(match.date).getTime();
-        const isFinished = now > (startTime + MATCH_DURATION_MS);
-        
-        const matchesSearch = match.title.toLowerCase().includes(query);
-        const matchesFilter = showCompleted || !isFinished;
-        
-        return matchesSearch && matchesFilter;
+        if (isNaN(startTime)) return false;
+        if (!showCompleted && now > startTime + MATCH_DURATION_MS) return false;
+        return match.title.toLowerCase().includes(query);
       });
     }
 
     function renderMatches(matches) {
-      const container = document.getElementById('matches');
-      container.innerHTML = '';
+      const matchesContainer = document.getElementById('matches');
+      matchesContainer.innerHTML = '';
       countdownIntervals.forEach(clearInterval);
       countdownIntervals = [];
 
-      if (matches.length === 0) {
-        container.innerHTML = '<div class="text-center py-10 text-slate-400">No matches found matching your criteria.</div>';
-        return;
-      }
-
       matches.forEach(match => {
         const card = document.createElement('div');
-        card.className = 'glass-card p-5 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow';
+        card.className = 'bg-white p-4 rounded-lg shadow';
 
-        // Title and Copy Logic
-        const header = document.createElement('div');
-        header.className = 'flex justify-between items-start gap-4 mb-3';
-        header.innerHTML = `
-          <h2 class="text-xl font-bold text-slate-800 leading-tight">${match.title}</h2>
-          <button onclick="copyText('${match.title.replace(/'/g, "\\'")}')" class="shrink-0 text-xs bg-slate-100 hover:bg-slate-200 py-1 px-3 rounded-md font-medium text-slate-600 transition-colors">Copy Title</button>
-        `;
+        const titleRow = document.createElement('div');
+        titleRow.className = 'flex items-center justify-between mb-1';
+        const title = document.createElement('h2');
+        title.className = 'text-lg font-semibold text-gray-800';
+        title.textContent = match.title;
+        
+        const copyNameBtn = document.createElement('button');
+        copyNameBtn.className = 'bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-1 rounded text-xs ml-3';
+        copyNameBtn.textContent = 'Copy Match Title';
+        copyNameBtn.onclick = () => copyLink(match.title);
+        
+        titleRow.appendChild(title);
+        titleRow.appendChild(copyNameBtn);
 
         const countdown = document.createElement('div');
-        countdown.className = 'text-sm font-semibold mb-4 flex items-center gap-2';
-        initTimer(match.date, countdown);
+        countdown.className = 'text-sm text-gray-600 mb-2';
+        startCountdown(match.date, countdown);
 
-        const grid = document.createElement('div');
-        grid.className = 'space-y-4';
+        const btnsDiv = document.createElement('div');
+        btnsDiv.className = 'flex flex-wrap gap-2';
 
-        // Source Generation
-        const primarySource = match.sources?.find(s => s.source.toLowerCase() === 'alpha') || match.sources?.[0];
+        const alphaSrc = match.sources?.find(s => s.source.toLowerCase() === 'alpha');
+        const adminSrc = match.sources?.find(s => s.source.toLowerCase() === 'admin');
+        const targetSrc = alphaSrc || adminSrc;
+
+        // JSON Generation Logic strictly adhering to user requirements
+        const jsonData = {
+          name: ` ${match.title} `,
+          links: [
+            `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7?m=______ `,
+            `http://yosintv-api.pages.dev/api/ads`,
+            `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7c?m=______ `,
+            targetSrc ? `https://ytvlive.pages.dev/${targetSrc.source.toLowerCase()}?mid=${targetSrc.id} ` : "___________________________"
+          ]
+        };
+
+        const jsonDiv = document.createElement('div');
+        jsonDiv.className = 'mb-2 w-full';
         
-        if (primarySource) {
-          const jsonCode = {
-            name: match.title,
-            links: [
-              "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7?m=______",
-              "http://yosintv-api.pages.dev/api/ads",
-              `https://ytvlive.pages.dev/${primarySource.source.toLowerCase()}?mid=${primarySource.id}`,
-              "________________blv_links___________"
-            ]
-          };
+        const jsonDisplay = document.createElement('pre');
+        jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto mb-2';
+        jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
+        
+        const jsonBtn = document.createElement('button');
+        jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm w-full';
+        jsonBtn.textContent = 'Copy JSON';
+        // We stringify without pretty-printing for the clipboard to avoid extra whitespace issues
+        jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData));
 
-          const jsonSection = document.createElement('div');
-          jsonSection.innerHTML = `
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">JSON Configuration</p>
-            <pre class="bg-slate-900 text-blue-300 p-3 rounded-lg text-[11px] overflow-x-auto mb-2 shadow-inner">${JSON.stringify(jsonCode, null, 2)}</pre>
-            <button onclick="copyText(\`${JSON.stringify(jsonCode)}\`)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-bold transition-transform active:scale-95">Copy JSON Link</button>
-          `;
-          grid.appendChild(jsonSection);
-        }
+        jsonDiv.appendChild(jsonDisplay);
+        jsonDiv.appendChild(jsonBtn);
+        btnsDiv.appendChild(jsonDiv);
 
-        const sourceButtons = document.createElement('div');
-        sourceButtons.className = 'flex flex-wrap gap-2 pt-2 border-t border-slate-100';
-        match.sources?.forEach(src => {
-          const btn = document.createElement('button');
-          btn.className = 'bg-slate-800 hover:bg-black text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-all';
-          btn.textContent = `${src.source.toUpperCase()} Source`;
-          btn.onclick = () => copyText(`https://ytvlive.pages.dev/${src.source.toLowerCase()}?mid=${src.id}`);
-          sourceButtons.appendChild(btn);
-        });
-
-        grid.appendChild(sourceButtons);
-        card.appendChild(header);
+        card.appendChild(titleRow);
         card.appendChild(countdown);
-        card.appendChild(grid);
-        container.appendChild(card);
+        card.appendChild(btnsDiv);
+        matchesContainer.appendChild(card);
       });
     }
 
-    function initTimer(dateStr, element) {
-      const target = new Date(dateStr).getTime();
-      const update = () => {
+    function startCountdown(dateStr, element) {
+      const targetTime = new Date(dateStr).getTime();
+      const updateTimer = () => {
         const now = Date.now();
-        const diff = target - now;
-        
+        let diff = targetTime - now;
         if (diff <= 0) {
-          if (now > target + MATCH_DURATION_MS) {
-            element.innerHTML = '<span class="text-slate-400">● Concluded</span>';
-          } else {
-            element.innerHTML = '<span class="text-red-600 animate-live">● LIVE NOW</span>';
-          }
+          element.textContent = (now > targetTime + MATCH_DURATION_MS) ? 'Finished' : 'LIVE';
           return;
         }
-
-        const h = Math.floor(diff / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        element.innerHTML = `<span class="text-blue-600">Starts in ${h}h ${m}m ${s}s</span>`;
+        const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+        element.textContent = `Starts in: ${h}h ${m}m ${s}s`;
       };
-      update();
-      countdownIntervals.push(setInterval(update, 1000));
+      updateTimer();
+      countdownIntervals.push(setInterval(updateTimer, 1000));
     }
 
-    function copyText(val) {
-      navigator.clipboard.writeText(val).then(() => {
-        const toast = document.getElementById('toast');
-        toast.style.opacity = '1';
-        setTimeout(() => toast.style.opacity = '0', 2000);
-      });
+    /**
+     * This refined copy function ensures that text data is successfully transferred to the user's system clipboard 
+     * by employing a fallback mechanism that creates a temporary invisible textarea when the standard API is restricted.
+     */
+    function copyLink(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          showToast('Copied!');
+        } catch (err) {
+          console.error('Copy failed', err);
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 1500);
     }
 
     document.getElementById('search').addEventListener('input', () => renderMatches(filterMatches()));
     document.getElementById('showCompleted').addEventListener('change', () => renderMatches(filterMatches()));
-    
-    // Initial fetch on page load
     window.onload = fetchMatches;
   </script>
 </body>
