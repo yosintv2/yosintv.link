@@ -3,275 +3,228 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>streamed.su Match List</title>
+  <title>streamed.su Match List - Fixed</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .animate-live {
+      animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen">
-  <div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Today's Matches</h1>
-    
-    <!-- Search Bar and Toggle -->
-    <div class="mb-6 flex flex-col sm:flex-row gap-4">
-      <input type="text" id="search" placeholder="Search matches..." class="w-full sm:flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
-      <label class="flex items-center">
-        <input type="checkbox" id="showCompleted" class="mr-2" />
-        <span class="text-sm text-gray-700">Show completed matches</span>
+<body class="bg-slate-50 font-sans min-h-screen text-slate-900">
+  <div class="container mx-auto p-4 max-w-4xl">
+    <header class="text-center py-8">
+      <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">Today's Live Sports</h1>
+      <p class="text-slate-500 mt-2">Data fetched from streamed.su API via CORS Proxy</p>
+    </header>
+        
+    <div class="mb-8 flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+      <div class="relative w-full md:flex-1">
+        <input type="text" id="search" placeholder="Filter by team or league name..." 
+               class="w-full pl-4 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all" />
+      </div>
+      <label class="flex items-center cursor-pointer select-none">
+        <input type="checkbox" id="showCompleted" class="w-5 h-5 mr-2 accent-blue-600" />
+        <span class="text-sm font-medium text-slate-700">Include Finished Matches</span>
       </label>
+      <button onclick="fetchMatches()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+        Refresh
+      </button>
     </div>
-    
-    <!-- Status Messages -->
-    <div id="loading" class="text-center text-gray-500">Loading matches...</div>
-    <div id="error" class="text-center text-red-500 hidden"></div>
-    
-    <!-- Matches -->
-    <div id="matches" class="space-y-4 hidden"></div>
+        
+    <div id="loading" class="flex flex-col items-center justify-center py-20">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+      <p class="text-slate-500 animate-pulse">Requesting match data from server...</p>
+    </div>
+
+    <div id="error" class="hidden bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded shadow-sm">
+      <div class="flex items-center">
+        <div class="text-red-700 font-bold">Fetch Error:</div>
+        <div id="error-msg" class="ml-2 text-red-600"></div>
+      </div>
+    </div>
+        
+    <div id="matches" class="grid grid-cols-1 gap-6 hidden"></div>
   </div>
 
-  <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow hidden">
-    Copied!
+  <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-50">
+    Copied to clipboard!
   </div>
 
   <script>
     let allMatches = [];
-    let countdownIntervals = {};
-    const MATCH_DURATION_MS = 10 * 60 * 60 * 1000; // 10 hours
+    let countdownIntervals = [];
+    const MATCH_DURATION_MS = 10 * 60 * 60 * 1000; // 10-hour window
 
+    /**
+     * Fetches match data using a CORS proxy to prevent browser security blocks 
+     * which typically occur when making client-side requests to external streaming APIs.
+     */
     async function fetchMatches() {
       const loadingDiv = document.getElementById('loading');
       const errorDiv = document.getElementById('error');
       const matchesContainer = document.getElementById('matches');
+      
+      loadingDiv.classList.remove('hidden');
+      errorDiv.classList.add('hidden');
+      matchesContainer.classList.add('hidden');
+
       try {
-        const res = await fetch('https://streamed.pk/api/matches/all-today');
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        const apiUrl = 'https://streamed.su/api/matches/all-today';
+        // We use corsproxy.io because the streamed.su server does not send Access-Control-Allow-Origin headers.
+        const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(apiUrl)}`);
+        
+        if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+        
         const data = await res.json();
-        if (!Array.isArray(data) || data.length === 0) {
-          throw new Error('No matches found');
-        }
+        if (!Array.isArray(data)) throw new Error('Received invalid data format from the API.');
+
         allMatches = data;
         renderMatches(filterMatches());
         loadingDiv.classList.add('hidden');
         matchesContainer.classList.remove('hidden');
       } catch (err) {
-        console.error(err);
         loadingDiv.classList.add('hidden');
-        errorDiv.textContent = `Error: ${err.message}`;
+        document.getElementById('error-msg').textContent = err.message;
         errorDiv.classList.remove('hidden');
       }
     }
 
+    /**
+     * Filters the global match list based on the user's search query and 
+     * whether they have chosen to view matches that have already concluded.
+     */
     function filterMatches() {
       const query = document.getElementById('search').value.toLowerCase();
       const showCompleted = document.getElementById('showCompleted').checked;
       const now = Date.now();
+
       return allMatches.filter(match => {
-        if (!match.date) return false;
         const startTime = new Date(match.date).getTime();
-        if (isNaN(startTime)) return false;
-        if (!showCompleted && now > startTime + MATCH_DURATION_MS) return false;
-        return match.title.toLowerCase().includes(query);
+        const isFinished = now > (startTime + MATCH_DURATION_MS);
+        
+        const matchesSearch = match.title.toLowerCase().includes(query);
+        const matchesFilter = showCompleted || !isFinished;
+        
+        return matchesSearch && matchesFilter;
       });
     }
 
     function renderMatches(matches) {
-      const matchesContainer = document.getElementById('matches');
-      matchesContainer.innerHTML = '';
-      Object.values(countdownIntervals).forEach(clearInterval);
-      countdownIntervals = {};
+      const container = document.getElementById('matches');
+      container.innerHTML = '';
+      countdownIntervals.forEach(clearInterval);
+      countdownIntervals = [];
+
+      if (matches.length === 0) {
+        container.innerHTML = '<div class="text-center py-10 text-slate-400">No matches found matching your criteria.</div>';
+        return;
+      }
 
       matches.forEach(match => {
         const card = document.createElement('div');
-        card.className = 'bg-white p-4 rounded-lg shadow';
+        card.className = 'glass-card p-5 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow';
 
-        // Title row
-        const titleRow = document.createElement('div');
-        titleRow.className = 'flex items-center justify-between mb-1';
-        const title = document.createElement('h2');
-        title.className = 'text-lg font-semibold text-gray-800';
-        title.textContent = match.title;
-        const copyNameBtn = document.createElement('button');
-        copyNameBtn.className = 'bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-1 rounded text-xs ml-3';
-        copyNameBtn.textContent = 'Copy Match Title';
-        copyNameBtn.onclick = () => copyLink(match.title);
-        titleRow.appendChild(title);
-        titleRow.appendChild(copyNameBtn);
+        // Title and Copy Logic
+        const header = document.createElement('div');
+        header.className = 'flex justify-between items-start gap-4 mb-3';
+        header.innerHTML = `
+          <h2 class="text-xl font-bold text-slate-800 leading-tight">${match.title}</h2>
+          <button onclick="copyText('${match.title.replace(/'/g, "\\'")}')" class="shrink-0 text-xs bg-slate-100 hover:bg-slate-200 py-1 px-3 rounded-md font-medium text-slate-600 transition-colors">Copy Title</button>
+        `;
 
-        // Countdown
         const countdown = document.createElement('div');
-        countdown.className = 'text-sm text-gray-600 mb-2';
-        countdown.textContent = 'Starts in: calculating...';
-        startCountdown(match.date, countdown);
+        countdown.className = 'text-sm font-semibold mb-4 flex items-center gap-2';
+        initTimer(match.date, countdown);
 
-        // Buttons container
-        const btnsDiv = document.createElement('div');
-        btnsDiv.className = 'flex flex-wrap gap-2';
+        const grid = document.createElement('div');
+        grid.className = 'space-y-4';
 
-        const alphaSrc = match.sources?.find(s => s.source.toLowerCase() === 'alpha');
-        const adminSrc = match.sources?.find(s => s.source.toLowerCase() === 'admin');
-
-        // ---------- SINGLE JSON BLOCK: Alpha (preferred) ----------
-        if (alphaSrc) {
-          const jsonDiv = document.createElement('div');
-          jsonDiv.className = 'mb-2 w-full';
-
-          const jsonTitle = document.createElement('div');
-          jsonTitle.className = 'text-sm font-semibold text-gray-800';
-          jsonTitle.textContent = `${match.title}`;
-          jsonDiv.appendChild(jsonTitle);
-
-          const jsonData = {
-            name: ` ${match.title}`,
+        // Source Generation
+        const primarySource = match.sources?.find(s => s.source.toLowerCase() === 'alpha') || match.sources?.[0];
+        
+        if (primarySource) {
+          const jsonCode = {
+            name: match.title,
             links: [
-              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7?m=______ `,
-              `http://yosintv-api.pages.dev/api/ads`,
-              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7c?m=______ `,
-              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/admin?mid=${adminSrc.id} `,
+              "https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7?m=______",
+              "http://yosintv-api.pages.dev/api/ads",
+              `https://ytvlive.pages.dev/${primarySource.source.toLowerCase()}?mid=${primarySource.id}`,
               "________________blv_links___________"
             ]
           };
 
-
-          const jsonDisplay = document.createElement('pre');
-          jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
-          jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
-          jsonDiv.appendChild(jsonDisplay);
-
-          const jsonBtn = document.createElement('button');
-          jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
-          jsonBtn.textContent = 'Copy JSON';
-          jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData, null, 2));
-          jsonDiv.appendChild(jsonBtn);
-
-          btnsDiv.appendChild(jsonDiv);
-
-          // Alpha direct button
-          const alphaBtn = document.createElement('button');
-          alphaBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm';
-          alphaBtn.textContent = 'Alpha Link';
-          alphaBtn.onclick = () => copyLink(`https://ytvlive.pages.dev/alpha?mid=${alphaSrc.id}`);
-          btnsDiv.appendChild(alphaBtn);
+          const jsonSection = document.createElement('div');
+          jsonSection.innerHTML = `
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">JSON Configuration</p>
+            <pre class="bg-slate-900 text-blue-300 p-3 rounded-lg text-[11px] overflow-x-auto mb-2 shadow-inner">${JSON.stringify(jsonCode, null, 2)}</pre>
+            <button onclick="copyText(\`${JSON.stringify(jsonCode)}\`)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-bold transition-transform active:scale-95">Copy JSON Link</button>
+          `;
+          grid.appendChild(jsonSection);
         }
 
-        // ---------- SINGLE JSON BLOCK: Admin (fallback) ----------
-      // `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/admin?mid=${adminSrc.id} `,
-     // https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwjjwtWq8f6RAxXGf_UHHVCLBnA4WhAWegQIFBAB&url=https%3A%2F%2Fwww.pasuwadoseisei.com%2F&usg=AOvVaw1O2AzntaIACdUrrKRFu4Q-&opi=89978449 
-        else if (adminSrc) {
-          const jsonDiv = document.createElement('div');
-          jsonDiv.className = 'mb-2 w-full';
-
-          const jsonTitle = document.createElement('div');
-          jsonTitle.className = 'text-sm font-semibold text-gray-800';
-          jsonTitle.textContent = `${match.title}`;
-          jsonDiv.appendChild(jsonTitle);
-
-          const jsonData = {
-            name: ` ${match.title} `,
-            links: [
-              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7?m=______ `,
-              `http://yosintv-api.pages.dev/api/ads`,
-              `https://yosintv2.github.io/ads/foot.html?url=https://ytvlive.pages.dev/play7c?m=______ `,
-              "___________________________"
-            ]
-          };
-
-          const jsonDisplay = document.createElement('pre');
-          jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
-          jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
-          jsonDiv.appendChild(jsonDisplay);
-
-          const jsonBtn = document.createElement('button');
-          jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
-          jsonBtn.textContent = 'Copy JSON';
-          jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData, null, 2));
-          jsonDiv.appendChild(jsonBtn);
-
-          btnsDiv.appendChild(jsonDiv);
-        }
-
-        // ---------- ADMIN direct button (always if present) ----------
-        if (adminSrc) {
-          const adminBtn = document.createElement('button');
-          adminBtn.className = 'bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm';
-          adminBtn.textContent = 'Admin Link';
-          adminBtn.onclick = () => copyLink(`https://ytvlive.pages.dev/admin?mid=${adminSrc.id}`);
-          btnsDiv.appendChild(adminBtn);
-        }
-
-        // ---------- POSTER ----------
-        if (match.poster) {
-          const posterBtn = document.createElement('button');
-          posterBtn.className = 'bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm';
-          posterBtn.textContent = 'Poster Link';
-          posterBtn.onclick = () => copyLink('https://streamed.pk' + match.poster);
-          btnsDiv.appendChild(posterBtn);
-        }
-
-        // ---------- OTHER SOURCES ----------
+        const sourceButtons = document.createElement('div');
+        sourceButtons.className = 'flex flex-wrap gap-2 pt-2 border-t border-slate-100';
         match.sources?.forEach(src => {
-          const lower = src.source.toLowerCase();
-          if (!['alpha', 'admin'].includes(lower)) {
-            const btn = document.createElement('button');
-            btn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm';
-            btn.textContent = src.source;
-            btn.onclick = () => copyLink(src.id);
-            btnsDiv.appendChild(btn);
-          }
+          const btn = document.createElement('button');
+          btn.className = 'bg-slate-800 hover:bg-black text-white px-3 py-1.5 rounded-md text-xs font-semibold transition-all';
+          btn.textContent = `${src.source.toUpperCase()} Source`;
+          btn.onclick = () => copyText(`https://ytvlive.pages.dev/${src.source.toLowerCase()}?mid=${src.id}`);
+          sourceButtons.appendChild(btn);
         });
 
-        card.appendChild(titleRow);
+        grid.appendChild(sourceButtons);
+        card.appendChild(header);
         card.appendChild(countdown);
-        card.appendChild(btnsDiv);
-        matchesContainer.appendChild(card);
+        card.appendChild(grid);
+        container.appendChild(card);
       });
     }
 
-    function startCountdown(dateStr, element) {
-      const targetTime = new Date(dateStr).getTime();
-      if (isNaN(targetTime)) {
-        element.textContent = 'Starts in: Unknown date';
-        return;
-      }
-      const updateTimer = () => {
+    function initTimer(dateStr, element) {
+      const target = new Date(dateStr).getTime();
+      const update = () => {
         const now = Date.now();
-        let diff = targetTime - now;
+        const diff = target - now;
+        
         if (diff <= 0) {
-          element.textContent = 'Match started';
+          if (now > target + MATCH_DURATION_MS) {
+            element.innerHTML = '<span class="text-slate-400">● Concluded</span>';
+          } else {
+            element.innerHTML = '<span class="text-red-600 animate-live">● LIVE NOW</span>';
+          }
           return;
         }
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        diff %= (1000 * 60 * 60 * 24);
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        diff %= (1000 * 60 * 60);
-        const minutes = Math.floor(diff / (1000 * 60));
-        diff %= (1000 * 60);
-        const seconds = Math.floor(diff / 1000);
-        element.textContent = `Starts in: ${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        element.innerHTML = `<span class="text-blue-600">Starts in ${h}h ${m}m ${s}s</span>`;
       };
-      updateTimer();
-      const interval = setInterval(updateTimer, 1000);
-      countdownIntervals[element] = interval;
+      update();
+      countdownIntervals.push(setInterval(update, 1000));
     }
 
-    function copyLink(text) {
-      navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
+    function copyText(val) {
+      navigator.clipboard.writeText(val).then(() => {
+        const toast = document.getElementById('toast');
+        toast.style.opacity = '1';
+        setTimeout(() => toast.style.opacity = '0', 2000);
+      });
     }
 
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.className = 'fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow';
-      toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 1500);
-    }
-
-    document.getElementById('search').addEventListener('input', () => {
-      renderMatches(filterMatches());
-    });
-
-    document.getElementById('showCompleted').addEventListener('change', () => {
-      renderMatches(filterMatches());
-    });
-
+    document.getElementById('search').addEventListener('input', () => renderMatches(filterMatches()));
+    document.getElementById('showCompleted').addEventListener('change', () => renderMatches(filterMatches()));
+    
+    // Initial fetch on page load
     window.onload = fetchMatches;
   </script>
 </body>
