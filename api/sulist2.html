@@ -9,7 +9,7 @@
 <body class="bg-gray-100 font-sans min-h-screen">
   <div class="container mx-auto p-6">
     <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Today's Matches</h1>
-        
+    
     <div class="mb-6 flex flex-col sm:flex-row gap-4">
       <input type="text" id="search" placeholder="Search matches..." class="w-full sm:flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300" />
       <label class="flex items-center">
@@ -17,10 +17,9 @@
         <span class="text-sm text-gray-700">Show completed matches</span>
       </label>
     </div>
-        
+
     <div id="loading" class="text-center text-gray-500">Loading matches...</div>
     <div id="error" class="text-center text-red-500 hidden"></div>
-        
     <div id="matches" class="space-y-4 hidden"></div>
   </div>
 
@@ -34,23 +33,28 @@
     const MATCH_DURATION_MS = 10 * 60 * 60 * 1000; // 10 hours
 
     /**
-     * This asynchronous function initiates a network request to the match API through a CORS proxy service 
-     * to bypass security headers that often prevent direct browser-to-server data retrieval from external domains.
+     * Replaced corsproxy.io with allorigins.win to bypass 403 Forbidden errors.
+     * This proxy wraps the response in a JSON object, so we parse 'data.contents'.
      */
     async function fetchMatches() {
       const loadingDiv = document.getElementById('loading');
       const errorDiv = document.getElementById('error');
       const matchesContainer = document.getElementById('matches');
+      
       try {
-        // Updated to use .su and a CORS proxy to ensure the data actually loads for you.
         const apiUrl = 'https://streamed.pk/api/matches/all-today';
-        const res = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(apiUrl));
+        // Using allorigins proxy which is currently more stable against 403s
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`);
         
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        const data = await res.json();
+        
+        const wrapper = await res.json();
+        const data = JSON.parse(wrapper.contents);
+
         if (!Array.isArray(data) || data.length === 0) {
           throw new Error('No matches found');
         }
+
         allMatches = data;
         renderMatches(filterMatches());
         loadingDiv.classList.add('hidden');
@@ -58,7 +62,7 @@
       } catch (err) {
         console.error(err);
         loadingDiv.classList.add('hidden');
-        errorDiv.textContent = `Error: ${err.message}`;
+        errorDiv.textContent = `Error: ${err.message}. Try refreshing or using a VPN.`;
         errorDiv.classList.remove('hidden');
       }
     }
@@ -86,26 +90,26 @@
         const card = document.createElement('div');
         card.className = 'bg-white p-4 rounded-lg shadow';
 
-        // Title row
         const titleRow = document.createElement('div');
         titleRow.className = 'flex items-center justify-between mb-1';
+        
         const title = document.createElement('h2');
         title.className = 'text-lg font-semibold text-gray-800';
         title.textContent = match.title;
+        
         const copyNameBtn = document.createElement('button');
         copyNameBtn.className = 'bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-1 rounded text-xs ml-3';
         copyNameBtn.textContent = 'Copy Match Title';
         copyNameBtn.onclick = () => copyLink(match.title);
+        
         titleRow.appendChild(title);
         titleRow.appendChild(copyNameBtn);
 
-        // Countdown
         const countdown = document.createElement('div');
         countdown.className = 'text-sm text-gray-600 mb-2';
         countdown.textContent = 'Starts in: calculating...';
         startCountdown(match.date, countdown);
 
-        // Buttons container
         const btnsDiv = document.createElement('div');
         btnsDiv.className = 'flex flex-wrap gap-2';
 
@@ -113,7 +117,6 @@
         const adminSrc = match.sources?.find(s => s.source.toLowerCase() === 'admin');
         const targetSrc = alphaSrc || adminSrc;
 
-        // ---------- SINGLE JSON BLOCK ----------
         if (targetSrc) {
           const jsonDiv = document.createElement('div');
           jsonDiv.className = 'mb-2 w-full';
@@ -135,24 +138,18 @@
 
           const jsonDisplay = document.createElement('pre');
           jsonDisplay.className = 'bg-gray-100 p-2 rounded text-sm overflow-auto';
-          // Using null, 2 here ensures the visual display has newlines and indents
           jsonDisplay.textContent = JSON.stringify(jsonData, null, 2);
           jsonDiv.appendChild(jsonDisplay);
 
           const jsonBtn = document.createElement('button');
           jsonBtn.className = 'bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm';
           jsonBtn.textContent = 'Copy JSON';
-          /**
-           * By including the indentation parameters in the stringify method, we ensure that the clipboard 
-           * receives the data in a human-readable multi-line format rather than a single compressed string.
-           */
           jsonBtn.onclick = () => copyLink(JSON.stringify(jsonData, null, 2));
           jsonDiv.appendChild(jsonBtn);
 
           btnsDiv.appendChild(jsonDiv);
         }
 
-        // Direct Buttons (Alpha/Admin)
         if (alphaSrc) {
           const alphaBtn = document.createElement('button');
           alphaBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm';
@@ -193,10 +190,6 @@
       countdownIntervals[element] = interval;
     }
 
-    /**
-     * This robust copy function provides a fallback mechanism by creating a hidden textarea 
-     * to facilitate the copying of text in environments where the modern clipboard API is unavailable or restricted.
-     */
     function copyLink(text) {
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
