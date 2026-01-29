@@ -43,7 +43,7 @@
       const matchesContainer = document.getElementById('matches');
       try {
         // Updated to use .su and a CORS proxy to ensure the data actually loads for you.
-        const apiUrl = 'https://streamed.su/api/matches/all-today';
+        const apiUrl = 'https://streamed.pk/api/matches/all-today';
         const res = await fetch('https://corsproxy.io/?url=' + encodeURIComponent(apiUrl));
         
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
