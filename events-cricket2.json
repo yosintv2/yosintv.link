@@ -1,0 +1,30 @@
+{
+  "title": "All Cricket Events",
+  "matches": [     
+    
+    {
+      "name": " All Cricket Matches Live ",
+      "image": "https://cdn.yosintv.link/cricket.png",
+      "link": "https://www.yosintv.link/cricket.html"
+    },
+  
+    {
+      "name": " New Zealand tour of India 2026 ",
+      "image": "https://cricketvectors.akamaized.net/Series/1V1.png",
+      "link": "https://www.yosintv.link/cricket.html"
+    },
+    
+    {
+      "name": " ICC Men's T20 World Cup 2026  ",
+      "image": "https://cricketvectors.akamaized.net/Series/1UY.png",
+      "link": "https://www.yosintv.link/cricket.html"
+    },
+    
+    {
+      "name": " BPL Live 2025 ",
+      "image": "https://cricketvectors.akamaized.net/Series/1ZC.png",
+      "link": "https://www.yosintv.link/cricket.html"
+    }
+    
+  ]
+}
