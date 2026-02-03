@@ -1,161 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ovogoaal Link Extractor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ovogoal Link Extractor</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --bg-body: #f3f4f6;
+      --bg-card: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+    }
+    * { box-sizing: border-box; transition: all 0.2s ease; }
+    body {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      background: var(--bg-body);
+      margin: 0;
+      padding: 40px 20px;
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+    }
+    main { max-width: 850px; width: 100%; }
+    .header-section { text-align: center; margin-bottom: 30px; }
+    .card {
+      background: var(--bg-card);
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    #searchBar {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+    }
+    #searchBar:focus { border-color: var(--primary); }
+    .match-card { background: white; margin-top: 20px; border-radius: 14px; border: 1px solid var(--border); overflow: hidden; }
+    .match-header {
+      background: #f8fafc;
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .match-title { font-weight: 700; color: #1e293b; font-size: 1.1rem; }
+    .match-body { padding: 20px; }
+    .json-container { position: relative; }
+    .btn-copy-data {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      margin: 0;
+      line-height: 1.6;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen">
+<body>
 
-<div class="max-w-3xl mx-auto p-4 sm:p-6">
-    <header class="mb-8 text-center">
-        <h1 class="text-3xl font-bold text-gray-800">Match Link Configurator</h1>
-        <p class="text-gray-500 text-sm mt-2">Football & Cricket Link Extraction</p>
-    </header>
-
-    <div class="mb-8 flex flex-col sm:flex-row gap-4">
-        <input type="text" id="search" placeholder="Search matches..." 
-               class="w-full sm:flex-1 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"/>
-        <div class="flex items-center justify-center bg-white px-4 py-2 rounded-lg border shadow-sm">
-            <span class="text-xs font-mono text-gray-500" id="lastUpdated">Updating...</span>
-        </div>
-    </div>
-
-    <div id="loading" class="text-center py-10 text-gray-500 animate-pulse">Fetching data...</div>
-    <div id="error" class="text-center text-red-500 hidden py-10 font-semibold"></div>
-    <div id="matches" class="space-y-6 hidden"></div>
-</div>
-
-<div id="toast" class="fixed bottom-5 right-5 bg-green-600 text-white px-6 py-3 rounded-xl shadow-2xl hidden z-50 font-bold">
-    Copied to Clipboard!
-</div>
+<main>
+  <div class="header-section">
+    <h1>Ovogoal Link Extractor</h1>
+    <div id="updateTime">Fetching live data...</div>
+  </div>
+  <div class="card">
+    <input type="text" id="searchBar" placeholder="Search matches..." oninput="filterResults()" />
+  </div>
+  <div id="results"></div>
+</main>
 
 <script>
-const PREFIX = 'https://yosintv2.github.io/ads/foot.html?url=https://yosintv.github.io/player/1m.html?url=?url=';
-const ADS_LINK = 'http://yosintv-api.pages.dev/api/ads';
+  const API_URL = "https://yosintv.github.io/mayiru/ovogoaal_events.json";
+  const PLAYER_PREFIX = "https://yosintv2.github.io/ads/foot.html?url=https://hlsplayers.pages.dev/1m?url=";
+  const ADS_URL = "https://yosintv-api.pages.dev/api/ads";
 
-let allMatches = [];
-const API_URL = 'https://yosintv.github.io/mayiru/ovogoaal_events.json';
-
-async function fetchMatches() {
-    const loadingDiv = document.getElementById('loading');
-    const errorDiv = document.getElementById('error');
-    const matchesContainer = document.getElementById('matches');
-
+  async function fetchAndDisplay() {
     try {
-        const res = await fetch(API_URL);
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        const data = await res.json();
-        let apiRoot = Array.isArray(data) ? data[0] : data;
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+      document.getElementById('updateTime').textContent = `Live Data: ${data.last_updated}`;
 
-        document.getElementById('lastUpdated').textContent = `Sync: ${new Date(apiRoot.last_updated).toLocaleTimeString()}`;
+      data.matches.forEach((match, index) => {
+        const m3u8Links = match.stream_urls.filter(url => url.includes('.m3u8'));
+        
+        // Using exactly 4 spaces for indentation and 4 spaces at the end
+        const line1 = `    "${PLAYER_PREFIX}${m3u8Links[0] || ''}",`;
+        const line2 = `    "${ADS_URL}",`;
+        const line3 = `    "${PLAYER_PREFIX}${m3u8Links[1] || m3u8Links[0] || ''}",    \n`;
 
-        allMatches = apiRoot.matches.filter(match => {
-            const title = (match.title || "").toLowerCase();
-            const cat = (match.category || "").toLowerCase();
-            const keywords = ['vs', 'premier', 'laliga', 'seriea', 'portugal', 'cup', 'fc', 'united', 'cricket', 't20', 'ipl'];
-            const exclusions = ['nba', 'tennis', 'basketball'];
-            return keywords.some(k => title.includes(k) || cat.includes(k)) 
-                && !exclusions.some(e => title.includes(e) || cat.includes(e));
-        });
+        const finalOutput = `${line1}\n${line2}\n${line3}`;
 
-        renderMatches(allMatches);
-        loadingDiv.classList.add('hidden');
-        matchesContainer.classList.remove('hidden');
-    } catch (err) {
-        errorDiv.textContent = `Error: ${err.message}`;
-        errorDiv.classList.remove('hidden');
-        loadingDiv.classList.add('hidden');
+        const section = document.createElement('div');
+        section.className = 'match-card';
+        section.innerHTML = `
+          <div class="match-header">
+            <span class="match-title">${match.title}</span>
+            <small>${match.time}</small>
+          </div>
+          <div class="match-body">
+            <div class="json-container">
+              <button class="btn-copy-data" onclick="copyText('pre-${index}', this)">Copy</button>
+              <pre id="pre-${index}">${finalOutput}</pre>
+            </div>
+          </div>
+        `;
+        container.appendChild(section);
+      });
+    } catch (e) { 
+      console.error("Error:", e);
+      document.getElementById('updateTime').textContent = "Error loading data.";
     }
-}
+  }
 
-function renderMatches(matches) {
-    const container = document.getElementById('matches');
-    container.innerHTML = '';
+  async function copyText(id, btn) {
+    const text = document.getElementById(id).textContent;
+    await navigator.clipboard.writeText(text);
+    const original = btn.innerText;
+    btn.innerText = 'Copied!';
+    setTimeout(() => btn.innerText = original, 1000);
+  }
 
-    matches.forEach(match => {
-        const card = document.createElement('div');
-        card.className = 'bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col';
-
-        const title = document.createElement('h2');
-        title.className = 'text-xl font-bold text-gray-800 mb-1';
-        title.textContent = match.title;
-
-        const infoRow = document.createElement('div');
-        infoRow.className = 'text-xs font-bold text-blue-500 mb-4 uppercase';
-        infoRow.textContent = `${match.category || 'Match'} | ${match.time || '??:??'}`;
-
-        // Prefer .m3u8 from nested_iframes if available, fallback to top-level
-        let streams = new Set();
-
-        // Deep collection from iframe_details → nested_iframes
-        if (Array.isArray(match.iframe_details)) {
-            match.iframe_details.forEach(detail => {
-                if (detail?.stream_urls) detail.stream_urls.forEach(u => u?.trim() && streams.add(u.trim()));
-                if (Array.isArray(detail.nested_iframes)) {
-                    detail.nested_iframes.forEach(nest => {
-                        if (nest?.stream_urls) nest.stream_urls.forEach(u => u?.trim() && streams.add(u.trim()));
-                    });
-                }
-            });
-        }
-
-        // Top-level fallback
-        if (streams.size === 0 && Array.isArray(match.stream_urls)) {
-            match.stream_urls.forEach(u => u?.trim() && streams.add(u.trim()));
-        }
-
-        const firstStream = [...streams].find(u => u.includes('.m3u8')) || [...streams][0] || null;
-
-        let formattedOutput = '';
-        if (firstStream) {
-            formattedOutput = `"${PREFIX}${firstStream}",\n"${ADS_LINK}",\n `;
-        } else {
-            formattedOutput = `"${ADS_LINK}",`;
-        }
-
-        const displayArea = document.createElement('pre');
-        displayArea.className = 'bg-gray-900 text-green-400 p-4 rounded-xl text-xs overflow-auto mb-4 font-mono leading-relaxed border border-gray-700 whitespace-pre';
-        displayArea.textContent = formattedOutput;
-
-        const btnGroup = document.createElement('div');
-        btnGroup.className = 'flex gap-3';
-
-        const copyLinksBtn = document.createElement('button');
-        copyLinksBtn.className = 'flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold text-sm transition active:scale-95';
-        copyLinksBtn.textContent = 'Copy Links';
-        copyLinksBtn.onclick = () => navigator.clipboard.writeText(formattedOutput).then(() => showToast());
-
-        const copyTitleBtn = document.createElement('button');
-        copyTitleBtn.className = 'px-6 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-bold text-sm transition active:scale-95';
-        copyTitleBtn.textContent = 'Copy Title';
-        copyTitleBtn.onclick = () => navigator.clipboard.writeText(match.title).then(() => showToast('Title copied!'));
-
-        btnGroup.appendChild(copyLinksBtn);
-        btnGroup.appendChild(copyTitleBtn);
-
-        card.appendChild(title);
-        card.appendChild(infoRow);
-        card.appendChild(displayArea);
-        card.appendChild(btnGroup);
-        container.appendChild(card);
+  function filterResults() {
+    const q = document.getElementById('searchBar').value.toLowerCase();
+    document.querySelectorAll('.match-card').forEach(c => {
+      c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
     });
-}
+  }
 
-function showToast(msg = 'Copied to Clipboard!') {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 1500);
-}
-
-document.getElementById('search').addEventListener('input', e => {
-    const q = e.target.value.toLowerCase();
-    renderMatches(allMatches.filter(m => (m.title || '').toLowerCase().includes(q)));
-});
-
-window.onload = fetchMatches;
+  window.onload = fetchAndDisplay;
 </script>
 </body>
 </html>
