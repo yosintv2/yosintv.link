@@ -46,14 +46,12 @@
       background: #f8fafc;
       padding: 15px 20px;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
+      display: flex;      justify-content: space-between;
       align-items: center;
     }
     .match-title { font-weight: 700; color: #1e293b; font-size: 1.1rem; }
     .match-body { padding: 20px; }
     
-    /* PHP/Web Link Boxes */
     .stream-url-list { margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
     .stream-item {
       background: #f8fafc;
@@ -121,7 +119,8 @@
 
 <script>
   const API_URL = "https://yosintv.github.io/mayiru/ovogoaal_events.json";
-  const PLAYER_PREFIX = "https://yosintv2.github.io/ads/foot.html?url=https://hlsplayers.pages.dev/1m?url=";
+  const PLAYER1_PREFIX = "https://yosintv2.github.io/ads/foot.html?url=https://hlsplayers.pages.dev/1m?url=";
+  const PLAYER2_PREFIX = "https://yosintv2.github.io/ads/foot.html?url=https://hlsplayers.pages.dev/player2?url=";
   const ADS_URL = "https://yosintv-api.pages.dev/api/ads";
 
   async function fetchAndDisplay() {
@@ -136,15 +135,15 @@
       container.innerHTML = '';
 
       data.matches.forEach((match, index) => {
-        // Filter m3u8 for the JSON block
         const m3u8Links = match.stream_urls.filter(url => url.includes('.m3u8'));
-        
-        // Filter out m3u8 for the individual URL list (shows .php, etc)
         const webLinks = match.stream_urls.filter(url => !url.includes('.m3u8'));
         
-        const line1 = `    "${PLAYER_PREFIX}${m3u8Links[0] || ''}",`;
+        // Formatting logic: 4 spaces, quoted, comma at end. 
+        // Second stream uses PLAYER2_PREFIX
+        const line1 = `    "${PLAYER1_PREFIX}${m3u8Links[0] || ''}",`;
         const line2 = `    "${ADS_URL}",`;
-        const line3 = `    "${PLAYER_PREFIX}${m3u8Links[1] || m3u8Links[0] || ''}",    \n`;
+        const line3 = `    "${PLAYER2_PREFIX}${m3u8Links[1] || m3u8Links[0] || ''}",    \n`;
+        
         const finalOutput = `${line1}\n${line2}\n${line3}`;
 
         const section = document.createElement('div');
