@@ -52,6 +52,31 @@
     }
     .match-title { font-weight: 700; color: #1e293b; font-size: 1.1rem; }
     .match-body { padding: 20px; }
+    
+    /* PHP/Web Link Boxes */
+    .stream-url-list { margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
+    .stream-item {
+      background: #f8fafc;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px dashed #cbd5e1;
+    }
+    .url-text { color: var(--primary); font-weight: 600; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
+    .btn-copy-small {
+      background: #e2e8f0;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-copy-small:hover { background: var(--primary); color: white; }
+
     .json-container { position: relative; }
     .btn-copy-data {
       position: absolute;
@@ -65,6 +90,7 @@
       font-size: 11px;
       cursor: pointer;
       font-weight: 600;
+      z-index: 5;
     }
     pre {
       background: #1e293b;
@@ -85,7 +111,7 @@
 <main>
   <div class="header-section">
     <h1>Ovogoal Link Extractor</h1>
-    <div id="updateTime">Fetching live data...</div>
+    <div id="updateTime">Connecting...</div>
   </div>
   <div class="card">
     <input type="text" id="searchBar" placeholder="Search matches..." oninput="filterResults()" />
@@ -102,18 +128,23 @@
     try {
       const response = await fetch(API_URL);
       const data = await response.json();
+      
+      const localTime = new Date(data.last_updated).toLocaleString();
+      document.getElementById('updateTime').textContent = `Live Data: ${localTime}`;
+
       const container = document.getElementById('results');
       container.innerHTML = '';
-      document.getElementById('updateTime').textContent = `Live Data: ${data.last_updated}`;
 
       data.matches.forEach((match, index) => {
+        // Filter m3u8 for the JSON block
         const m3u8Links = match.stream_urls.filter(url => url.includes('.m3u8'));
         
-        // Using exactly 4 spaces for indentation and 4 spaces at the end
+        // Filter out m3u8 for the individual URL list (shows .php, etc)
+        const webLinks = match.stream_urls.filter(url => !url.includes('.m3u8'));
+        
         const line1 = `    "${PLAYER_PREFIX}${m3u8Links[0] || ''}",`;
         const line2 = `    "${ADS_URL}",`;
         const line3 = `    "${PLAYER_PREFIX}${m3u8Links[1] || m3u8Links[0] || ''}",    \n`;
-
         const finalOutput = `${line1}\n${line2}\n${line3}`;
 
         const section = document.createElement('div');
@@ -124,8 +155,17 @@
             <small>${match.time}</small>
           </div>
           <div class="match-body">
+            <div class="stream-url-list">
+              ${webLinks.map(url => `
+                <div class="stream-item">
+                  <span class="url-text">${url}</span>
+                  <button class="btn-copy-small" onclick="copyValue('${url}', this)">Copy URL</button>
+                </div>
+              `).join('')}
+            </div>
+            
             <div class="json-container">
-              <button class="btn-copy-data" onclick="copyText('pre-${index}', this)">Copy</button>
+              <button class="btn-copy-data" onclick="copyText('pre-${index}', this)">Copy JSON</button>
               <pre id="pre-${index}">${finalOutput}</pre>
             </div>
           </div>
@@ -133,7 +173,6 @@
         container.appendChild(section);
       });
     } catch (e) { 
-      console.error("Error:", e);
       document.getElementById('updateTime').textContent = "Error loading data.";
     }
   }
@@ -141,8 +180,17 @@
   async function copyText(id, btn) {
     const text = document.getElementById(id).textContent;
     await navigator.clipboard.writeText(text);
+    handleFeedback(btn, 'Copied!');
+  }
+
+  async function copyValue(val, btn) {
+    await navigator.clipboard.writeText(val);
+    handleFeedback(btn, 'Copied!');
+  }
+
+  function handleFeedback(btn, text) {
     const original = btn.innerText;
-    btn.innerText = 'Copied!';
+    btn.innerText = text;
     setTimeout(() => btn.innerText = original, 1000);
   }
 
