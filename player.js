@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Domain restriction check
 (function() {
-  const allowedDomains = ['tv.pasuwadoseisei.com', 'dplayerr.blogspot.com/', 'ads1-yosintv.pages.dev' ]; // Added 'localhost' for testing
+  const allowedDomains = ['tv1.hls-player.net', 'dplayerr.blogspot.com/', 'ads1-yosintv.pages.dev' ]; // Added 'localhost' for testing
   const currentDomain = window.location.hostname.toLowerCase().split(':')[0]; // Normalize domain, remove port
 
   if (!allowedDomains.includes(currentDomain)) {
