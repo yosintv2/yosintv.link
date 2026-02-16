@@ -167,9 +167,10 @@
   }
 
   function generateJsonData(match) {
-    // Builds the URL: AD_PREFIX + PK_BASE + Params
+    // UPDATED LOGIC: Combines source and ID with a hyphen inside the source parameter
+    // Example: .../pks?source=admin-ppv-girona-vs-barcelona
     const streamLinks = match.sources.map(src => 
-      `${AD_PREFIX}${PK_BASE}?source=${src.source}&id=${src.id}`
+      `${AD_PREFIX}${PK_BASE}?source=${src.source}-${src.id}`
     );
 
     const config = {
