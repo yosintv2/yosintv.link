@@ -117,8 +117,8 @@
 
 <script>
   const API_URL = "https://streamed.pk/api/matches/all-today";
-  const REDIRECT_PREFIX = "https://yosintv2.github.io/ads/foot.html?url=";
-  const PLAYER_BASE = "https://hlsplayers.pages.dev/iframe?url=https://embedsports.top/embed/";
+  const AD_PREFIX = "https://yosintv2.github.io/ads/foot.html?url=";
+  const PK_BASE = "https://yosintv100.pages.dev/pks";
 
   async function fetchAndDisplay() {
     const container = document.getElementById('results');
@@ -167,8 +167,9 @@
   }
 
   function generateJsonData(match) {
+    // Builds the URL: AD_PREFIX + PK_BASE + Params
     const streamLinks = match.sources.map(src => 
-      `${REDIRECT_PREFIX}${PLAYER_BASE}${src.source}/${src.id}/1`
+      `${AD_PREFIX}${PK_BASE}?source=${src.source}&id=${src.id}`
     );
 
     const config = {
