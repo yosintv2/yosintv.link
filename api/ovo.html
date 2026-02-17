@@ -1,19 +1,18 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Streamed.pk Extractor Pro</title>
+  <title>Ovogoal Link Extractor</title>
   <style>
     :root {
       --primary: #4f46e5;
-      --primary-hover: #4338ca;
       --bg-body: #f3f4f6;
       --bg-card: #ffffff;
       --text-main: #1f2937;
       --text-muted: #6b7280;
       --border: #e5e7eb;
-      --success: #10b981;
     }
     * { box-sizing: border-box; transition: all 0.2s ease; }
     body {
@@ -27,20 +26,17 @@
     }
     main { max-width: 850px; width: 100%; }
     .header-section { text-align: center; margin-bottom: 30px; }
-    h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 8px; color: #111827; }
-    #updateTime { color: var(--text-muted); font-size: 0.9rem; }
     .card {
       background: var(--bg-card);
       padding: 20px;
       border-radius: 16px;
       border: 1px solid var(--border);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       margin-bottom: 20px;
     }
     #searchBar {
       width: 100%;
       padding: 12px 16px;
-      font-size: 15px;
       border: 2px solid var(--border);
       border-radius: 10px;
       outline: none;
@@ -51,138 +47,138 @@
       background: #f8fafc;
       padding: 15px 20px;
       border-bottom: 1px solid var(--border);
+      display: flex;      justify-content: space-between;
+      align-items: center;
+    }
+    .match-title { font-weight: 700; color: #1e293b; font-size: 1.1rem; }
+    .match-body { padding: 20px; }
+    
+    .stream-url-list { margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
+    .stream-item {
+      background: #f8fafc;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 12px;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
+      border: 1px dashed #cbd5e1;
     }
-    .title-area { display: flex; flex-direction: column; gap: 4px; }
-    .match-title { font-weight: 700; color: #1e293b; font-size: 1.1rem; }
-    .comp-name { font-size: 0.85rem; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .badge { background: #e0e7ff; color: #4338ca; font-size: 12px; padding: 6px 12px; border-radius: 20px; font-weight: 700; white-space: nowrap; }
-    .match-body { padding: 20px; }
-    .json-container { position: relative; margin-bottom: 15px; }
+    .url-text { color: var(--primary); font-weight: 600; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; }
+    .btn-copy-small {
+      background: #e2e8f0;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-copy-small:hover { background: var(--primary); color: white; }
+
+    .json-container { position: relative; }
     .btn-copy-data {
       position: absolute;
       top: 10px;
       right: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #e2e8f0;
+      background: var(--primary);
+      color: white;
+      border: none;
       padding: 6px 12px;
       border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 11px;
       cursor: pointer;
-      z-index: 10;
+      font-weight: 600;
+      z-index: 5;
     }
-    .btn-copy-data:hover { background: var(--primary); border-color: var(--primary); color: white; }
     pre {
       background: #1e293b;
       color: #e2e8f0;
       padding: 18px;
       border-radius: 10px;
       font-size: 13px;
-      line-height: 1.6;
       overflow-x: auto;
-      margin: 0;
       white-space: pre-wrap;
+      margin: 0;
+      line-height: 1.6;
+      font-family: 'Courier New', monospace;
     }
-    .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-    .blv-id-chip {
-      background: #fff;
-      border: 1px solid #cbd5e1;
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .blv-id-chip:hover { border-color: var(--primary); color: var(--primary); }
-    .success-text { color: var(--success); font-size: 12px; font-weight: bold; }
   </style>
 </head>
 <body>
+
 <main>
   <div class="header-section">
-    <h1>Live Match Extractor</h1>
-    <div id="updateTime">Fetching live data...</div>
+    <h1>Ovogoal Link Extractor</h1>
+    <div id="updateTime">Connecting...</div>
   </div>
   <div class="card">
-    <input type="text" id="searchBar" placeholder="Search matches, teams or leagues..." oninput="filterResults()" />
+    <input type="text" id="searchBar" placeholder="Search matches..." oninput="filterResults()" />
   </div>
   <div id="results"></div>
 </main>
 
 <script>
-  const API_URL = "https://streamed.pk/api/matches/all-today";
-  const AD_PREFIX = "https://yosintv2.github.io/ads/foot.html?url=";
-  const PK_BASE = "https://yosintv100.pages.dev/pks";
+  const API_URL = "https://yosintv.github.io/mayiru/ovogoaal_events.json";
+  const PLAYER1_PREFIX = "https://yosintv2.github.io/ads/foot.html?url=https://hlsplayers.pages.dev/1m?url=";
+  const PLAYER2_PREFIX = "https://yosintv2.github.io/ads/foot.html?url=https://hlsplayers.pages.dev/player2?url=";
+  const ADS_URL = "https://yosintv-api.pages.dev/api/ads";
 
   async function fetchAndDisplay() {
-    const container = document.getElementById('results');
-    const updateTimeDiv = document.getElementById('updateTime');
-
     try {
       const response = await fetch(API_URL);
-      const matches = await response.json();
+      const data = await response.json();
+      
+      const localTime = new Date(data.last_updated).toLocaleString();
+      document.getElementById('updateTime').textContent = `Live Data: ${localTime}`;
 
+      const container = document.getElementById('results');
       container.innerHTML = '';
-      updateTimeDiv.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
 
-      matches.forEach((match, index) => {
-        const jsonContent = generateJsonData(match);
+      data.matches.forEach((match, index) => {
+        const m3u8Links = match.stream_urls.filter(url => url.includes('.m3u8'));
+        const webLinks = match.stream_urls.filter(url => !url.includes('.m3u8'));
+        
+        // Formatting logic: 4 spaces, quoted, comma at end. 
+        // Second stream uses PLAYER2_PREFIX
+        const line1 = `    "${PLAYER1_PREFIX}${m3u8Links[0] || ''}",`;
+        const line2 = `    "${ADS_URL}",`;
+        const line3 = `    "${PLAYER2_PREFIX}${m3u8Links[1] || m3u8Links[0] || ''}",    \n`;
+        
+        const finalOutput = `${line1}\n${line2}\n${line3}`;
 
         const section = document.createElement('div');
         section.className = 'match-card';
         section.innerHTML = `
           <div class="match-header">
-            <div class="title-area">
-              <span class="match-title">${match.title}</span>
-              <span class="comp-name">${match.category}</span>
-            </div>
-            <span class="badge">LIVE TODAY</span>
+            <span class="match-title">${match.title}</span>
+            <small>${match.time}</small>
           </div>
           <div class="match-body">
-            <div class="json-container">
-              <button class="btn-copy-data" onclick="copyText('pre-${index}', this)">Copy Data</button>
-              <pre id="pre-${index}">${jsonContent}</pre>
-            </div>
-            <div class="btn-group">
-              ${match.sources.map(src => `
-                <button class="blv-id-chip" onclick="copyValue('${src.id}', this)">
-                  <small>${src.source.toUpperCase()}:</small> <strong>${src.id}</strong>
-                </button>
+            <div class="stream-url-list">
+              ${webLinks.map(url => `
+                <div class="stream-item">
+                  <span class="url-text">${url}</span>
+                  <button class="btn-copy-small" onclick="copyValue('${url}', this)">Copy URL</button>
+                </div>
               `).join('')}
+            </div>
+            
+            <div class="json-container">
+              <button class="btn-copy-data" onclick="copyText('pre-${index}', this)">Copy JSON</button>
+              <pre id="pre-${index}">${finalOutput}</pre>
             </div>
           </div>
         `;
         container.appendChild(section);
       });
-    } catch (error) {
-      updateTimeDiv.textContent = "Error loading data.";
-      container.innerHTML = '<p style="text-align:center; color:red;">Failed to fetch matches. Please refresh.</p>';
+    } catch (e) { 
+      document.getElementById('updateTime').textContent = "Error loading data.";
     }
   }
 
-  function generateJsonData(match) {
-    // UPDATED LOGIC: Combines source and ID with a hyphen inside the source parameter
-    // Example: .../pks?source=admin-ppv-girona-vs-barcelona
-    const streamLinks = match.sources.map(src => 
-      `${AD_PREFIX}${PK_BASE}?source=${src.source}-${src.id}`
-    );
-
-    const config = {
-      "name": match.title,
-      "links": streamLinks
-    };
-
-    return JSON.stringify(config, null, 2) + "\n";
-  }
-
-  async function copyText(elementId, btn) {
-    const text = document.getElementById(elementId).innerText;
+  async function copyText(id, btn) {
+    const text = document.getElementById(id).textContent;
     await navigator.clipboard.writeText(text);
     handleFeedback(btn, 'Copied!');
   }
@@ -192,16 +188,16 @@
     handleFeedback(btn, 'Copied!');
   }
 
-  function handleFeedback(btn, message) {
-    const original = btn.innerHTML;
-    btn.innerHTML = `<span class="success-text">${message}</span>`;
-    setTimeout(() => { btn.innerHTML = original; }, 1500);
+  function handleFeedback(btn, text) {
+    const original = btn.innerText;
+    btn.innerText = text;
+    setTimeout(() => btn.innerText = original, 1000);
   }
 
   function filterResults() {
-    const query = document.getElementById('searchBar').value.toLowerCase();
-    document.querySelectorAll('.match-card').forEach(card => {
-      card.style.display = card.innerText.toLowerCase().includes(query) ? 'block' : 'none';
+    const q = document.getElementById('searchBar').value.toLowerCase();
+    document.querySelectorAll('.match-card').forEach(c => {
+      c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
     });
   }
 
