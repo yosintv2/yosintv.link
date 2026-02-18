@@ -5,19 +5,29 @@
     {
       "name": " All Cricket Matches Live ",
       "image": "https://cdn.yosintv.link/cricket.png",
+      "_memo": "yosintv_google_redirect",
       "link": "https://www.yosintv.link/cricket.html"
     },
   
     {
       "name": " ICC Men's T20 WC 2026 ",
       "image": "https://www.footballkhabar.com/wp-content/uploads/2026/02/ICC-Mens-T20-World-Cup-logo.webp",
+      "_memo": "yosintv_cricket_google_redirect",
+      "link": "https://www.yosintv.link/cricket.html"
+    },
+    
+    {
+      "name": "Women's Asia Cup Rising Stars 2026",
+      "image": "https://cricketvectors.akamaized.net/Series/2BR.png",
+      "_memo": "yosintv_cricket_google_redirect",
       "link": "https://www.yosintv.link/cricket.html"
     },
     
     {
       "name": " New Zealand tour of India 2026 ",
       "image": "https://cricketvectors.akamaized.net/Series/1V1.png",
-      "link": "https://www.yosintv.link/cricket.html"
+      "link": "https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwjwpt6wgM6SAxVV4zQHHR4CGq0QFnoECBkQAQ&url=https%3A%2F%2Fwww.yosintv.link%2Fcricket%3Fads%3Dlink&usg=AOvVaw3jNL1n1wL7q1DS22mGnLIY&opi=89978449"
     }
+    
   ]
 }
