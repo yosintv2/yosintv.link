@@ -3,17 +3,16 @@
   "matches": [     
     
     {
-      "name": " All Cricket Matches Live ",
+      "name": " All Cricket Matches ",
       "image": "https://raw.githubusercontent.com/yosintv2/cdn/refs/heads/main/cricket.png",
       "_memo": "yosintv_google_redirect",
       "link": "https://yosintv.getemoji.online/cricket.html"
     },
-  
+
     {
-      "name": " ICC Men's T20 WC 2026 ",
-      "image": "https://www.footballkhabar.com/wp-content/uploads/2026/02/ICC-Mens-T20-World-Cup-logo.webp",
-      "_memo": "yosintv_cricket_google_redirect",
-      "link": "https://yosintv.getemoji.online/cricket.html"
+      "name": " All Football Matches ",
+      "image": "https://raw.githubusercontent.com/yosintv2/cdn/refs/heads/main/football.png",
+      "link": "https://yosintv.getemoji.online/"
     }
   ]
 }
