@@ -10,7 +10,7 @@
     },
   
     {
-      "name": " ICC Men's T20 WC 2026 ",
+      "name": " Men's T20 WC 2026 Final ",
       "image": "https://www.footballkhabar.com/wp-content/uploads/2026/02/ICC-Mens-T20-World-Cup-logo.webp",
       "_memo": "yosintv_cricket_google_redirect",
       "link": "https://yosintv.getemoji.online/cricket.html"
