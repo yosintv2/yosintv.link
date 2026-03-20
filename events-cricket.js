@@ -3,23 +3,14 @@
   "matches": [     
     
     {
-      "name": " All Cricket Matches Live ",
+      "name": " All Cricket Matches ",
       "image": "https://raw.githubusercontent.com/yosintv2/cdn/refs/heads/main/cricket.png",
-      "_memo": "yosintv_google_redirect",
-      "link": "https://yosintv.getemoji.online/cricket.html"
-    },
-  
-    {
-      "name": " Men's T20 WC 2026 Final ",
-      "image": "https://www.footballkhabar.com/wp-content/uploads/2026/02/ICC-Mens-T20-World-Cup-logo.webp",
-      "_memo": "yosintv_cricket_google_redirect",
       "link": "https://yosintv.getemoji.online/cricket.html"
     },
     
     {
       "name": "Women's Asia Cup Rising Stars 2026",
       "image": "https://cricketvectors.akamaized.net/Series/2BR.png",
-      "_memo": "yosintv_cricket_google_redirect",
       "link": "https://yosintv.getemoji.online/cricket.html"
     },
     
