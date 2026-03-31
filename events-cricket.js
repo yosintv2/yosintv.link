@@ -4,19 +4,19 @@
     
     {
       "name": " All Cricket Matches ",
-      "image": "https://raw.githubusercontent.com/yosintv2/cdn/refs/heads/main/cricket.png",
+      "image": "https://cdn.jsdelivr.net/gh/yosintv2/cdn/cricket.png",
+      "link": "https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwiA2cbh2pmTAxXonq8BHTkCHMk4FBAWegQIFBAB&url=https%3A%2F%2Fwww.yosintv.net%2F&usg=AOvVaw1AldeXgo9_Ah7R2WMIHzFV&opi=89978449"
+    },
+  
+    {
+      "name": " Indian Premier League 2026 ",
+      "image": "https://api.sofascore1.com/api/v1/unique-tournament/11165/image",
       "link": "https://yosintv.getemoji.online/cricket.html"
     },
     
     {
-      "name": "Women's Asia Cup Rising Stars 2026",
-      "image": "https://cricketvectors.akamaized.net/Series/2BR.png",
-      "link": "https://yosintv.getemoji.online/cricket.html"
-    },
-    
-    {
-      "name": " New Zealand tour of India 2026 ",
-      "image": "https://cricketvectors.akamaized.net/Series/1V1.png",
+      "name": " Pakistan Super League 2026 ",
+      "image": "https://api.sofascore1.com/api/v1/unique-tournament/11170/image",
       "link": "https://yosintv.getemoji.online/cricket.html"
     }
   ]
