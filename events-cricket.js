@@ -1,19 +1,14 @@
 {
-  "title": "All Cricket Events",
+  "title": "All  Events",
   "matches": [
+    {
+      "name": " FIFA World Cup 2026 ",
+      "image": "https://images.fotmob.com/image_resources/logo/leaguelogo/77.png",
+      "link": "https://www.yosintv.net/fifawc.html"
+    },
     {
       "name": " All Cricket Matches ",
       "image": "https://cdn.jsdelivr.net/gh/yosintv2/cdn/cricket.png",
-      "link": "https://www.yosintv.net/cricket.html"
-    },
-    {
-      "name": " Indian Premier League 2026 ",
-      "image": "https://api.sofascore1.com/api/v1/unique-tournament/11165/image",
-      "link": "https://www.yosintv.net/cricket.html"
-    },
-    {
-      "name": " Pakistan Super League 2026 ",
-      "image": "https://api.sofascore1.com/api/v1/unique-tournament/11170/image",
       "link": "https://www.yosintv.net/cricket.html"
     }
   ]
