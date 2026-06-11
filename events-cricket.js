@@ -1,6 +1,11 @@
 {
-  "title": "All  Events",
+  "title": "All Events",
   "matches": [
+    {
+      "name": " FIFA World Cup - Opening Ceremony ",
+      "image": "https://images.fotmob.com/image_resources/logo/leaguelogo/77.png",
+      "link": "https://www.yosintv.net/fifawc.html"
+    },
     {
       "name": " FIFA World Cup 2026 ",
       "image": "https://images.fotmob.com/image_resources/logo/leaguelogo/77.png",
